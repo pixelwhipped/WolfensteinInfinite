@@ -4,6 +4,8 @@
 > This project is in active development. Expect bugs, missing features, incomplete systems, and frequent breaking changes. Contributions, feedback, and patience are all very welcome.
 
 ---
+💛 **Support on Patreon** — [patreon.com/pixelwhipped](https://www.patreon.com/15682673/join)  
+---
 # Wolfenstein Infinite
 > *Get Psyched. Again. And Again.*
 
