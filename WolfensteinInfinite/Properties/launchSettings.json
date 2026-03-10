@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "WolfensteinInfinite": {
+      "commandName": "Project",
+      "commandLineArgs": "-e"
+    }
+  }
+}
