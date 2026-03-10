@@ -4,6 +4,8 @@
 > This project is in active development. Expect bugs, missing features, incomplete systems, and frequent breaking changes. Contributions, feedback, and patience are all very welcome.
 
 ---
+# Wolfenstein Infinite
+> *Get Psyched. Again. And Again.*
 
 ## What Is This?
 
