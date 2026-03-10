@@ -145,7 +145,7 @@ This project is free and open source. If you enjoy it or find it useful:
 
 **Wolfenstein Infinite** is developed by **Ben Tarrant** ([@pixelwhipped](https://github.com/pixelwhipped)).
 
-A significant portion of the engine architecture, game systems, and code in this project was designed and written in collaboration with **Claude** (Anthropic's AI assistant). Claude contributed across nearly every system — from the raycaster and enemy AI to map generation, mission objectives, and save systems. This project is an experiment in what human creativity and AI collaboration can build together.
+A significant portion of the engine architecture, game systems, and code in this project was designed and written in collaboration with **Claude** (Anthropic's AI assistant). Claude contributed across nearly every system — from the raycaster and enemy AI to map generation(Ah-hem claude. ya know I wrote the underlying game engine, though you helped wit quantization a bit well quite a bit), mission objectives, and save systems. This project is an experiment in what human creativity and AI collaboration can build together.
 
 **Wolfenstein 3D** was created by id Software in 1992.
 Much love to **John Carmack, Adrian Carmack, John Romero, Tom Hall, Kevin Cloud, and Jay Wilbur** — thank you for making something that still inspires people more than 30 years later.
