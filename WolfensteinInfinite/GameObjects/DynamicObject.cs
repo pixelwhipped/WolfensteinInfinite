@@ -81,7 +81,10 @@ namespace WolfensteinInfinite.GameObjects
                 (int)state.Game.Player.PosY == (int)Y)
             {
                 if (state.TryPickupItem(Item))
+                {
+                    state.OnItemCollected();
                     IsAlive = false;
+                }
             }
         }
     }
@@ -115,7 +118,7 @@ namespace WolfensteinInfinite.GameObjects
             _projectile != null &&
             _projectile.AmmoType != AmmoType.MELEE;
 
-        public float FacingAngle { get; private set; } = 0f;
+        public float FacingAngle { get; private set; } = 180f;
 
         public EnemyObject(float x, float y, CharacterSprite sprite, Enemy enemy,
     Difficulties difficulty, string mod, Wolfenstein wolfenstein, int level)
@@ -345,11 +348,13 @@ namespace WolfensteinInfinite.GameObjects
                     : CharacterAnimationState.DYING_RIGHT);
                 state.Game.Player.Score += PointsReward;
                 PlaySound(Enemy.DeathSounds, state);
+                state.OnEnemyKilled();
             }
             else
             {
                 CharacterSprite.AnimationState = AnimationState;
             }
+
         }
 
         // ---- Update ---------------------------------------------------------

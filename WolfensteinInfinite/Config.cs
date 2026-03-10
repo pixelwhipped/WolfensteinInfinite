@@ -5,8 +5,9 @@ namespace WolfensteinInfinite
     public class Config(HighScore[] highScores,bool sound, int soundVolume, bool music, int musicVolume,
         Keyboard.Key keyUp, Keyboard.Key keyDown, Keyboard.Key keyLeft, Keyboard.Key keyRight,
         Keyboard.Key keyFire, Keyboard.Key keyOpen, Keyboard.Key keyStafe, Keyboard.Key keyWeaponUp, Keyboard.Key keyWeaponDown,
-        Keyboard.Key keyMap, Keyboard.Key keyPause, int windowSize, int resolution, int quantization, int maxMapSize, ModConfig[] mods)
+        Keyboard.Key keyMap, Keyboard.Key keyPause, int windowSize, int resolution, int quantization, bool lightBlur, int maxMapSize, ModConfig[] mods)
     {
+        public bool LightBlur { get; set; } = lightBlur;
         //needs to be name/level/score
         public HighScore[] HighScores { get; set; } = highScores;
         public bool Sound { get; set; } = sound;
@@ -42,7 +43,7 @@ namespace WolfensteinInfinite
                     new(Guid.Empty, "Jay Wilbur", 1, 10000)
                 ],true,100,true,100, Keyboard.Key.Up, Keyboard.Key.Down, Keyboard.Key.Left, Keyboard.Key.Right,
                 Keyboard.Key.LControl, Keyboard.Key.Space, Keyboard.Key.LAlt, Keyboard.Key.Comma, Keyboard.Key.Period,
-                Keyboard.Key.Tab, Keyboard.Key.Pause, 2, 0, 2, 64, []
+                Keyboard.Key.Tab, Keyboard.Key.Pause, 2, 0, 2, false, 64, []
                 );
         }
     }

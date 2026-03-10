@@ -1,6 +1,12 @@
-﻿enimies seem to be able to walk backward toward you.
-enemies can see though walls/doors
-projetiles can pass though walls/closed doors
+﻿Doors when opening seem to dont seem to just have a clip at end of texture but wrap when opening/closing
+-----------
+Allow full maps — non-composable sections with start and exit
+Music state switching — queue music on menu, change between maps
+----------------------
+
+below done
+
+fade to black end of level -> acheivements -> Generate -> Ingame
 
 I forgot these Forgot
 Add exit wall swap texture animation switch.  delay before next level.

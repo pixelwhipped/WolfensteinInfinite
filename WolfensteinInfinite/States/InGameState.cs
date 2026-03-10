@@ -36,7 +36,7 @@ namespace WolfensteinInfinite.States
         private float[,]? _lightMap;
         private const float LightRadius = 2f;
         private const float LightIntensity = 0.5f; // increase for brighter, decrease for dimmer (0.0 - 1.0)
-        private const bool LightBlur = false;
+
 
         private int _lastLightTileX = -1;
         private int _lastLightTileY = -1;
@@ -57,7 +57,20 @@ namespace WolfensteinInfinite.States
 
         private bool _mapVisible = false;
         private bool[][] _visited;
-        
+
+        private bool _exitActivated = false;
+        private float _exitDelay = 0f;
+        private const float ExitDelayDuration = 2.0f;
+
+        private readonly ITween _exitFadeTween = new Tween(1.5f, null);
+
+        private int _enemiesKilled = 0;
+        private int _enemiesTotal = 0;
+        private int _itemsCollected = 0;
+        private int _itemsTotal = 0;
+
+        public void OnEnemyKilled() => _enemiesKilled++;
+        public void OnItemCollected() => _itemsCollected++;
         public InGameState(Wolfenstein wolfenstein, Game game) : base(wolfenstein)
         {
             Game = game;
@@ -185,6 +198,9 @@ namespace WolfensteinInfinite.States
 
             SpriteOrder = new int[DynamicObjects.Count];
             SpriteDistance = new float[DynamicObjects.Count];
+
+            _enemiesTotal = DynamicObjects.OfType<EnemyObject>().Count();
+            _itemsTotal = DynamicObjects.OfType<PickupItemObject>().Count();
         }
 
         public void RecordHighScore()
@@ -374,6 +390,9 @@ namespace WolfensteinInfinite.States
             UpdateScene(buffer, frameTime);
             UpdateWeapon(buffer, frameTime);
             UpdateHud(buffer, frameTime);
+            if (_exitActivated)
+                buffer.RectFill(0, 0, buffer.Width, buffer.Height,
+                    0, 0, 0, (byte)(255 * _exitFadeTween.Value));
             DamageTween.Update(frameTime);
             PickupTween.Update(frameTime);
             buffer.RectFill(0, 0, buffer.Width, buffer.Height, 255, 0, 0,
@@ -387,11 +406,20 @@ namespace WolfensteinInfinite.States
                 wall.Update(frameTime, Game.Map);
         }
 
+        private LevelStats BuildLevelStats() => new(
+    _enemiesKilled, _enemiesTotal,
+    _itemsCollected, _itemsTotal,
+    Game.Map.PushWalls.Count(w => w.IsComplete),
+    Game.Map.PushWalls.Count);
+
         private GameState HandleExit()
         {
             RecordHighScore();
             AutoSave();
             Game.Map.Level++;
+
+            GameState nextLevel;
+
             if (Game.Map.Level % 10 == 0)
             {
                 var specials = Game.Mods
@@ -403,12 +431,23 @@ namespace WolfensteinInfinite.States
                 if (specials.Length > 0)
                 {
                     var chosen = specials[Random.Shared.Next(specials.Length)];
-                    return new SpecialLevelState(
+                    nextLevel = new SpecialLevelState(
                         Wolfenstein, Game.Player, Game.Map.Difficulty,
                         Game.Map.Level, chosen.Mod, chosen.Section);
                 }
+                else
+                {
+                    nextLevel = new GameGenerationState(
+                        Wolfenstein, Game.Player, Game.Map.Difficulty, Game.Map.Level);
+                }
             }
-            return new GameGenerationState(Wolfenstein, Game.Player, Game.Map.Difficulty, Game.Map.Level);
+            else
+            {
+                nextLevel = new GameGenerationState(
+                    Wolfenstein, Game.Player, Game.Map.Difficulty, Game.Map.Level);
+            }
+
+            return new LevelCompleteState(Wolfenstein, Game.Player, Game.Map, BuildLevelStats(), nextLevel);
         }
 
         public void UpdateWeapon(Texture32 buffer, float frameTime)
@@ -816,6 +855,11 @@ namespace WolfensteinInfinite.States
             UpdateDoors(frameTime);
             UpdatePushWalls(frameTime);
             UpdateDynamiteCountdown(frameTime);
+            if (_exitActivated)
+            {
+                _exitFadeTween.Update(frameTime);
+                UpdateExitDelay(frameTime);
+            }
         }
 
         private void UpdateDynamicObjects(float frameTime)
@@ -906,6 +950,18 @@ namespace WolfensteinInfinite.States
                 var result = TryInteract();
                 if (result == InteractResult.Exited)
                     _pendingExit = true;
+                else if (result == InteractResult.Activated)
+                {
+                    var exitTextureIdx = Array.FindIndex(
+                        Game.Map.WallSourceIndicies, k => k.Index == 1003);
+                    if (exitTextureIdx >= 0)
+                        Game.Map.WallTextures[exitTextureIdx] =
+                            Wolfenstein.GameResources.ElevatorSwitchDown;
+
+                    _exitActivated = true;
+                    _exitDelay = ExitDelayDuration;
+                    _exitFadeTween.Reset();
+                }
                 else if (result == InteractResult.Locked)
                 {
                     ShowHudMessage("COMPLETE OBJECTIVES FIRST");
@@ -921,7 +977,16 @@ namespace WolfensteinInfinite.States
             var mapKeyDown = Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyMap);
 
         }
-
+        private void UpdateExitDelay(float frameTime)
+        {
+            if (!_exitActivated) return;
+            _exitDelay -= frameTime;
+            if (_exitDelay <= 0f)
+            {
+                _exitActivated = false;
+                _pendingExit = true;
+            }
+        }
         private bool IsDecalPassable(int x, int y)
         {
             var decal = Game.Map.Decals.FirstOrDefault(d => d.X == x && d.Y == y);
@@ -977,7 +1042,7 @@ namespace WolfensteinInfinite.States
                 }
             }
 
-            if (LightBlur)
+            if (Wolfenstein.Config.LightBlur)
             {
                 // Separable box blur — horizontal pass into temp, then vertical pass back
                 var temp = new float[h, w];
@@ -1260,17 +1325,24 @@ namespace WolfensteinInfinite.States
                     if (!visible) continue;
                 }
 
-                // Billboard angle for non-directional, fixed 0 for directional
+                // Replace the current angle block and texture fetch:
                 float angleToPlayer = 0f;
                 if (obj is not DecalObject { Decal.Direction: not Direction.NONE })
                 {
                     angleToPlayer = MathF.Atan2(
                         Game.Player.PosY - obj.Y,
                         Game.Player.PosX - obj.X) * (180f / MathF.PI);
-                    angleToPlayer = (angleToPlayer + 360) % 360;
+                    angleToPlayer = (angleToPlayer + 360f) % 360f;
                 }
 
-                var texture = obj.Sprite.GetTexture(angleToPlayer);
+                // For enemies, sprite frame is relative to their facing direction
+                // so walking toward player shows front sprite, away shows back sprite
+                float spriteAngle = angleToPlayer;
+                if (obj is EnemyObject enemyObj)
+                    spriteAngle = (angleToPlayer - enemyObj.FacingAngle + 360f) % 360f;
+
+                var texture = obj.Sprite.GetTexture(spriteAngle);
+
                 if (texture == null) continue;
 
                 var texWidth = texture.Width;
