@@ -4,6 +4,10 @@
 > This project is in active development. Expect bugs, missing features, incomplete systems, and frequent breaking changes. Contributions, feedback, and patience are all very welcome.
 
 ---
+💛 **Support on Patreon** — [patreon.com/pixelwhipped](https://www.patreon.com/15682673/join)  
+---
+# Wolfenstein Infinite
+> *Get Psyched. Again. And Again.*
 
 ## What Is This?
 
@@ -50,10 +54,8 @@ The repository ships with the **Demo mod** which uses the original Wolfenstein 3
 
 If you own a copy of Wolfenstein 3D you can add the full game data for a richer experience:
 
-1. Locate your Wolfenstein 3D game files
-2. Run the extractor tool included with the project — it will parse the original game data and export it into the mod format the engine expects
-3. The extracted data will be placed in `GameData\Wolfenstein3D\`
-4. Launch the game — the full mod will be detected automatically
+1. Locate your Wolfenstein 3D game files and place in `GameData\Wolfenstein3D\`
+2. Launch the game — the full mod will be detected automatically
 
 > The original game files are **not included** in this repository and cannot be distributed here. You must own a legitimate copy.
 
@@ -145,7 +147,7 @@ This project is free and open source. If you enjoy it or find it useful:
 
 **Wolfenstein Infinite** is developed by **Ben Tarrant** ([@pixelwhipped](https://github.com/pixelwhipped)).
 
-A significant portion of the engine architecture, game systems, and code in this project was designed and written in collaboration with **Claude** (Anthropic's AI assistant). Claude contributed across nearly every system — from the raycaster and enemy AI to map generation, mission objectives, and save systems. This project is an experiment in what human creativity and AI collaboration can build together.
+A significant portion of the engine architecture, game systems, and code in this project was designed and written in collaboration with **Claude** (Anthropic's AI assistant). Claude contributed across nearly every system — from the raycaster and enemy AI to map generation(Ah-hem claude. ya know I wrote the underlying game engine, though you helped wit quantization a bit well quite a bit), mission objectives, and save systems. This project is an experiment in what human creativity and AI collaboration can build together.
 
 **Wolfenstein 3D** was created by id Software in 1992.
 Much love to **John Carmack, Adrian Carmack, John Romero, Tom Hall, Kevin Cloud, and Jay Wilbur** — thank you for making something that still inspires people more than 30 years later.
