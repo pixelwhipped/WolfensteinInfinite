@@ -52,10 +52,8 @@ The repository ships with the **Demo mod** which uses the original Wolfenstein 3
 
 If you own a copy of Wolfenstein 3D you can add the full game data for a richer experience:
 
-1. Locate your Wolfenstein 3D game files
-2. Run the extractor tool included with the project — it will parse the original game data and export it into the mod format the engine expects
-3. The extracted data will be placed in `GameData\Wolfenstein3D\`
-4. Launch the game — the full mod will be detected automatically
+1. Locate your Wolfenstein 3D game files and place in `GameData\Wolfenstein3D\`
+2. Launch the game — the full mod will be detected automatically
 
 > The original game files are **not included** in this repository and cannot be distributed here. You must own a legitimate copy.
 
