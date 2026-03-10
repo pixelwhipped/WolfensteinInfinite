@@ -361,3 +361,35 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/WolfensteinInfinite/GameData/AUDIOHED.SD2
+/WolfensteinInfinite/GameData/AUDIOHED.SD3
+/WolfensteinInfinite/GameData/AUDIOHED.SOD
+/WolfensteinInfinite/GameData/AUDIOHED.WL6
+/WolfensteinInfinite/GameData/AUDIOT.SD2
+/WolfensteinInfinite/GameData/AUDIOT.SD3
+/WolfensteinInfinite/GameData/AUDIOT.SOD
+/WolfensteinInfinite/GameData/AUDIOT.WL6
+/WolfensteinInfinite/GameData/GAMEMAPS.SD2
+/WolfensteinInfinite/GameData/GAMEMAPS.SD3
+/WolfensteinInfinite/GameData/GAMEMAPS.SOD
+/WolfensteinInfinite/GameData/GAMEMAPS.WL6
+/WolfensteinInfinite/GameData/MAPHEAD.SD2
+/WolfensteinInfinite/GameData/MAPHEAD.SD3
+/WolfensteinInfinite/GameData/MAPHEAD.SOD
+/WolfensteinInfinite/GameData/MAPHEAD.WL6
+/WolfensteinInfinite/GameData/VGADICT.SD2
+/WolfensteinInfinite/GameData/VGADICT.SD3
+/WolfensteinInfinite/GameData/VGADICT.SOD
+/WolfensteinInfinite/GameData/VGADICT.WL6
+/WolfensteinInfinite/GameData/VGAGRAPH.SD2
+/WolfensteinInfinite/GameData/VGAGRAPH.SD3
+/WolfensteinInfinite/GameData/VGAGRAPH.SOD
+/WolfensteinInfinite/GameData/VGAGRAPH.WL6
+/WolfensteinInfinite/GameData/VGAHEAD.SD2
+/WolfensteinInfinite/GameData/VGAHEAD.SD3
+/WolfensteinInfinite/GameData/VGAHEAD.SOD
+/WolfensteinInfinite/GameData/VGAHEAD.WL6
+/WolfensteinInfinite/GameData/VSWAP.SD2
+/WolfensteinInfinite/GameData/VSWAP.SD3
+/WolfensteinInfinite/GameData/VSWAP.SOD
+/WolfensteinInfinite/GameData/VSWAP.WL6
