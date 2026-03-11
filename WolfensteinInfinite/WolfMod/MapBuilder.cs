@@ -33,7 +33,7 @@ namespace WolfensteinInfinite.WolfMod
                 e = [.. err];
                 return e.Length == 0 ? s : null;
             }
-            sections = sections.Where(s => !s.IsFullMap).ToArray();
+            sections = [.. sections.Where(s => !s.IsFullMap)];
             var starts = sections.Where(p => p.HasPlayerStart && p.IntendedMinLevel <= level).ToArray();
             var ends = sections.Where(p => p.HasPlayerExit && p.IntendedMinLevel <= level).ToArray();
             var keyLocations = sections.Where(p => p.HasKeys && p.IntendedMinLevel <= level).ToArray();
@@ -47,17 +47,17 @@ namespace WolfensteinInfinite.WolfMod
             var other = sections.Where(p => p.HasNothing(mod) && p.IntendedMinLevel <= level).ToArray();
 
             return Validate(new GeneratorSectionTypes(
-                starts.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections())).ToArray(),
-                ends.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections())).ToArray(),
-                keyLocations.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections())).ToArray(),
-                keyLockedDoors.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections())).ToArray(),
-                boss.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections())).ToArray(),
-                pow.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections())).ToArray(),
-                secret.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections())).ToArray(),
-                radio.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections())).ToArray(),
-                dynamite.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections())).ToArray(),
-                dynamitePlacement.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections())).ToArray(),
-                other.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections())).ToArray()
+                [.. starts.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections()))],
+                [.. ends.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections()))],
+                [.. keyLocations.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections()))],
+                [.. keyLockedDoors.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections()))],
+                [.. boss.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections()))],
+                [.. pow.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections()))],
+                [.. secret.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections()))],
+                [.. radio.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections()))],
+                [.. dynamite.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections()))],
+                [.. dynamitePlacement.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections()))],
+                [.. other.Select(p => new MapGeneratorSection(0, 0, mod, p, p.GetConnections()))]
                 ), out errors);
         }
         public static GeneratorSectionTypes? GetSectionTypes(MapGenerator builder, int level, out string[] errors)
@@ -104,7 +104,7 @@ namespace WolfensteinInfinite.WolfMod
         public int Width { get; init; }
         public int Height { get; init; }
         public int Level { get; init; }
-        public InosculationTree<(int X, int T), MapGeneratorSection> Tree { get; init; }
+        public InosculationTree<(int X, int T), MapGeneratorSection>? Tree { get; init; }
         public Dictionary<Guid, MapGeneratorSection> MapLayers { get; init; } = [];
         public MapGeneratorSection[] Sections { get; init; }
         public GeneratorSectionTypes SectionByTypes { get; init; }
@@ -188,7 +188,7 @@ namespace WolfensteinInfinite.WolfMod
             bool CanPlaceRadio()
             {
                 if (!(SectionByTypes.Secret.Length > 0 && SectionByTypes.Radio.Length > 0)) return false;
-                if (placeSecret && HasPlaced.Radio == false) return placeLockedDoor ? HasPlaced.LockedDoor : true;
+                if (placeSecret && HasPlaced.Radio == false) return !placeLockedDoor || HasPlaced.LockedDoor;
                 return false;
             }
             bool CanPlacePow() => SectionByTypes.Pow.Length > 0 && placePow && HasPlaced.Pow == false;
@@ -319,8 +319,8 @@ namespace WolfensteinInfinite.WolfMod
             if (useDoors == 1 && openConnectionCount == 1) nodes.RemoveAll(p => !p.Section.HasPlayerExit);
             else if (useDoors > 1 && openConnectionCount == 1)
             {
-                if (nodes.Any(p => p.Section.GetConnections().Count() > 1))
-                    nodes.RemoveAll(p => p.Section.GetConnections().Count() == 1);
+                if (nodes.Any(p => p.Section.GetConnections().Length > 1))
+                    nodes.RemoveAll(p => p.Section.GetConnections().Length == 1);
             }
 
             var returnNodes = new List<MapGeneratorSection>();
@@ -486,7 +486,7 @@ namespace WolfensteinInfinite.WolfMod
             LastSectionHash = section.Section.SectionHash;
         }
 
-        internal Map ToGameMap(Player player, Difficulties difficulty, int Level)
+        internal Map? ToGameMap(Player player, Difficulties difficulty, int Level)
         {
 
             var floor = new Texture32(64, 64);
@@ -769,23 +769,23 @@ namespace WolfensteinInfinite.WolfMod
             Map.Decals = [.. decalList];
             Map.Items = [.. itemList];
             Map.Enemies = [.. enemyPlacements];
-            foreach (var d in doorList)
+            foreach (var (x, y, t) in doorList)
             {
                 Map.Doors.Add(new Door
                 {
-                    X = d.x,
-                    Y = d.y,
+                    X = x,
+                    Y = y,
                     OpenAmount = 0.0f,
-                    TextureIndex = d.t,
-                    IsLocked = d.t == 2,
-                    IsVertical = DetermineDoorOrientation(d.x, d.y, wallMap)
+                    TextureIndex = t,
+                    IsLocked = t == 2,
+                    IsVertical = DetermineDoorOrientation(x, y, wallMap)
                 });
             }
 
             return Map;
         }
 
-        private bool SkipSpecialChance(int[][] special, int x, int y)
+        private static bool SkipSpecialChance(int[][] special, int x, int y)
         {
             if (special[y][x] == 9) //5%
             {
@@ -806,11 +806,8 @@ namespace WolfensteinInfinite.WolfMod
             return false;
         }
 
-        private bool DetermineDoorOrientation(int x, int y, int[][] wallMap)
+        private static bool DetermineDoorOrientation(int x, int y, int[][] wallMap)
         {
-            //bool hasWallLeft = (x > 0 && wallMap[x - 1][y] > 0);
-            //bool hasWallRight = (x < wallMap.Length - 1 && wallMap[x + 1][y] > 0);
-
             bool hasWallLeft = (x > 0 && wallMap[y][x - 1] > 0);
             bool hasWallRight = (x < wallMap[0].Length - 1 && wallMap[y][x + 1] > 0);
 
@@ -818,17 +815,14 @@ namespace WolfensteinInfinite.WolfMod
             return hasWallLeft || hasWallRight;
         }
 
-        private (float X, float Y) GetXYDirection(Direction direction)
+        private static (float X, float Y) GetXYDirection(Direction direction) => direction switch
         {
-            return direction switch
-            {
-                Direction.NORTH => ((float X, float Y))(0, -1),
-                Direction.EAST => ((float X, float Y))(1, 0),
-                Direction.SOUTH => ((float X, float Y))(0, 1),
-                Direction.WEST => ((float X, float Y))(-1, 0),
-                _ => ((float X, float Y))(0, 0),
-            };
-        }
+            Direction.NORTH => ((float X, float Y))(0, -1),
+            Direction.EAST => ((float X, float Y))(1, 0),
+            Direction.SOUTH => ((float X, float Y))(0, 1),
+            Direction.WEST => ((float X, float Y))(-1, 0),
+            _ => ((float X, float Y))(0, 0),
+        };
         private static Direction DeterminFacingDirection(int startX, int startY, int[][] wallMap, int[][] doorMap)
         {
             var wallNorth = 0;
@@ -935,10 +929,10 @@ namespace WolfensteinInfinite.WolfMod
                             (y,x+1),
                             (y,x-1),
                     };
-                    options = options.Where(p =>
+                    options = [.. options.Where(p =>
                         p.y >= 0 && p.y < h &&
                         p.x >= 0 && p.x < w
-                        ).ToArray();
+                        )];
                     var connections = 0;
                     foreach (var o in options)
                     {

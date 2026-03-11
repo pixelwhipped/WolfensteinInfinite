@@ -14,14 +14,14 @@ namespace WolfensteinInfinite.WolfMod
             }
             return new SpriteAnimation(name, spritePath, [.. sprites], framesPerSecond);
         }
-        public static Animation Create(SpriteAnimation sprite)
+        public static WolfensteinInfinite.SpriteAnimation Create(SpriteAnimation sprite)
         {
             var animation = new List<Texture32>();
             foreach (var s in sprite.Sprites)
             {
                 animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(sprite.SpritePath, s)));
             }
-            return new Animation([.. animation], 1, animation.Count, sprite.FramesPerSecond);
+            return new WolfensteinInfinite.SpriteAnimation([.. animation], 1, animation.Count, sprite.FramesPerSecond);
         }
 
         public static WeaponAnimation Create(PlayerWeapon playerWeapon)

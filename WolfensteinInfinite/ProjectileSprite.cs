@@ -4,7 +4,7 @@ namespace WolfensteinInfinite
 {
     public class ProjectileSprite : ISprite
     {
-        private Animation? Animation { get; init; }
+        private SpriteAnimation? Animation { get; init; }
         public ProjectileSprite(string? path, int start, ProjectileSpriteType type)
         {
             if (path == null)
@@ -31,7 +31,7 @@ namespace WolfensteinInfinite
             }
         }
 
-        private Animation ReadRocketAnimations(string path, int start)
+        private SpriteAnimation ReadRocketAnimations(string path, int start)
         {
             var animation = new List<Texture32>();
             int end = start + 8;
@@ -39,9 +39,9 @@ namespace WolfensteinInfinite
             {
                 animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
             }
-            return new Animation([.. animation], 8, 1, 1);
+            return new SpriteAnimation([.. animation], 8, 1, 1);
         }
-        private Animation ReadAnimations(string path, int start, int directions, int frames)
+        private SpriteAnimation ReadAnimations(string path, int start, int directions, int frames)
         {
             var animation = new List<Texture32>();
             int end = start + directions * frames;
@@ -49,7 +49,7 @@ namespace WolfensteinInfinite
             {
                 animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
             }
-            return new Animation([.. animation], directions, frames, 1);
+            return new SpriteAnimation([.. animation], directions, frames, 1);
         }
         public void Update(float frameTimeSeconds) => Animation?.Update(frameTimeSeconds);
         public Texture32 GetTexture(float angle) => Animation?.GetTexture(angle) ?? Texture32.NonNullTexture;

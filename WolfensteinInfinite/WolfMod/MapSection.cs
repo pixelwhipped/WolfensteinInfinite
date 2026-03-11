@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 namespace WolfensteinInfinite.WolfMod
 {
 
-    public class MapSection
+    public class MapSection(int w, int h)
     {
         public const int ClosedSectionWall = 0;
         public const int ClosedSectionWallAny = 3;
@@ -19,10 +19,7 @@ namespace WolfensteinInfinite.WolfMod
 
         public static T[][] CopyJaggedArray<T>(T[][] source) where T : struct
         {
-            if (source == null)
-            {
-                return null;
-            }
+            ArgumentNullException.ThrowIfNull(source);
 
             // 1. Initialize the destination jagged array with the same number of rows.
             T[][] destination = new T[source.Length][];
@@ -31,13 +28,6 @@ namespace WolfensteinInfinite.WolfMod
             {
                 // Get the current inner array from the source
                 T[] sourceInner = source[i];
-
-                if (sourceInner == null)
-                {
-                    destination[i] = null;
-                    continue;
-                }
-
                 // 2. Initialize each inner array in the destination with the correct length.
                 T[] destInner = new T[sourceInner.Length];
 
@@ -162,9 +152,8 @@ namespace WolfensteinInfinite.WolfMod
         public bool IsFullMap => HasPlayerStart && HasPlayerExit &&
     GetClosedSection(out bool closed, out _, out _) != null && closed;
         public MapSection() : this(64, 64) { }
-        public MapSection(int w, int h)
-        {
-            Layers = [
+
+        public KeyValuePair<MapArrayLayouts, int[][]>[] Layers { get; set; } = [
                 new(MapArrayLayouts.WALLS, Empty(w, h)),
                 new(MapArrayLayouts.DECALS, Empty(w, h)),
                 new(MapArrayLayouts.ITEMS, Empty(w, h)),
@@ -173,8 +162,6 @@ namespace WolfensteinInfinite.WolfMod
                 new(MapArrayLayouts.DOORS, Empty(w, h)),
                 new(MapArrayLayouts.SPECIAL, Empty(w, h))
             ];
-        }
-        public KeyValuePair<MapArrayLayouts, int[][]>[] Layers { get; set; }
         public MapSection Clone() => Clone(this);
         public static MapSection Clone(MapSection section)
         {

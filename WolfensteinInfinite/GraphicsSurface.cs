@@ -1,4 +1,6 @@
-﻿namespace WolfensteinInfinite
+﻿using WolfensteinInfinite.Engine.Graphics;
+
+namespace WolfensteinInfinite
 {
     public partial class GraphicsSurface : IGraphics
     {

@@ -1,4 +1,5 @@
 ﻿using SFML.Window;
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameAudio;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameObjects;
@@ -56,13 +57,13 @@ namespace WolfensteinInfinite.States
         private const float MinCountdownSeconds = 30f;
 
         private bool _mapVisible = false;
-        private bool[][] _visited;
+        private readonly bool[][] _visited;
 
         private bool _exitActivated = false;
         private float _exitDelay = 0f;
         private const float ExitDelayDuration = 2.0f;
 
-        private readonly ITween _exitFadeTween = new Tween(1.5f, null);
+        private readonly Tween _exitFadeTween = new(1.5f, null);
 
         private int _enemiesKilled = 0;
         private int _enemiesTotal = 0;
@@ -412,7 +413,7 @@ namespace WolfensteinInfinite.States
     Game.Map.PushWalls.Count(w => w.IsComplete),
     Game.Map.PushWalls.Count);
 
-        private GameState HandleExit()
+        private LevelCompleteState HandleExit()
         {
             RecordHighScore();
             AutoSave();
@@ -529,7 +530,7 @@ namespace WolfensteinInfinite.States
 
             Texture32 GetFace()
             {
-                Animation face;
+                SpriteAnimation face;
                 if (Game.Player.GodMode) face = Wolfenstein.GameResources.HudFaces[0];
                 else if (Game.Player.Health >= 70) face = Wolfenstein.GameResources.HudFaces[1];
                 else if (Game.Player.Health >= 55) face = Wolfenstein.GameResources.HudFaces[2];
@@ -1107,8 +1108,8 @@ namespace WolfensteinInfinite.States
             int playerMapX = (int)Game.Player.PosX;
             int playerMapY = (int)Game.Player.PosY;
 
-            int[] dx = { -1, 1, 0, 0 };
-            int[] dy = { 0, 0, -1, 1 };
+            int[] dx = [-1, 1, 0, 0];
+            int[] dy = [0, 0, -1, 1];
 
             // Static interactables
             IEnumerable<IInteractable> interactables =

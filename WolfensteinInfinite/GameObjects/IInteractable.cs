@@ -3,8 +3,8 @@
 
     public interface IInteractable
     {
-        float X { get; }
-        float Y { get; }
+        int X { get; }
+        int Y { get; }
         bool CanInteract(Game game);
         InteractResult Interact(Game game);
     }

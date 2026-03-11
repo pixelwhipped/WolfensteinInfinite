@@ -1,5 +1,6 @@
 ﻿using NAudio.Midi;
 using SFML.Graphics;
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameAudio;
 using WolfensteinInfinite.WolfMod;
 
@@ -63,7 +64,7 @@ namespace WolfensteinInfinite
         public Texture32 ElevatorSide { get; init; }
         public Texture32 ElevatorDoor { get; init; }
         public Texture32 PlayerStart { get; init; }
-        public Animation[] HudFaces { get; init; }
+        public SpriteAnimation[] HudFaces { get; init; }
         public GameResources(byte[] pallet)
         {
             Pallet = pallet;

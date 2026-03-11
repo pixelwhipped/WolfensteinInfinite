@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using WolfensteinInfinite.DataFormats;
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameAudio;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.States;
@@ -34,7 +35,7 @@ namespace WolfensteinInfinite
         public Dictionary<string, Dictionary<int, Texture32>> Decals { get; init; } = [];
         public Dictionary<string, Dictionary<int, CharacterSprite>> CharacterSprites { get; init; } = [];
         public Dictionary<string, Dictionary<string, ProjectileSprite>> ProjectileSprites { get; init; } = [];
-        public Dictionary<string, Dictionary<string, Animation>> SpriteAnimations { get; init; } = [];
+        public Dictionary<string, Dictionary<string, SpriteAnimation>> SpriteAnimations { get; init; } = [];
         public Dictionary<string, PlayerWeapon> PlayerWeapons { get; init; } = [];
         public Dictionary<string, WeaponAnimation> WeaponAnimations { get; init; } = [];
         public Dictionary<string, Texture32> WeaponHudTextures { get; init; } = [];
@@ -151,12 +152,14 @@ namespace WolfensteinInfinite
 
             foreach (var mod in Mods)
             {
-                var t = new List<Texture>(mod.Value.Textures);
-                t.Add(new Texture(1001, "ElevatorDoor", "GameData\\Base\\Textures\\ElevatorDoor.png"));
-                Textures[mod.Key].Add(1001, GameResources.ElevatorDoor);
-                t.Add(new Texture(1002, "ElevatorSide", "GameData\\Base\\Textures\\ElevatorSide.png"));
-                Textures[mod.Key].Add(1002, GameResources.ElevatorSide);
-                t.Add(new Texture(1003, "ElevatorSwitch", "GameData\\Base\\Textures\\ElevatorUp.png"));
+                var t = new List<Texture>(mod.Value.Textures)
+                {
+                    new(1001, "ElevatorDoor", "GameData\\Base\\Textures\\ElevatorDoor.png"),
+                    new(1002, "ElevatorSide", "GameData\\Base\\Textures\\ElevatorSide.png"),
+                    new(1003, "ElevatorSwitch", "GameData\\Base\\Textures\\ElevatorUp.png")
+                };
+                Textures[mod.Key].Add(1001, GameResources.ElevatorDoor);                
+                Textures[mod.Key].Add(1002, GameResources.ElevatorSide);                
                 Textures[mod.Key].Add(1003, GameResources.ElevatorSwitchUp);
                 mod.Value.Textures = [.. t];
 
@@ -546,7 +549,7 @@ namespace WolfensteinInfinite
             experiment = null;
             experimentSprite = null;
             if (mod.ExperimentalEnemy.Length <= 0) return;
-            Dictionary<CharacterAnimationState, Animation> Animations = [];
+            Dictionary<CharacterAnimationState, SpriteAnimation> Animations = [];
             var e = mod.ExperimentalEnemy[Random.Shared.Next(0, mod.ExperimentalEnemy.Length)];
             var composit = new Texture32(704, 64);
             var top = ExperimentalEnemyTexture[mod.Name][e.TopSpriteOptions[Random.Shared.Next(0, e.TopSpriteOptions.Length)]];
@@ -594,8 +597,8 @@ namespace WolfensteinInfinite
                 tex.Draw(i * -64, 0, composit);
                 animation.Add(tex);
             }
-            Animations.Add(CharacterAnimationState.STANDING, new Animation([.. animation], 1, 4, 3.5f));
-            Animations.Add(CharacterAnimationState.WALKING, new Animation([.. animation], 1, 4, 3.5f));
+            Animations.Add(CharacterAnimationState.STANDING, new SpriteAnimation([.. animation], 1, 4, 3.5f));
+            Animations.Add(CharacterAnimationState.WALKING, new SpriteAnimation([.. animation], 1, 4, 3.5f));
             animation.Clear();
             for (int i = 4; i < 7; i++)
             {
@@ -603,7 +606,7 @@ namespace WolfensteinInfinite
                 tex.Draw(i * -64, 0, composit);
                 animation.Add(tex);
             }
-            Animations.Add(CharacterAnimationState.ATTACKING, new Animation([.. animation], 1, 3, 3.5f));
+            Animations.Add(CharacterAnimationState.ATTACKING, new SpriteAnimation([.. animation], 1, 3, 3.5f));
             animation.Clear();
 
             for (int i = 7; i < 8; i++)
@@ -612,7 +615,7 @@ namespace WolfensteinInfinite
                 tex.Draw(i * -64, 0, composit);
                 animation.Add(tex);
             }
-            Animations.Add(CharacterAnimationState.DEAD, new Animation([.. animation], 1, 1, 1));
+            Animations.Add(CharacterAnimationState.DEAD, new SpriteAnimation([.. animation], 1, 1, 1));
             animation.Clear();
 
             for (int i = 8; i < 11; i++)
@@ -621,8 +624,8 @@ namespace WolfensteinInfinite
                 tex.Draw(i * -64, 0, composit);
                 animation.Add(tex);
             }
-            Animations.Add(CharacterAnimationState.DYING_LEFT, new Animation([.. animation], 1, 3, 3.5f));
-            Animations.Add(CharacterAnimationState.DYING_RIGHT, new Animation([.. animation], 1, 3, 3.5f));
+            Animations.Add(CharacterAnimationState.DYING_LEFT, new SpriteAnimation([.. animation], 1, 3, 3.5f));
+            Animations.Add(CharacterAnimationState.DYING_RIGHT, new SpriteAnimation([.. animation], 1, 3, 3.5f));
 
             experimentSprite = new CharacterSprite(Animations);
 

@@ -124,9 +124,7 @@ namespace WolfensteinInfinite.Editor
 
             var removers = new Dictionary<TabItem, TryRemoveDelegate>()
             {
-                [LayerWallsControl] = (ref bool c) => LayerControl.SelectedItem == LayerSpecialControl
-                    ? false
-                    : ActiveSection.Walls[y][x] >= 0 && !HandleMapTryRemoveWall(x, y, ref c),
+                [LayerWallsControl] = (ref bool c) => LayerControl.SelectedItem != LayerSpecialControl && ActiveSection.Walls[y][x] >= 0 && !HandleMapTryRemoveWall(x, y, ref c),
                 [LayerDecalsControl] = (ref bool c) => ActiveSection.Decals[y][x] >= 0
                     && !IsApplyingChance() && !HandleMapTryRemoveDecals(x, y, ref c),
                 [LayerItemsControl] = (ref bool c) => ActiveSection.Items[y][x] >= 0
@@ -537,7 +535,7 @@ namespace WolfensteinInfinite.Editor
             }
         }
 
-        private string GetNameForSpecial(int i) => i switch
+        private static string GetNameForSpecial(int i) => i switch
         {
             0 => "Player Start",
             1 => "Random Enemy",
@@ -991,7 +989,7 @@ namespace WolfensteinInfinite.Editor
         {
             if (ActiveMod == null || ActiveSection == null) return;
             var builder = Wolfenstein.BuilderMods[ActiveMod.Name];
-            builder.MapSections = builder.MapSections.Where(p => p.Id != ActiveSection.Id).ToArray();
+            builder.MapSections = [.. builder.MapSections.Where(p => p.Id != ActiveSection.Id)];
             ChangeStates[ActiveMod] = true;
             SetActiveMod(ActiveMod);
         }
@@ -1000,7 +998,7 @@ namespace WolfensteinInfinite.Editor
         {
             if (ActiveMod == null || ActiveSection == null) return;
             int[][]? area = ActiveSection.GetClosedSection(out bool closed, out bool noDoors, out bool multiple);
-            MessageBox.Show($"Closed: {closed} NoDoors: {noDoors} Multiple: {multiple}");
+            MessageBox.Show($"null:{area==null} Closed: {closed} NoDoors: {noDoors} Multiple: {multiple}");
         }
 
         private void MinLevelSld_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)

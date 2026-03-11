@@ -1,4 +1,6 @@
 ﻿//http://elynxsdk.free.fr/ext-docs/Rasterization/Lines/Lines%20algorithms.htm#:~:text=The%20Extremely%20Fast%20Line%20Algorithm,is%20extremely%20simple%20and%20fast.&text=There%20are%20four%20variations%20of,branch%20instructions%20within%20the%20loop.
+using WolfensteinInfinite.Engine.Graphics;
+
 namespace WolfensteinInfinite
 {
     public partial class GraphicsSurface
