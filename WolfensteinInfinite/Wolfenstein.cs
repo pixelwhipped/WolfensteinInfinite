@@ -653,7 +653,29 @@ namespace WolfensteinInfinite
                 bosses[Random.Shared.Next(0, bosses.Count)].TauntSounds);
 
         }
+        public void ReloadMod(string modName)
+        {
+            var modPath = FileHelpers.Shared.GetDataFilePath($@"Mods\{modName}\map.json");
+            if (File.Exists(modPath))
+            {
+                var builder = FileHelpers.Shared.Deserialize<MapBuilder>(modPath);
+                if (builder != null) BuilderMods[modName] = builder;
+            }
 
+            var specialPath = FileHelpers.Shared.GetDataFilePath($@"Mods\{modName}\specialmap.json");
+            if (File.Exists(specialPath))
+            {
+                var sections = FileHelpers.Shared.Deserialize<MapSection[]>(specialPath);
+                if (sections != null) SpecialMaps[modName] = sections;
+            }
+
+            var testPath = FileHelpers.Shared.GetDataFilePath($@"Mods\{modName}\maptestlevel.json");
+            if (File.Exists(testPath))
+            {
+                var sections = FileHelpers.Shared.Deserialize<MapSection[]>(testPath);
+                if (sections != null) TestMaps[modName] = sections;
+            }
+        }
 
     }
 }

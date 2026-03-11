@@ -158,7 +158,9 @@ namespace WolfensteinInfinite.WolfMod
         }
         public int Id { get; set; } = 0;
         public int IntendedMinLevel { get; set; } = 1;
-
+        [JsonIgnore]
+        public bool IsFullMap => HasPlayerStart && HasPlayerExit &&
+    GetClosedSection(out bool closed, out _, out _) != null && closed;
         public MapSection() : this(64, 64) { }
         public MapSection(int w, int h)
         {
@@ -547,8 +549,8 @@ namespace WolfensteinInfinite.WolfMod
     int emptyY, int emptyX, HashSet<(int y, int x)> perimeter, int height, int width)
         {
             // Direction: 0=up, 1=right, 2=down, 3=left
-            int[] dy = { -1, 0, 1, 0 };
-            int[] dx = { 0, 1, 0, -1 };
+            int[] dy = [-1, 0, 1, 0];
+            int[] dx = [0, 1, 0, -1];
 
             // Determine initial direction
             int direction = GetInitialDirection(startY, startX, emptyY, emptyX);

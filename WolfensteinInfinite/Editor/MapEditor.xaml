@@ -1,4 +1,4 @@
-﻿<Window x:Class="WolfensteinInfinite.Editor.MapEditor"
+<Window x:Class="WolfensteinInfinite.Editor.MapEditor"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -12,9 +12,10 @@
             <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
-        <Grid  Background="Black">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left"  VerticalAlignment="Center">
+        <Grid Background="Black">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                 <ComboBox x:Name="ModSelection" Width="150" SelectionChanged="ModSelection_SelectionChanged"/>
+                
                 <ComboBox x:Name="MapSectionSelection" Width="60" SelectionChanged="MapSectionSelection_SelectionChanged"/>
                 <Label Content="Min Level"/>
                 <Slider x:Name="MinLevelSld" Minimum="1" Maximum="100" Width="200" ValueChanged="MinLevelSld_ValueChanged"/>
@@ -23,63 +24,70 @@
                 <ComboBox x:Name="DifficultySelection" Width="150" SelectionChanged="DifficultySelection_SelectionChanged"/>
                 <Button x:Name="SaveBtn" Content="Save" IsEnabled="False" Click="SaveBtn_Click"/>
                 <Button x:Name="SaveAllBtn" Content="Save All" IsEnabled="False" Click="SaveAllBtn_Click"/>
+                <ComboBox x:Name="SaveTargetSelection" Width="80"/>
                 <Button x:Name="TestBtn" Content="Test" IsEnabled="False" Click="TestBtn_Click" Visibility="Hidden"/>
             </StackPanel>
         </Grid>
         <Grid Grid.Row="1">
-
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="0.8*"/>
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="0.2*"/>
             </Grid.ColumnDefinitions>
 
-
-            <ScrollViewer x:Name="CurrentMapView" Background="Black" Grid.Row="1" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible" PreviewMouseWheel="CurrentMapView_PreviewMouseWheel" >
-                <Grid x:Name="SectionGrid" Width="4096" Height="4096" RenderTransformOrigin="0.5,0.5" >
-                    <Grid.RenderTransform>
+            <ScrollViewer x:Name="CurrentMapView" Background="Black" Grid.Row="1"
+                          HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible"
+                          PreviewMouseWheel="CurrentMapView_PreviewMouseWheel">
+                <Canvas x:Name="SectionCanvas" Background="#222222"
+                        MouseDown="SectionCanvas_MouseDown">
+                    <Image x:Name="SectionImage"
+                           RenderOptions.BitmapScalingMode="NearestNeighbor"
+                           Canvas.Left="0" Canvas.Top="0"/>
+                    <Canvas.RenderTransform>
                         <TransformGroup>
-                            <ScaleTransform x:Name="SectionGridScale"  ScaleX="1" ScaleY="1"/>
+                            <ScaleTransform x:Name="SectionGridScale" ScaleX="1" ScaleY="1"/>
                             <SkewTransform/>
                             <RotateTransform/>
                             <TranslateTransform/>
                         </TransformGroup>
-                    </Grid.RenderTransform>
-                </Grid>
+                    </Canvas.RenderTransform>
+                </Canvas>
             </ScrollViewer>
+
             <GridSplitter Width="5" Grid.Column="1" HorizontalAlignment="Center"
-              VerticalAlignment="Stretch"
-              Background="Black" 
-              ShowsPreview="True"/>
+                          VerticalAlignment="Stretch"
+                          Background="Black"
+                          ShowsPreview="True"/>
+
             <TabControl x:Name="LayerControl" MinWidth="200" Grid.Column="2">
                 <TabItem x:Name="LayerWallsControl" Header="Walls">
-                    <ScrollViewer >
-                        <WrapPanel  x:Name="WallTextureImageGrid" Orientation="Horizontal" ></WrapPanel>
+                    <ScrollViewer>
+                        <WrapPanel x:Name="WallTextureImageGrid" Orientation="Horizontal"/>
                     </ScrollViewer>
                 </TabItem>
                 <TabItem x:Name="LayerDecalsControl" Header="Decals">
-                    <ScrollViewer >
-                        <WrapPanel  x:Name="DecalTextureImageGrid" Orientation="Horizontal" ></WrapPanel>
+                    <ScrollViewer>
+                        <WrapPanel x:Name="DecalTextureImageGrid" Orientation="Horizontal"/>
                     </ScrollViewer>
                 </TabItem>
                 <TabItem x:Name="LayerItemsControl" Header="Items">
-                    <ScrollViewer >
-                        <WrapPanel  x:Name="ItemTextureImageGrid" Orientation="Horizontal" ></WrapPanel>
+                    <ScrollViewer>
+                        <WrapPanel x:Name="ItemTextureImageGrid" Orientation="Horizontal"/>
                     </ScrollViewer>
                 </TabItem>
                 <TabItem x:Name="LayerEnemiesControl" Header="Enemy">
-                    <ScrollViewer >
-                        <WrapPanel  x:Name="EnemyTextureImageGrid" Orientation="Horizontal" ></WrapPanel>
+                    <ScrollViewer>
+                        <WrapPanel x:Name="EnemyTextureImageGrid" Orientation="Horizontal"/>
                     </ScrollViewer>
                 </TabItem>
                 <TabItem x:Name="LayerDoorControl" Header="Doors">
-                    <ScrollViewer >
-                        <WrapPanel  x:Name="DoorTextureImageGrid" Orientation="Horizontal" ></WrapPanel>
+                    <ScrollViewer>
+                        <WrapPanel x:Name="DoorTextureImageGrid" Orientation="Horizontal"/>
                     </ScrollViewer>
                 </TabItem>
                 <TabItem x:Name="LayerSpecialControl" Header="Special">
-                    <ScrollViewer >
-                        <WrapPanel  x:Name="SpecialTextureImageGrid" Orientation="Horizontal" ></WrapPanel>
+                    <ScrollViewer>
+                        <WrapPanel x:Name="SpecialTextureImageGrid" Orientation="Horizontal"/>
                     </ScrollViewer>
                 </TabItem>
             </TabControl>

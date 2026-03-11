@@ -9,8 +9,6 @@ namespace WolfensteinInfinite.GameObjects
     // -------------------------------------------------------------------------
     public class RadioObject : DynamicObject, IInteractable
     {
-        public int X { get; set; }
-        public int Y { get; set; }
 
         // Float position for rendering
         private readonly float _renderX;
@@ -47,8 +45,6 @@ namespace WolfensteinInfinite.GameObjects
     // -------------------------------------------------------------------------
     public class DynamitePlacementObject : DynamicObject, IInteractable
     {
-        public int X { get; set; }
-        public int Y { get; set; }
         public bool IsPlaced { get; private set; } = false;
 
         private readonly ISprite _unplacedSprite;
@@ -100,8 +96,6 @@ namespace WolfensteinInfinite.GameObjects
     // -------------------------------------------------------------------------
     public class POWCompanionObject : DynamicObject
     {
-        public int X { get; set; }
-        public int Y { get; set; }
 
         private const float FollowRange = 10f;
         private const float MoveSpeed = 3.5f;

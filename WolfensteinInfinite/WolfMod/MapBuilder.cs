@@ -33,7 +33,7 @@ namespace WolfensteinInfinite.WolfMod
                 e = [.. err];
                 return e.Length == 0 ? s : null;
             }
-
+            sections = sections.Where(s => !s.IsFullMap).ToArray();
             var starts = sections.Where(p => p.HasPlayerStart && p.IntendedMinLevel <= level).ToArray();
             var ends = sections.Where(p => p.HasPlayerExit && p.IntendedMinLevel <= level).ToArray();
             var keyLocations = sections.Where(p => p.HasKeys && p.IntendedMinLevel <= level).ToArray();
@@ -820,22 +820,16 @@ namespace WolfensteinInfinite.WolfMod
 
         private (float X, float Y) GetXYDirection(Direction direction)
         {
-            switch (direction)
+            return direction switch
             {
-                case Direction.NORTH:
-                    return (0, -1);
-                case Direction.EAST:
-                    return (1, 0);
-                case Direction.SOUTH:
-                    return (0, 1);
-                case Direction.WEST:
-                    return (-1, 0);
-                case Direction.NONE:
-                default:
-                    return (0, 0);
-            }
+                Direction.NORTH => ((float X, float Y))(0, -1),
+                Direction.EAST => ((float X, float Y))(1, 0),
+                Direction.SOUTH => ((float X, float Y))(0, 1),
+                Direction.WEST => ((float X, float Y))(-1, 0),
+                _ => ((float X, float Y))(0, 0),
+            };
         }
-        private Direction DeterminFacingDirection(int startX, int startY, int[][] wallMap, int[][] doorMap)
+        private static Direction DeterminFacingDirection(int startX, int startY, int[][] wallMap, int[][] doorMap)
         {
             var wallNorth = 0;
             var wallEast = 0;

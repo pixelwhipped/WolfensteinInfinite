@@ -47,8 +47,14 @@ namespace WolfensteinInfinite
         }
         public void Update(float frameTimeSeconds)
         {
-            foreach (var a in Animations.Values)
-                a.Update(frameTimeSeconds);
+            if (Animations.TryGetValue(AnimationState, out var anim))
+                anim.Update(frameTimeSeconds);
+        }
+
+        public void ResetCurrentAnimation()
+        {
+            if (Animations.TryGetValue(AnimationState, out var anim))
+                anim.Reset();
         }
 
         public bool IsDeathAnimationComplete =>

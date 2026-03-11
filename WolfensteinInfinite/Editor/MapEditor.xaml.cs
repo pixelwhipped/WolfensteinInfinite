@@ -1,7 +1,3 @@
-﻿using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,18 +7,15 @@ using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.Util;
 using WolfensteinInfinite.WolfMod;
-using static SFML.Window.Keyboard;
-using static WolfensteinInfinite.Editor.MapEditor;
 
 namespace WolfensteinInfinite.Editor
 {
     /// <summary>
     /// Interaction logic for MapEditor.xaml
-    /// </summary
+    /// </summary>
     public partial class MapEditor : Window
     {
         public Mod? ActiveMod { get; set; }
-
         public Wolfenstein Wolfenstein { get; init; }
         public MapSection? ActiveSection { get; set; }
 
@@ -33,6 +26,7 @@ namespace WolfensteinInfinite.Editor
         private int SelectedSpecialIndex = -1;
         private int SelectedDoorIndex = -1;
         private int SelectedDifficulty = 0;
+
         private readonly Dictionary<string, WriteableBitmap> SpecialMapCache = [];
         private readonly Dictionary<string, WriteableBitmap> TextureCache = [];
         private readonly Dictionary<string, WriteableBitmap> DecalCache = [];
@@ -43,118 +37,125 @@ namespace WolfensteinInfinite.Editor
         private readonly Dictionary<string, WriteableBitmap> DoorCache = [];
         private readonly Dictionary<Mod, bool> ChangeStates = [];
 
-        private bool HandleMapTryRemoveItem(SectionButton item, int x, int y, ref bool changed)
+        // Bitmap canvas fields — replaces per-tile SectionButton grid
+        private const int TileSize = 64;
+        private WriteableBitmap? _mapBitmap;
+        private int _mapTilesW;
+        private int _mapTilesH;
+
+        // ──────────────────────────────────────────────────────────────
+        // Remove handlers — no longer take SectionButton parameter
+        // ──────────────────────────────────────────────────────────────
+
+        private bool HandleMapTryRemoveItem(int x, int y, ref bool changed)
         {
             if (ActiveSection == null) return false;
-            item.SetItemTexture(-1, string.Empty);
             ActiveSection.Items[y][x] = -1;
             ActiveSection.Difficulty[y][x] = 0;
             changed = true;
             return true;
         }
-        private bool HandleMapTryRemoveEnemy(SectionButton item, int x, int y, ref bool changed)
+
+        private bool HandleMapTryRemoveEnemy(int x, int y, ref bool changed)
         {
             if (ActiveSection == null) return false;
-            item.SetItemTexture(-1, string.Empty);
             ActiveSection.Enemy[y][x] = -1;
             ActiveSection.Difficulty[y][x] = 0;
             changed = true;
             return true;
         }
-        private bool HandleMapTryRemoveDecals(SectionButton item, int x, int y, ref bool changed)
+
+        private bool HandleMapTryRemoveDecals(int x, int y, ref bool changed)
         {
             if (ActiveSection == null) return false;
-            item.SetItemTexture(-1, string.Empty);
             ActiveSection.Decals[y][x] = -1;
             changed = true;
             return true;
         }
-        private bool HandleMapTryRemoveDoors(SectionButton item, int x, int y, ref bool changed)
+
+        private bool HandleMapTryRemoveDoors(int x, int y, ref bool changed)
         {
             if (ActiveSection == null) return false;
-            item.SetDoorTexture(-1, DoorDirection.NONE);
             ActiveSection.Doors[y][x] = -1;
             changed = true;
             return true;
         }
-        private bool HandleMapTryRemoveSpecial(SectionButton item, int x, int y, ref bool changed)
+
+        private bool HandleMapTryRemoveSpecial(int x, int y, ref bool changed)
         {
             if (ActiveSection == null) return false;
             ActiveSection.Special[y][x] = -1;
-            if (ActiveSection.Walls[y][x] >= 0) item.SetWallTexture(ActiveSection.Walls[y][x]);
-            else if (ActiveSection.Decals[y][x] >= 0)
-            {
-                item.SetDecalTexture(ActiveSection.Decals[y][x], item.Details.Text);
-            }
-            else if (ActiveSection.Items[y][x] >= 0)
-            {
-                item.SetItemTexture(ActiveSection.Items[y][x], item.Details.Text);
-            }
-            else if (ActiveSection.Enemy[y][x] >= 0)
-            {
-                item.SetEnemyTexture(ActiveSection.Enemy[y][x], item.Details.Text);
-            }
-            else item.Clear();
             changed = true;
             return true;
         }
-        private bool HandleMapTryRemoveWall(SectionButton item, int x, int y, ref bool changed)
+
+        private bool HandleMapTryRemoveWall(int x, int y, ref bool changed)
         {
-            //Handle special and doors
             if (ActiveSection == null) return false;
-            if (ActiveSection.Special[y][x] >= 0) HandleMapTryRemoveSpecial(item, x, y, ref changed);
+            if (ActiveSection.Special[y][x] >= 0) HandleMapTryRemoveSpecial(x, y, ref changed);
             if (IsDoorConnected(x, y, out List<(int x, int y)> where))
             {
                 foreach (var d in where)
                 {
-                    var i = GetMapButton(d.x, d.y);
-                    if (i != null) HandleMapTryRemoveDoors(i, x, y, ref changed);
+                    HandleMapTryRemoveDoors(d.x, d.y, ref changed);
+                    RedrawTile(d.x, d.y);
                 }
             }
-            item.SetWallTexture(-1);
             ActiveSection.Walls[y][x] = -1;
             changed = true;
             return true;
         }
-        private delegate bool TryRemoveDelegate(ref bool chanaged);
 
-        private void HandleMapClick(SectionButton item, int x, int y, Point insidePosition, bool IsLeft, ref bool changed)
+        private delegate bool TryRemoveDelegate(ref bool changed);
+
+        // ──────────────────────────────────────────────────────────────
+        // Main click handler — reads/writes ActiveSection data directly,
+        // calls RedrawTile after via MapClick
+        // ──────────────────────────────────────────────────────────────
+
+        private void HandleMapClick(int x, int y, bool isLeft, ref bool changed)
         {
             if (ActiveSection == null) return;
             if (ActiveMod == null) return;
-            bool IsApplyingChance()
-            {
-                return IsLeft && LayerControl.SelectedItem == LayerSpecialControl && SelectedSpecialIndex >= 9 && SelectedSpecialIndex <= 12;
-            }
+
+            bool IsApplyingChance() =>
+                isLeft && LayerControl.SelectedItem == LayerSpecialControl
+                && SelectedSpecialIndex >= 9 && SelectedSpecialIndex <= 12;
+
             var removers = new Dictionary<TabItem, TryRemoveDelegate>()
             {
-                [LayerWallsControl] = (ref bool c) => LayerControl.SelectedItem == LayerSpecialControl ? false : ActiveSection.Walls[y][x] >= 0 && !HandleMapTryRemoveWall(item, x, y, ref c),
-                [LayerDecalsControl] = (ref bool c) => ActiveSection.Decals[y][x] >= 0 && !IsApplyingChance() && !HandleMapTryRemoveDecals(item, x, y, ref c),
-                [LayerItemsControl] = (ref bool c) => ActiveSection.Items[y][x] >= 0 && !IsApplyingChance()  && !HandleMapTryRemoveItem(item, x, y, ref c),
-                [LayerDoorControl] = (ref bool c) => ActiveSection.Doors[y][x] >= 0 && !HandleMapTryRemoveDoors(item, x, y, ref c),
-                [LayerEnemiesControl] = (ref bool c) => ActiveSection.Enemy[y][x] >= 0 && !IsApplyingChance() && !HandleMapTryRemoveEnemy(item, x, y, ref c),
-                [LayerSpecialControl] = (ref bool c) => ActiveSection.Special[y][x] >= 0 && !HandleMapTryRemoveSpecial(item, x, y, ref c)
+                [LayerWallsControl] = (ref bool c) => LayerControl.SelectedItem == LayerSpecialControl
+                    ? false
+                    : ActiveSection.Walls[y][x] >= 0 && !HandleMapTryRemoveWall(x, y, ref c),
+                [LayerDecalsControl] = (ref bool c) => ActiveSection.Decals[y][x] >= 0
+                    && !IsApplyingChance() && !HandleMapTryRemoveDecals(x, y, ref c),
+                [LayerItemsControl] = (ref bool c) => ActiveSection.Items[y][x] >= 0
+                    && !IsApplyingChance() && !HandleMapTryRemoveItem(x, y, ref c),
+                [LayerDoorControl] = (ref bool c) => ActiveSection.Doors[y][x] >= 0
+                    && !HandleMapTryRemoveDoors(x, y, ref c),
+                [LayerEnemiesControl] = (ref bool c) => ActiveSection.Enemy[y][x] >= 0
+                    && !IsApplyingChance() && !HandleMapTryRemoveEnemy(x, y, ref c),
+                [LayerSpecialControl] = (ref bool c) => ActiveSection.Special[y][x] >= 0
+                    && !HandleMapTryRemoveSpecial(x, y, ref c)
             };
-            if (IsLeft)//Handle normal
+
+            if (isLeft)
             {
                 foreach (var r in removers.Where(p => p.Key != LayerControl.SelectedItem))
                     if (r.Value(ref changed)) return;
+
                 if (LayerControl.SelectedItem == LayerWallsControl)
                 {
                     ActiveSection.Walls[y][x] = SelectedWallIndex;
-                    item.SetWallTexture(SelectedWallIndex);
                     changed = true;
                 }
                 else if (LayerControl.SelectedItem == LayerDecalsControl)
                 {
-                    var dir = GetDecalDirection(ActiveMod.Name, SelectedDecalIndex);
-                    item.SetDecalTexture(SelectedDecalIndex, dir == Direction.NONE ? string.Empty : dir.ToString());
                     ActiveSection.Decals[y][x] = SelectedDecalIndex;
                     changed = true;
                 }
                 else if (LayerControl.SelectedItem == LayerItemsControl)
                 {
-                    item.SetItemTexture(SelectedItemIndex, $"ID:{SelectedItemIndex}");
                     ActiveSection.Items[y][x] = SelectedItemIndex;
                     ActiveSection.Difficulty[y][x] = SelectedDifficulty;
                     changed = true;
@@ -163,49 +164,40 @@ namespace WolfensteinInfinite.Editor
                 {
                     var dir = IsDoorBetweenWalls(x, y);
                     if (dir == DoorDirection.NONE) return;
-                    item.SetDoorTexture(SelectedDoorIndex, dir);
                     ActiveSection.Doors[y][x] = SelectedDoorIndex;
                     changed = true;
-
                 }
                 else if (LayerControl.SelectedItem == LayerEnemiesControl)
                 {
                     var diff = SelectedEnemyIndex < 0 ? 0 : SelectedDifficulty;
-                    item.SetEnemyTexture(SelectedEnemyIndex < 0 ? -1 : Wolfenstein.Mods[ActiveMod.Name].Enemies[SelectedEnemyIndex].MapID, $"D:{diff}");
-                    ActiveSection.Enemy[y][x] = SelectedEnemyIndex < 0 ? -1 : Wolfenstein.Mods[ActiveMod.Name].Enemies[SelectedEnemyIndex].MapID;
+                    ActiveSection.Enemy[y][x] = SelectedEnemyIndex < 0
+                        ? -1
+                        : Wolfenstein.Mods[ActiveMod.Name].Enemies[SelectedEnemyIndex].MapID;
                     ActiveSection.Difficulty[y][x] = diff;
+                    changed = true;
                 }
                 else if (LayerControl.SelectedItem == LayerSpecialControl)
                 {
-                    if (ActiveSection.Walls[y][x] >= 0 && SelectedSpecialIndex < 3) { return; }
+                    if (ActiveSection.Walls[y][x] >= 0 && SelectedSpecialIndex < 3) return;
                     if (ActiveSection.Walls[y][x] < 0 && SelectedSpecialIndex >= 3)
                     {
                         if (SelectedSpecialIndex >= 9 && SelectedSpecialIndex <= 12)
                         {
-                            if (ActiveSection.Items[y][x] >= 0)
+                            bool hasTarget = ActiveSection.Items[y][x] >= 0
+                                || ActiveSection.Enemy[y][x] >= 0
+                                || ActiveSection.Decals[y][x] >= 0;
+                            if (hasTarget)
                             {
                                 ActiveSection.Special[y][x] = SelectedSpecialIndex;
-                                item.SetSpecialItems(SelectedSpecialIndex, ActiveSection.Items[y][x]);
                                 changed = true;
                             }
-                            else if (ActiveSection.Enemy[y][x] >= 0)
-                            {
-                                ActiveSection.Special[y][x] = SelectedSpecialIndex;
-                                item.SetSpecialEnemy(SelectedSpecialIndex, ActiveSection.Enemy[y][x]);
-                                changed = true;
-                            }
-                            else if (ActiveSection.Decals[y][x] >= 0)
-                            {
-                                ActiveSection.Special[y][x] = SelectedSpecialIndex;
-                                item.SetSpecialDecal(SelectedSpecialIndex, ActiveSection.Decals[y][x]);
-                                changed = true;
-                            }
-
                             return;
                         }
                     }
                     if (ActiveSection.Doors[y][x] >= 0) return;
-                    if (SelectedSpecialIndex == 0) //check for multiple player starts
+
+                    // Clear any existing duplicate player start
+                    if (SelectedSpecialIndex == 0)
                     {
                         for (int sy = 0; sy < ActiveSection.Special.Length; sy++)
                         {
@@ -214,66 +206,152 @@ namespace WolfensteinInfinite.Editor
                                 if (sx == x && sy == y) continue;
                                 if (ActiveSection.Special[sy][sx] == 0)
                                 {
-                                    GetMapButton(sx, sy)?.Clear();
+                                    ActiveSection.Special[sy][sx] = -1;
+                                    RedrawTile(sx, sy);
                                     sy = ActiveSection.Special.Length;
                                     break;
                                 }
                             }
                         }
                     }
+
                     ActiveSection.Special[y][x] = SelectedSpecialIndex;
-                    if (SelectedSpecialIndex >= 9 && SelectedSpecialIndex <= 12)
-                    {
-                        if (ActiveSection.Items[y][x] >= 0)
-                        {
-                            item.SetSpecialItems(SelectedSpecialIndex, ActiveSection.Items[y][x]);
-                        }
-                        else if (ActiveSection.Enemy[y][x] >= 0)
-                        {
-                            item.SetSpecialEnemy(SelectedSpecialIndex, ActiveSection.Enemy[y][x]);
-                        }
-                        else if (ActiveSection.Decals[y][x] >= 0)
-                        {
-                            item.SetSpecialDecal(SelectedSpecialIndex, ActiveSection.Decals[y][x]);
-                        }
-                        return;
-                    }
-                    else
-                    {
-
-                        item.SetSpecialTexture(SelectedSpecialIndex, ActiveSection.Walls[y][x]);
-                    }
                     changed = true;
-
                 }
-
             }
-            else if (LayerControl.SelectedItem is TabItem t && removers.TryGetValue(t, out var tryRemove)) tryRemove(ref changed);
-
+            else if (LayerControl.SelectedItem is TabItem t && removers.TryGetValue(t, out var tryRemove))
+            {
+                tryRemove(ref changed);
+            }
         }
-        internal void MapClick(int x, int y, Point insidePosition, bool IsLeft)
+
+        private void SectionCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            if (ActiveSection == null || ActiveMod == null) return;
+            var pos = e.GetPosition(SectionCanvas);
+            int tx = (int)(pos.X / TileSize);
+            int ty = (int)(pos.Y / TileSize);
+            if (tx < 0 || ty < 0 || tx >= _mapTilesW || ty >= _mapTilesH) return;
+
             bool changed = false;
-            if (ActiveSection == null) return;
-            if (ActiveMod == null) return;
-            var item = GetMapButton(x, y);
-            if (item == null) return;
-            HandleMapClick(item, x, y, insidePosition, IsLeft, ref changed);
+            HandleMapClick(tx, ty, e.LeftButton == MouseButtonState.Pressed, ref changed);
 
             if (changed)
             {
+                RedrawTile(tx, ty);
                 ChangeStates[ActiveMod] = true;
                 SetSaveButtonStates();
             }
-            return;
         }
+
+        // ──────────────────────────────────────────────────────────────
+        // Bitmap canvas rendering
+        // ──────────────────────────────────────────────────────────────
+
+        private void BuildMapBitmap()
+        {
+            if (ActiveSection == null || ActiveMod == null) return;
+            _mapTilesW = ActiveSection.Walls[0].Length;
+            _mapTilesH = ActiveSection.Walls.Length;
+
+            _mapBitmap = new WriteableBitmap(
+                _mapTilesW * TileSize, _mapTilesH * TileSize,
+                96, 96, PixelFormats.Pbgra32, null);
+
+            SectionImage.Source = _mapBitmap;
+            SectionImage.Width = _mapTilesW * TileSize;
+            SectionImage.Height = _mapTilesH * TileSize;
+            SectionCanvas.Width = _mapTilesW * TileSize;
+            SectionCanvas.Height = _mapTilesH * TileSize;
+
+            for (int y = 0; y < _mapTilesH; y++)
+                for (int x = 0; x < _mapTilesW; x++)
+                    RedrawTile(x, y);
+
+            CenterContent(CurrentMapView, SectionCanvas);
+        }
+
+        private void RedrawTile(int x, int y)
+        {
+            if (_mapBitmap == null || ActiveSection == null || ActiveMod == null) return;
+
+            WriteableBitmap? tile = null;
+            var sp = ActiveSection.Special[y][x];
+
+            if (sp >= 0)
+            {
+                if (sp >= 9 && sp <= 12)
+                {
+                    if (ActiveSection.Decals[y][x] >= 0)
+                        tile = GetSpecialBitmapDecal(ActiveMod.Name, sp, ActiveSection.Decals[y][x]);
+                    else if (ActiveSection.Items[y][x] >= 0)
+                        tile = GetSpecialBitmapItem(ActiveMod.Name, sp, ActiveSection.Items[y][x]);
+                    else if (ActiveSection.Enemy[y][x] >= 0)
+                        tile = GetSpecialBitmapEnemy(ActiveMod.Name, sp, ActiveSection.Enemy[y][x]);
+                }
+                else
+                    tile = GetSpecialBitmap(ActiveMod.Name, sp, ActiveSection.Walls[y][x]);
+            }
+            else if (ActiveSection.Decals[y][x] >= 0)
+                tile = GetDecalBitmap(ActiveMod.Name, ActiveSection.Decals[y][x]);
+            else if (ActiveSection.Items[y][x] >= 0)
+                tile = GetItemBitmap(ActiveSection.Items[y][x]);
+            else if (ActiveSection.Enemy[y][x] >= 0)
+                tile = GetEnemyBitmap(ActiveMod.Name, ActiveSection.Enemy[y][x]);
+            else if (ActiveSection.Doors[y][x] >= 0)
+                tile = GetDoorBitmap(ActiveSection.Doors[y][x], IsDoorBetweenWalls(x, y));
+            else if (ActiveSection.Walls[y][x] >= 0)
+                tile = GetTextureBitmap(ActiveMod.Name, ActiveSection.Walls[y][x]);
+
+            BlitTile(_mapBitmap, tile, x * TileSize, y * TileSize);
+        }
+
+        private static unsafe void BlitTile(WriteableBitmap dest, WriteableBitmap? src, int px, int py)
+        {
+            dest.Lock();
+            byte* dst = (byte*)dest.BackBuffer + py * dest.BackBufferStride + px * 4;
+
+            if (src == null)
+            {
+                for (int row = 0; row < TileSize; row++)
+                {
+                    byte* rowPtr = dst + row * dest.BackBufferStride;
+                    for (int col = 0; col < TileSize * 4; col += 4)
+                    {
+                        rowPtr[col] = rowPtr[col + 1] = rowPtr[col + 2] = 32;
+                        rowPtr[col + 3] = 255;
+                    }
+                }
+            }
+            else
+            {
+                src.Lock();
+                byte* s = (byte*)src.BackBuffer;
+                for (int row = 0; row < TileSize; row++)
+                {
+                    Buffer.MemoryCopy(
+                        s + row * src.BackBufferStride,
+                        dst + row * dest.BackBufferStride,
+                        TileSize * 4, TileSize * 4);
+                }
+                src.Unlock();
+            }
+
+            dest.AddDirtyRect(new Int32Rect(px, py, TileSize, TileSize));
+            dest.Unlock();
+        }
+
+        // ──────────────────────────────────────────────────────────────
+        // Constructor and initialization
+        // ──────────────────────────────────────────────────────────────
+
         public MapEditor(Wolfenstein wolfenstein)
         {
             Wolfenstein = wolfenstein;
             InitializeComponent();
             InitializeOptions();
-
         }
+
         private void InitializeOptions()
         {
             foreach (var mod in Wolfenstein.Mods)
@@ -285,13 +363,22 @@ namespace WolfensteinInfinite.Editor
                 }
             }
             foreach (var difficulty in Enum.GetValues<Difficulties>())
-            {
                 DifficultySelection.Items.Add(DifficultyHelpers.GetDifficultyString(difficulty));
-            }
             DifficultySelection.SelectedIndex = 0;
+
+            SaveTargetSelection.Items.Add("map.json");
+            SaveTargetSelection.Items.Add("specialmap.json");
+            SaveTargetSelection.Items.Add("maptestlevel.json");
+            SaveTargetSelection.SelectedIndex = 0;
+
             SetSaveButtonStates();
         }
+
         private static bool ValidateMod(Mod mod) => mod.Textures.Length > 0;
+
+        // ──────────────────────────────────────────────────────────────
+        // Mod / section selection
+        // ──────────────────────────────────────────────────────────────
 
         private void ModSelection_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -320,197 +407,6 @@ namespace WolfensteinInfinite.Editor
             SetSpecialTextureImageGrid();
         }
 
-        private void SetDoorTextureImageGrid()
-        {
-            if (ActiveMod == null) return;
-            DoorTextureImageGrid.Children.Clear();
-            if (SelectedDoorIndex == -1 && Wolfenstein.Doors.Count > 0) SelectedDoorIndex = 0;
-            for (int i = 0; i < Wolfenstein.Doors.Count; i++)
-            {
-                var j = i;
-                Image imageControl = new()
-                {
-                    Source = GetDoorBitmap(j, DoorDirection.EAST_WEST),
-                    ToolTip = Wolfenstein.Doors[j].MapID,
-                    Stretch = Stretch.None // Adjust as needed
-                };
-
-                // Attach a click event handler for selection
-                imageControl.MouseLeftButtonUp += (s, e) =>
-                {
-                    SelectedDoorIndex = j;
-                    SetDoorTextureImageGrid();
-                };
-                Border border = new()
-                {
-                    BorderThickness = new Thickness(5),
-                    BorderBrush = (j == SelectedDoorIndex) ? Brushes.Blue : Brushes.Gray,
-                    Child = imageControl
-                };
-                DoorTextureImageGrid.Children.Add(border);
-            }
-        }
-
-        private string GetNameForSpecial(int i)
-        {
-            switch (i)
-            {
-                case 0: return "Player Start";
-                case 1: return "Random Enemy";
-                case 2: return "Experiment Enemy";
-                case 3: return "Exit";
-                case 4: return "Secret North";
-                case 5: return "Secret East";
-                case 6: return "Secret South";
-                case 7: return "Secret West";
-                case 8: return "Wall can be any";
-                case 9: return "5% Chance";
-                case 10: return "25% Chance";
-                case 11: return "50% Chance";
-                case 12: return "75% Chance";
-                default: return "Unknown";
-            }
-        }
-        private void SetSpecialTextureImageGrid()
-        {
-            if (ActiveMod == null) return;
-            SpecialTextureImageGrid.Children.Clear();
-            if (SelectedSpecialIndex == -1 && Wolfenstein.Special.Count > 0) SelectedSpecialIndex = 0;
-            for (int i = 0; i < Wolfenstein.Special.Count; i++)
-            {
-                var j = i;
-                Image imageControl = new()
-                {
-                    Source = GetSpecialBitmap(j),
-                    ToolTip = GetNameForSpecial(j),
-                    Stretch = Stretch.None
-                };
-                imageControl.MouseLeftButtonUp += (s, e) =>
-                {
-                    SelectedSpecialIndex = j;
-                    SetSpecialTextureImageGrid();
-                };
-                Border border = new()
-                {
-                    BorderThickness = new Thickness(5),
-                    BorderBrush = (j == SelectedSpecialIndex) ? Brushes.Blue : Brushes.Gray,
-                    Child = imageControl
-                };
-                SpecialTextureImageGrid.Children.Add(border);
-            }
-        }
-        private void SetEnemyTextureImageGrid()
-        {
-            if (ActiveMod == null) return;
-            EnemyTextureImageGrid.Children.Clear();
-            if (SelectedEnemyIndex == -1 && Wolfenstein.Mods[ActiveMod.Name].Enemies.Length > 0) SelectedEnemyIndex = 0;
-            for (int i = 0; i < Wolfenstein.Mods[ActiveMod.Name].Enemies.Length; i++)
-            {
-                var j = i;
-                Image imageControl = new()
-                {
-                    Source = GetEnemyBitmap(ActiveMod.Name, Wolfenstein.Mods[ActiveMod.Name].Enemies[i].MapID),
-                    ToolTip = Wolfenstein.Mods[ActiveMod.Name].Enemies[i].Name,
-                    Stretch = Stretch.None
-                };
-                imageControl.MouseLeftButtonUp += (s, e) =>
-                {
-                    SelectedEnemyIndex = j;
-                    SetEnemyTextureImageGrid();
-                };
-                Border border = new()
-                {
-                    BorderThickness = new Thickness(5),
-                    BorderBrush = (i == SelectedEnemyIndex) ? Brushes.Blue : Brushes.Gray,
-                    Child = imageControl
-                };
-                EnemyTextureImageGrid.Children.Add(border);
-            }
-        }
-        private void SetDecalTextureImageGrid()
-        {
-            if (ActiveMod == null) return;
-            DecalTextureImageGrid.Children.Clear();
-            if (SelectedDecalIndex == -1 && Wolfenstein.Decals[ActiveMod.Name].Count > 0) SelectedDecalIndex = 0;
-            for (int i = 0; i < Wolfenstein.Decals[ActiveMod.Name].Count; i++)
-            {
-                var j = i;
-                Image imageControl = new()
-                {
-                    Source = GetDecalBitmap(ActiveMod.Name, i),
-                    ToolTip = Wolfenstein.Mods[ActiveMod.Name].Decals[j].MapID,
-                    Stretch = Stretch.None
-                };
-                imageControl.MouseLeftButtonUp += (s, e) =>
-                {
-                    SelectedDecalIndex = j;
-                    SetDecalTextureImageGrid();
-                };
-                Border border = new()
-                {
-                    BorderThickness = new Thickness(5),
-                    BorderBrush = (i == SelectedDecalIndex) ? Brushes.Blue : Brushes.Gray,
-                    Child = imageControl
-                };
-                DecalTextureImageGrid.Children.Add(border);
-            }
-        }
-        private void SetItemTextureImageGrid()
-        {
-            if (ActiveMod == null) return;
-            ItemTextureImageGrid.Children.Clear();
-            if (SelectedItemIndex == -1 && Wolfenstein.PickupItems.Count > 0) SelectedItemIndex = 0;
-            for (int i = 0; i < Wolfenstein.PickupItems.Count; i++)
-            {
-                var j = i;
-                if (Wolfenstein.PickupItemTypes[i].ItemType == PickupItemType.SPAWNER) continue;
-                Image imageControl = new()
-                {
-                    Source = GetItemBitmap(j),
-                    Stretch = Stretch.None
-                };
-                imageControl.MouseLeftButtonUp += (s, e) =>
-
-                {
-                    SelectedItemIndex = j;
-                    SetItemTextureImageGrid();
-                };
-                Border border = new()
-                {
-                    BorderThickness = new Thickness(5),
-                    BorderBrush = (j == SelectedItemIndex) ? Brushes.Blue : Brushes.Gray,
-                    Child = imageControl
-                };
-                ItemTextureImageGrid.Children.Add(border);
-            }
-        }
-        private void SetWallTextureImageGrid()
-        {
-            if (ActiveMod == null) return;
-            WallTextureImageGrid.Children.Clear();
-            if (SelectedWallIndex == -1 && Wolfenstein.Textures[ActiveMod.Name].Count > 0) SelectedWallIndex = 0;
-            for (int i = 0; i < ActiveMod.Textures.Length; i++)
-            {
-                var j = ActiveMod.Textures[i].MapID;
-                Image imageControl = new()
-                {
-                    Source = GetTextureBitmap(ActiveMod.Name, j),
-                    Stretch = Stretch.None
-                };
-                imageControl.MouseLeftButtonUp += (s, e) =>
-                {
-                    SelectedWallIndex = j;
-                    SetWallTextureImageGrid();
-                };
-                Border border = new()
-                {
-                    BorderThickness = new Thickness(5),
-                    BorderBrush = (j == SelectedWallIndex) ? Brushes.Blue : Brushes.Gray,
-                    Child = imageControl
-                };
-                WallTextureImageGrid.Children.Add(border);
-            }
-        }
         private void SetMapSectionSelections()
         {
             MapSectionSelection.SelectionChanged -= MapSectionSelection_SelectionChanged;
@@ -525,10 +421,9 @@ namespace WolfensteinInfinite.Editor
             }
             var builder = Wolfenstein.BuilderMods[ActiveMod.Name];
             foreach (var section in builder.MapSections)
-            {
                 MapSectionSelection.Items.Add(section.Id.ToString());
-            }
             MapSectionSelection.Items.Add("New");
+
             if (builder.MapSections.Length != 0)
             {
                 MapSectionSelection.SelectionChanged += MapSectionSelection_SelectionChanged;
@@ -542,29 +437,31 @@ namespace WolfensteinInfinite.Editor
             }
             MapSectionSelection.SelectionChanged += MapSectionSelection_SelectionChanged;
         }
+
         private void SetMapSectionSelections(int? selection)
         {
             if (ActiveMod == null || selection == null)
             {
                 ActiveSection = null;
-                SectionGrid.Children.Clear();
+                _mapBitmap = null;
+                SectionImage.Source = null;
+                SectionCanvas.Width = 0;
+                SectionCanvas.Height = 0;
                 return;
             }
             var builder = Wolfenstein.BuilderMods[ActiveMod.Name];
             if (ActiveSection != null)
             {
-
                 var index = Array.FindIndex(builder.MapSections, p => p.Id == ActiveSection.Id);
                 if (index >= 0)
-                {
-                    builder.MapSections[index].Layers = MapSection.Trim(ActiveSection);  //Trim when not editing
-                }
+                    builder.MapSections[index].Layers = MapSection.Trim(ActiveSection);
             }
             var s = builder.MapSections.FirstOrDefault(p => p.Id == selection);
             if (s == null)
             {
                 ActiveSection = null;
-                SectionGrid.Children.Clear();
+                _mapBitmap = null;
+                SectionImage.Source = null;
                 return;
             }
             MinLevelSld.Value = s.IntendedMinLevel;
@@ -573,85 +470,9 @@ namespace WolfensteinInfinite.Editor
                 ActiveSection.Layers = MapSection.Expand(ActiveSection);
                 return;
             }
-            ;
             ActiveSection = s;
-            ActiveSection.Layers = MapSection.Expand(ActiveSection);  //Expand for editing
-            SectionGrid.Children.Clear();
-            SectionGrid.Width = 4096;
-            SectionGrid.Height = 4096;
-            for (int y = 0; y < ActiveSection.Walls.Length; y++)
-                SectionGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(64) });
-            for (int y = 0; y < ActiveSection.Walls[0].Length; y++)
-                SectionGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(64) });
-
-            for (int y = 0; y < ActiveSection.Walls.Length; y++)
-            {
-                for (int x = 0; x < ActiveSection.Walls[0].Length; x++)
-                {
-                    var child = new SectionButton(this, x, y);
-                    if (ActiveSection.Decals[y][x] >= 0)
-                    {
-                        var dir = GetDecalDirection(ActiveMod.Name, ActiveSection.Decals[y][x]);
-                        child.SetDecalTexture(ActiveSection.Decals[y][x], dir == Direction.NONE ? string.Empty : dir.ToString());
-                    }
-                    else if (ActiveSection.Items[y][x] >= 0)
-                    {
-                        var diff = ActiveSection.Difficulty[y][x];
-                        child.SetItemTexture(ActiveSection.Items[y][x], diff > 0 ? $"D:{diff}" : string.Empty);
-                    }
-                    else if (ActiveSection.Enemy[y][x] >= 0)
-                    {
-                        var diff = ActiveSection.Difficulty[y][x];
-                        child.SetEnemyTexture(ActiveSection.Items[y][x], diff > 0 ? $"D:{diff}" : string.Empty);
-                    }
-                    else if (ActiveSection.Doors[y][x] >= 0)
-                    {
-                        var dir = IsDoorBetweenWalls(x, y);
-                        child.SetDoorTexture(ActiveSection.Doors[y][x], dir);
-                    }
-                    else if (ActiveSection.Walls[y][x] >= 0)
-                    {
-                        child.SetWallTexture(ActiveSection.Walls[y][x]);
-                    }
-
-                    if (ActiveSection.Special[y][x] >= 0)
-                    {
-                        if (ActiveSection.Special[y][x] >= 9 && ActiveSection.Special[y][x] <= 12)
-                        {
-                            if (ActiveSection.Decals[y][x] >= 0)
-                            {
-                                child.SetSpecialDecal(ActiveSection.Special[y][x], ActiveSection.Decals[y][x]);
-                            }else if (ActiveSection.Items[y][x] >= 0)
-                            {
-                                child.SetSpecialItems(ActiveSection.Special[y][x], ActiveSection.Items[y][x]);
-                            }
-                            else if (ActiveSection.Enemy[y][x] >= 0)
-                            {
-                                child.SetSpecialEnemy(ActiveSection.Special[y][x], ActiveSection.Enemy[y][x]);
-                            }
-                        }
-                        else
-                        {
-                            child.SetSpecialTexture(ActiveSection.Special[y][x], ActiveSection.Walls[y][x]);
-                        }
-                    }
-
-                    Grid.SetRow(child, y);
-                    Grid.SetColumn(child, x);
-                    SectionGrid.Children.Add(child);
-                }
-            }
-            SectionGrid.UpdateLayout();
-            CenterContent(CurrentMapView, SectionGrid);
-
-        }
-        private static void CenterContent(ScrollViewer scrollViewer, FrameworkElement content)
-        {
-            double offsetX = (content.Width - scrollViewer.ViewportWidth) / 2;
-            double offsetY = (content.Height - scrollViewer.ViewportHeight) / 2;
-
-            scrollViewer.ScrollToHorizontalOffset(offsetX);
-            scrollViewer.ScrollToVerticalOffset(offsetY);
+            ActiveSection.Layers = MapSection.Expand(ActiveSection);
+            BuildMapBitmap();
         }
         private void MapSectionSelection_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -665,10 +486,7 @@ namespace WolfensteinInfinite.Editor
             else if (m == "New")
             {
                 MapSectionSelection.SelectionChanged -= MapSectionSelection_SelectionChanged;
-                var section = new MapSection()
-                {
-                    Id = builder.MapSections.Length
-                };
+                var section = new MapSection() { Id = builder.MapSections.Length };
                 MapSectionSelection.Items.Insert(MapSectionSelection.Items.IndexOf("New"), section.Id.ToString());
                 MapSectionSelection.SelectedIndex = MapSectionSelection.Items.IndexOf(section.Id.ToString());
                 MapSectionSelection.SelectionChanged += MapSectionSelection_SelectionChanged;
@@ -682,26 +500,187 @@ namespace WolfensteinInfinite.Editor
             }
             SetSaveButtonStates();
         }
-        private void DifficultySelection_SelectionChanged(object sender, SelectionChangedEventArgs e)
+
+        private static void CenterContent(ScrollViewer scrollViewer, FrameworkElement content)
         {
-            var dStr = DifficultySelection.SelectedItem.ToString() ?? DifficultyHelpers.GetDifficultyString(Difficulties.CAN_I_PLAY_DADDY);
-            SelectedDifficulty = (int)(DifficultyHelpers.GetStringDifficulty(dStr) ?? Difficulties.CAN_I_PLAY_DADDY);
+            double offsetX = (content.Width - scrollViewer.ViewportWidth) / 2;
+            double offsetY = (content.Height - scrollViewer.ViewportHeight) / 2;
+            scrollViewer.ScrollToHorizontalOffset(offsetX);
+            scrollViewer.ScrollToVerticalOffset(offsetY);
         }
-        private SectionButton? GetMapButton(int x, int y)
+
+        // ──────────────────────────────────────────────────────────────
+        // Palette grids
+        // ──────────────────────────────────────────────────────────────
+
+        private void SetDoorTextureImageGrid()
         {
-            foreach (UIElement child in SectionGrid.Children)
+            if (ActiveMod == null) return;
+            DoorTextureImageGrid.Children.Clear();
+            if (SelectedDoorIndex == -1 && Wolfenstein.Doors.Count > 0) SelectedDoorIndex = 0;
+            for (int i = 0; i < Wolfenstein.Doors.Count; i++)
             {
-                // Check if the child is in the desired row and column
-                if (Grid.GetRow(child) == y && Grid.GetColumn(child) == x)
+                var j = i;
+                Image imageControl = new()
                 {
-                    return child as SectionButton;
-                }
+                    Source = GetDoorBitmap(j, DoorDirection.EAST_WEST),
+                    ToolTip = Wolfenstein.Doors[j].MapID,
+                    Stretch = Stretch.None
+                };
+                imageControl.MouseLeftButtonUp += (s, e) => { SelectedDoorIndex = j; SetDoorTextureImageGrid(); };
+                DoorTextureImageGrid.Children.Add(new Border()
+                {
+                    BorderThickness = new Thickness(5),
+                    BorderBrush = j == SelectedDoorIndex ? Brushes.Blue : Brushes.Gray,
+                    Child = imageControl
+                });
             }
-            return null;
         }
+
+        private string GetNameForSpecial(int i) => i switch
+        {
+            0 => "Player Start",
+            1 => "Random Enemy",
+            2 => "Experiment Enemy",
+            3 => "Exit",
+            4 => "Secret North",
+            5 => "Secret East",
+            6 => "Secret South",
+            7 => "Secret West",
+            8 => "Wall can be any",
+            9 => "5% Chance",
+            10 => "25% Chance",
+            11 => "50% Chance",
+            12 => "75% Chance",
+            _ => "Unknown"
+        };
+
+        private void SetSpecialTextureImageGrid()
+        {
+            if (ActiveMod == null) return;
+            SpecialTextureImageGrid.Children.Clear();
+            if (SelectedSpecialIndex == -1 && Wolfenstein.Special.Count > 0) SelectedSpecialIndex = 0;
+            for (int i = 0; i < Wolfenstein.Special.Count; i++)
+            {
+                var j = i;
+                Image imageControl = new()
+                {
+                    Source = GetSpecialBitmap(j),
+                    ToolTip = GetNameForSpecial(j),
+                    Stretch = Stretch.None
+                };
+                imageControl.MouseLeftButtonUp += (s, e) => { SelectedSpecialIndex = j; SetSpecialTextureImageGrid(); };
+                SpecialTextureImageGrid.Children.Add(new Border()
+                {
+                    BorderThickness = new Thickness(5),
+                    BorderBrush = j == SelectedSpecialIndex ? Brushes.Blue : Brushes.Gray,
+                    Child = imageControl
+                });
+            }
+        }
+
+        private void SetEnemyTextureImageGrid()
+        {
+            if (ActiveMod == null) return;
+            EnemyTextureImageGrid.Children.Clear();
+            if (SelectedEnemyIndex == -1 && Wolfenstein.Mods[ActiveMod.Name].Enemies.Length > 0) SelectedEnemyIndex = 0;
+            for (int i = 0; i < Wolfenstein.Mods[ActiveMod.Name].Enemies.Length; i++)
+            {
+                var j = i;
+                Image imageControl = new()
+                {
+                    Source = GetEnemyBitmap(ActiveMod.Name, Wolfenstein.Mods[ActiveMod.Name].Enemies[i].MapID),
+                    ToolTip = Wolfenstein.Mods[ActiveMod.Name].Enemies[i].Name,
+                    Stretch = Stretch.None
+                };
+                imageControl.MouseLeftButtonUp += (s, e) => { SelectedEnemyIndex = j; SetEnemyTextureImageGrid(); };
+                EnemyTextureImageGrid.Children.Add(new Border()
+                {
+                    BorderThickness = new Thickness(5),
+                    BorderBrush = i == SelectedEnemyIndex ? Brushes.Blue : Brushes.Gray,
+                    Child = imageControl
+                });
+            }
+        }
+
+        private void SetDecalTextureImageGrid()
+        {
+            if (ActiveMod == null) return;
+            DecalTextureImageGrid.Children.Clear();
+            if (SelectedDecalIndex == -1 && Wolfenstein.Decals[ActiveMod.Name].Count > 0) SelectedDecalIndex = 0;
+            for (int i = 0; i < Wolfenstein.Decals[ActiveMod.Name].Count; i++)
+            {
+                var j = i;
+                Image imageControl = new()
+                {
+                    Source = GetDecalBitmap(ActiveMod.Name, i),
+                    ToolTip = Wolfenstein.Mods[ActiveMod.Name].Decals[j].MapID,
+                    Stretch = Stretch.None
+                };
+                imageControl.MouseLeftButtonUp += (s, e) => { SelectedDecalIndex = j; SetDecalTextureImageGrid(); };
+                DecalTextureImageGrid.Children.Add(new Border()
+                {
+                    BorderThickness = new Thickness(5),
+                    BorderBrush = i == SelectedDecalIndex ? Brushes.Blue : Brushes.Gray,
+                    Child = imageControl
+                });
+            }
+        }
+
+        private void SetItemTextureImageGrid()
+        {
+            if (ActiveMod == null) return;
+            ItemTextureImageGrid.Children.Clear();
+            if (SelectedItemIndex == -1 && Wolfenstein.PickupItems.Count > 0) SelectedItemIndex = 0;
+            for (int i = 0; i < Wolfenstein.PickupItems.Count; i++)
+            {
+                var j = i;
+                if (Wolfenstein.PickupItemTypes[i].ItemType == PickupItemType.SPAWNER) continue;
+                Image imageControl = new()
+                {
+                    Source = GetItemBitmap(j),
+                    Stretch = Stretch.None
+                };
+                imageControl.MouseLeftButtonUp += (s, e) => { SelectedItemIndex = j; SetItemTextureImageGrid(); };
+                ItemTextureImageGrid.Children.Add(new Border()
+                {
+                    BorderThickness = new Thickness(5),
+                    BorderBrush = j == SelectedItemIndex ? Brushes.Blue : Brushes.Gray,
+                    Child = imageControl
+                });
+            }
+        }
+
+        private void SetWallTextureImageGrid()
+        {
+            if (ActiveMod == null) return;
+            WallTextureImageGrid.Children.Clear();
+            if (SelectedWallIndex == -1 && Wolfenstein.Textures[ActiveMod.Name].Count > 0) SelectedWallIndex = 0;
+            for (int i = 0; i < ActiveMod.Textures.Length; i++)
+            {
+                var j = ActiveMod.Textures[i].MapID;
+                Image imageControl = new()
+                {
+                    Source = GetTextureBitmap(ActiveMod.Name, j),
+                    Stretch = Stretch.None
+                };
+                imageControl.MouseLeftButtonUp += (s, e) => { SelectedWallIndex = j; SetWallTextureImageGrid(); };
+                WallTextureImageGrid.Children.Add(new Border()
+                {
+                    BorderThickness = new Thickness(5),
+                    BorderBrush = j == SelectedWallIndex ? Brushes.Blue : Brushes.Gray,
+                    Child = imageControl
+                });
+            }
+        }
+
+        // ──────────────────────────────────────────────────────────────
+        // Door/wall helpers
+        // ──────────────────────────────────────────────────────────────
+
         internal bool IsDoorConnected(int x, int y, out List<(int x, int y)> where)
         {
-            where = new List<(int, int)>();
+            where = [];
             if (ActiveSection == null) return false;
             if (ActiveSection.Items[y][x] >= 0) return false;
             if (ActiveSection.Decals[y][x] >= 0) return false;
@@ -713,6 +692,7 @@ namespace WolfensteinInfinite.Editor
             if (y + 1 < ActiveSection.Doors.Length && ActiveSection.Doors[y + 1][x] >= 0) where.Add((x, y + 1));
             return where.Count > 0;
         }
+
         private bool IsWall(int x, int y)
         {
             if (ActiveSection == null) return false;
@@ -731,18 +711,27 @@ namespace WolfensteinInfinite.Editor
             return DoorDirection.NONE;
         }
 
+        // ──────────────────────────────────────────────────────────────
+        // Difficulty
+        // ──────────────────────────────────────────────────────────────
 
+        private void DifficultySelection_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var dStr = DifficultySelection.SelectedItem.ToString()
+                ?? DifficultyHelpers.GetDifficultyString(Difficulties.CAN_I_PLAY_DADDY);
+            SelectedDifficulty = (int)(DifficultyHelpers.GetStringDifficulty(dStr) ?? Difficulties.CAN_I_PLAY_DADDY);
+        }
+
+        // ──────────────────────────────────────────────────────────────
+        // Bitmap helpers
+        // ──────────────────────────────────────────────────────────────
 
         private static WriteableBitmap GetBitmapRotate90(Texture32 t)
         {
             var nt = new Texture32(t.Height, t.Width);
             for (int y = 0; y < t.Height; y++)
-            {
                 for (int x = 0; x < t.Width; x++)
-                {
                     nt.PutPixel(y, x, t.GetPixel(x, y));
-                }
-            }
             return GetBitmap(nt);
         }
 
@@ -761,7 +750,7 @@ namespace WolfensteinInfinite.Editor
                     pBackBuffer[i + 3] = t.Pixels[i + 3];
                 }
             }
-            bmp.AddDirtyRect(new Int32Rect(0, 0, t.Width, t.Height)); // Mark the entire bitmap as dirty
+            bmp.AddDirtyRect(new Int32Rect(0, 0, t.Width, t.Height));
             bmp.Unlock();
             return bmp;
         }
@@ -769,7 +758,6 @@ namespace WolfensteinInfinite.Editor
         public WriteableBitmap? GetSpecialBitmap(string mod, int v, int w)
         {
             if (!Wolfenstein.Mods.ContainsKey(mod)) return null;
-
             var key = $"{mod}{v},{w}w";
             if (SpecialMapCache.TryGetValue(key, out var bmp)) return bmp;
             Texture32 wall;
@@ -782,46 +770,9 @@ namespace WolfensteinInfinite.Editor
             {
                 wall = Wolfenstein.Textures[mod].FirstOrDefault(p => p.Key == w).Value;
             }
-            /*
-            Texture32 special;
-            if (!Wolfenstein.Special.Any(p => p.Key == v))
-            {
-                special = new Texture32(64, 64);
-                special.RectFill(0, 0, 64, 64, 0, 0, 0, 0);
-            }
-            else
-            {
-                special = Wolfenstein.Special.FirstOrDefault(p => p.Key == v).Value;
-            }
-
-            bmp = new WriteableBitmap(wall.Width, wall.Height, 96, 96, PixelFormats.Pbgra32, null);
-            bmp.Lock();
-            unsafe
-            {
-                byte* pBackBuffer = (byte*)bmp.BackBuffer;
-                for (int i = 0; i < wall.Pixels.Length; i += 4)
-                {
-                    if (special.Pixels[i + 3] == 0)
-                    {
-                        pBackBuffer[i] = wall.Pixels[i + 2];
-                        pBackBuffer[i + 1] = wall.Pixels[i + 1];
-                        pBackBuffer[i + 2] = wall.Pixels[i + 0];
-                        pBackBuffer[i + 3] = wall.Pixels[i + 3];
-                    }
-                    else
-                    {
-                        pBackBuffer[i] = special.Pixels[i + 2];
-                        pBackBuffer[i + 1] = special.Pixels[i + 1];
-                        pBackBuffer[i + 2] = special.Pixels[i + 0];
-                        pBackBuffer[i + 3] = special.Pixels[i + 3];
-                    }
-                }
-            }
-            bmp.AddDirtyRect(new Int32Rect(0, 0, wall.Width, wall.Height)); // Mark the entire bitmap as dirty
-            bmp.Unlock();
-            SpecialMapCache.Add(key, bmp);*/
             return BlendSpecialTexture(wall, v, key);
         }
+
         private WriteableBitmap? BlendSpecialTexture(Texture32 wall, int v, string key)
         {
             Texture32 special;
@@ -834,8 +785,7 @@ namespace WolfensteinInfinite.Editor
             {
                 special = Wolfenstein.Special.FirstOrDefault(p => p.Key == v).Value;
             }
-
-            WriteableBitmap bmp = new WriteableBitmap(wall.Width, wall.Height, 96, 96, PixelFormats.Pbgra32, null);
+            WriteableBitmap bmp = new(wall.Width, wall.Height, 96, 96, PixelFormats.Pbgra32, null);
             bmp.Lock();
             unsafe
             {
@@ -858,7 +808,7 @@ namespace WolfensteinInfinite.Editor
                     }
                 }
             }
-            bmp.AddDirtyRect(new Int32Rect(0, 0, wall.Width, wall.Height)); // Mark the entire bitmap as dirty
+            bmp.AddDirtyRect(new Int32Rect(0, 0, wall.Width, wall.Height));
             bmp.Unlock();
             SpecialMapCache.Add(key, bmp);
             return bmp;
@@ -906,6 +856,7 @@ namespace WolfensteinInfinite.Editor
             TextureCache.Add(key, bmp);
             return bmp;
         }
+
         public Direction GetDecalDirection(string mod, int v)
         {
             if (!Wolfenstein.Mods.TryGetValue(mod, out Mod? value)) return Direction.NONE;
@@ -916,6 +867,7 @@ namespace WolfensteinInfinite.Editor
             if (decal == null) return DecalDirectionCache[key] = Direction.NONE;
             return DecalDirectionCache[key] = decal.Direction;
         }
+
         public WriteableBitmap? GetDecalBitmap(string mod, int v)
         {
             if (!Wolfenstein.Mods.ContainsKey(mod)) return null;
@@ -927,15 +879,16 @@ namespace WolfensteinInfinite.Editor
             DecalCache.Add(key, bmp);
             return bmp;
         }
+
         public WriteableBitmap? GetItemBitmap(int v)
         {
             if (ItermCache.TryGetValue(v, out var bmp)) return bmp;
             if (!Wolfenstein.PickupItems.TryGetValue(v, out Texture32? value)) return null;
-            var t = value;
-            bmp = GetBitmap(t);
+            bmp = GetBitmap(value);
             ItermCache.Add(v, bmp);
             return bmp;
         }
+
         public WriteableBitmap? GetEnemyBitmap(string mod, int v)
         {
             if (!Wolfenstein.Mods.TryGetValue(mod, out Mod? value)) return null;
@@ -949,15 +902,16 @@ namespace WolfensteinInfinite.Editor
             EnemyCache.Add(key, bmp);
             return bmp;
         }
+
         public WriteableBitmap? GetSpecialBitmap(int v)
         {
             if (SpecialCache.TryGetValue(v, out var bmp)) return bmp;
             if (!Wolfenstein.Special.TryGetValue(v, out Texture32? value)) return null;
-            var t = value;
-            bmp = GetBitmap(t);
+            bmp = GetBitmap(value);
             SpecialCache.Add(v, bmp);
             return bmp;
         }
+
         public WriteableBitmap? GetDoorBitmap(int v, DoorDirection dir)
         {
             var k = $"{(int)dir},{v}";
@@ -967,27 +921,15 @@ namespace WolfensteinInfinite.Editor
             DoorCache.Add(k, bmp);
             return bmp;
         }
-        private void CurrentMapView_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
-        {
-            return;/*
-            if (Keyboard.GetKeyStates(Key.LeftCtrl) == KeyStates.Down)
-            {
-                SectionGridScale.ScaleX = Math.Clamp(SectionGridScale.ScaleX + ((e.Delta > 0) ? 0.1 : -0.1), 0.25, 2.0);
-                SectionGridScale.ScaleY = Math.Clamp(SectionGridScale.ScaleY + ((e.Delta > 0) ? 0.1 : -0.1), 0.25, 2.0);
-                e.Handled = true;
-            }*/
-        }
+
+        // ──────────────────────────────────────────────────────────────
+        // Save
+        // ──────────────────────────────────────────────────────────────
+
         private void SetSaveButtonStates()
         {
-            if (ActiveMod != null)
-            {
-                SaveBtn.IsEnabled = ChangeStates[ActiveMod];
-            }
-            else
-            {
-                SaveBtn.IsEnabled = false;
-            }
-            SaveAllBtn.IsEnabled = ChangeStates.Any(p => p.Value == true);
+            SaveBtn.IsEnabled = ActiveMod != null && ChangeStates[ActiveMod];
+            SaveAllBtn.IsEnabled = ChangeStates.Any(p => p.Value);
             MinLevelSld.IsEnabled = TestBtn.IsEnabled = DeleteBtn.IsEnabled = DuplicateBtn.IsEnabled = ActiveSection != null;
         }
 
@@ -1000,12 +942,14 @@ namespace WolfensteinInfinite.Editor
                 s.Layers = MapSection.Trim(s);
             if (!builder.Validate(out errors)) return false;
 
-            var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{mod.Name}\map.json");
+            var target = SaveTargetSelection.SelectedItem as string ?? "map.json";
+            var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{mod.Name}\{target}");
             try
             {
                 if (!FileHelpers.Shared.Serialize(builder, file)) throw new Exception();
                 ChangeStates[mod] = false;
                 if (ActiveSection != null) ActiveSection.Layers = MapSection.Expand(ActiveSection);
+                Wolfenstein.ReloadMod(mod.Name);
                 return true;
             }
             catch
@@ -1034,9 +978,14 @@ namespace WolfensteinInfinite.Editor
                 if (!ChangeStates[v]) continue;
                 ChangeStates[v] = !Save(v, out var _);
             }
-            if (ChangeStates.Any(p => p.Value == true)) MessageBox.Show("Unable to save all mod changes", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            if (ChangeStates.Any(p => p.Value))
+                MessageBox.Show("Unable to save all mod changes", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             SetSaveButtonStates();
         }
+
+        // ──────────────────────────────────────────────────────────────
+        // Other buttons
+        // ──────────────────────────────────────────────────────────────
 
         private void DeleteBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -1049,20 +998,7 @@ namespace WolfensteinInfinite.Editor
 
         private void TestBtn_Click(object sender, RoutedEventArgs e)
         {
-            /*
-[0,0,1,0,0,0,0],
-[0,-1,-1,-1,-1,-1,0],
-[0,-1,-1,-1,-1,-1,0],
-[0,-1,-1,-1,-1,-1,0],
-[0,0,0,-1,0,0,0],
-[0,-1,-1,-1,-1,-1,0],
-[0,0,0,0,0,0,0]
-             
-             */
-            if (ActiveMod == null) return;
-            if (ActiveSection == null) return;
-            var s = MapSection.Trim(ActiveSection);
-            //int[][]? area = MapSection.GetClosedSection(s[0].Value,s[5].Value, out bool closed, out bool noDoors, out bool multiple);
+            if (ActiveMod == null || ActiveSection == null) return;
             int[][]? area = ActiveSection.GetClosedSection(out bool closed, out bool noDoors, out bool multiple);
             MessageBox.Show($"Closed: {closed} NoDoors: {noDoors} Multiple: {multiple}");
         }
@@ -1080,7 +1016,6 @@ namespace WolfensteinInfinite.Editor
             var builder = Wolfenstein.BuilderMods[ActiveMod.Name];
             var section = ActiveSection.Clone();
             section.Id = builder.MapSections.Length;
-
             MapSectionSelection.Items.Insert(MapSectionSelection.Items.IndexOf("New"), section.Id.ToString());
             MapSectionSelection.SelectedIndex = MapSectionSelection.Items.IndexOf(section.Id.ToString());
             MapSectionSelection.SelectionChanged += MapSectionSelection_SelectionChanged;
@@ -1088,6 +1023,9 @@ namespace WolfensteinInfinite.Editor
             SetMapSectionSelections(section.Id);
         }
 
-
+        private void CurrentMapView_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            // zoom reserved for later
+        }
     }
 }
