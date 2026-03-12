@@ -1,7 +1,10 @@
 ﻿//WIP Work in progress
 using SFML.Window;
+using System.Windows.Controls.Primitives;
 using WolfensteinInfinite.Engine.Graphics;
+using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.GameObjects;
+using WolfensteinInfinite.Utilities;
 
 namespace WolfensteinInfinite.States
 {
@@ -15,6 +18,8 @@ namespace WolfensteinInfinite.States
         private float _readyTimer = 0f;
         private const float MinDisplayTime = 2.0f;
         private readonly LevelStats _stats;
+        //Score, Enemy, Items, Secrets
+        private Tween[] Tweens = new Tween[] { new(2, null), new(2, null), new(2, null), new(2, null) };
         public LevelCompleteState(Wolfenstein wolfenstein, Player player, Map map,
             LevelStats stats, GameState nextLevelState) : base(wolfenstein)
         {
@@ -34,52 +39,49 @@ namespace WolfensteinInfinite.States
 
             _readyTimer += frameTime;
 
+            foreach (var t in Tweens)
+            {
+                if (t.IsFinished) continue;
+                t.Update(frameTime);
+                break;
+            }
             // Draw background
             buffer.Clear(0, 0, 0);
-
+            CommonGraphics.DrawTtileAnim(buffer, GameResources, Clock, 1f);
             var centerX = buffer.Width / 2;
-            var y = buffer.Height / 4;
+            var y = 8;
 
             // Level complete heading
             var heading = $"LEVEL {_completedLevel} COMPLETE";
-            var (hw, _) = Wolfenstein.GameResources.LargeFont.MeasureString(heading);
+            var (hw,hh) = Wolfenstein.GameResources.MenuFont.MeasureString(heading);
             buffer.DrawString(centerX - hw / 2, y,
-                heading, Wolfenstein.GameResources.LargeFont, RGBA8.YELLOW);
+                heading, Wolfenstein.GameResources.MenuFont, RGBA8.WHITE);
 
-            y += 24;
+            y += hh + 6;
 
-            // Score
-            var score = $"SCORE: {_player.Score}";
-            var (sw, _) = Wolfenstein.GameResources.SmallFont.MeasureString(score);
+            // Score  should be level score
+            var score = $"SCORE: {(int)(_stats.LevelScore * Tweens[0].Value)}";
+            var (sw, sh) = Wolfenstein.GameResources.SmallFont.MeasureString(score);
             buffer.DrawString(centerX - sw / 2, y,
                 score, Wolfenstein.GameResources.SmallFont, RGBA8.WHITE);
-            y += 14;
-            var enemies = $"ENEMIES  {_stats.EnemiesKilled}/{_stats.EnemiesTotal} " +
-                $"({Pct(_stats.EnemiesKilled, _stats.EnemiesTotal)}%)";
-            var (ew, _) = Wolfenstein.GameResources.SmallFont.MeasureString(enemies);
+            y += sh+6;
+            var enemies = $"KILL RATIO {(int)(Pct(_stats.EnemiesKilled, _stats.EnemiesTotal) * Tweens[1].Value)}%";
+            var (ew, eh) = Wolfenstein.GameResources.SmallFont.MeasureString(enemies);
             buffer.DrawString(centerX - ew / 2, y, enemies,
                 Wolfenstein.GameResources.SmallFont, RGBA8.WHITE);
 
-            y += 14;
-            var items = $"ITEMS    {_stats.ItemsCollected}/{_stats.ItemsTotal} " +
-                $"({Pct(_stats.ItemsCollected, _stats.ItemsTotal)}%)";
-            var (iw, _) = Wolfenstein.GameResources.SmallFont.MeasureString(items);
+            y += eh + 6;
+            var items = $"ITEMS      {(int)(Pct(_stats.ItemsCollected, _stats.ItemsTotal) * Tweens[2].Value)}%";
+            var (iw, ih) = Wolfenstein.GameResources.SmallFont.MeasureString(items);
             buffer.DrawString(centerX - iw / 2, y, items,
                 Wolfenstein.GameResources.SmallFont, RGBA8.WHITE);
 
-            y += 14;
-            var secrets = $"SECRETS  {_stats.SecretsFound}/{_stats.SecretsTotal} " +
-                $"({Pct(_stats.SecretsFound, _stats.SecretsTotal)}%)";
+            y += ih+6;
+            var secrets = $"SECRETS    {(int)(Pct(_stats.SecretsFound, _stats.SecretsTotal) * Tweens[3].Value)}%";
             var (secw, _) = Wolfenstein.GameResources.SmallFont.MeasureString(secrets);
             buffer.DrawString(centerX - secw / 2, y, secrets,
                 Wolfenstein.GameResources.SmallFont, RGBA8.WHITE);
-            y += 24;
-
-            // Next level
-            var next = $"ENTERING LEVEL {_nextLevel}";
-            var (nw, _) = Wolfenstein.GameResources.SmallFont.MeasureString(next);
-            buffer.DrawString(centerX - nw / 2, y,
-                next, Wolfenstein.GameResources.SmallFont, RGBA8.WHITE);
+            
 
             // Continue prompt — only after minimum display time
             if (_readyTimer >= MinDisplayTime)
@@ -98,6 +100,8 @@ namespace WolfensteinInfinite.States
         {
             if (_readyTimer >= MinDisplayTime)
                 _ready = true;
+            foreach (var t in Tweens) t.End();
+
         }
     }
 }

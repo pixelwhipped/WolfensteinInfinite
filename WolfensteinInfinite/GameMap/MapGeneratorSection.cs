@@ -17,7 +17,9 @@ namespace WolfensteinInfinite.GameMap
         public int X { get; init; } = xOffset;
         public int Y { get; init; } = yOffset;
         public Guid Guid { get; init; } = Guid.NewGuid();
-
+        private int[][]? _closedSection;
+        public int[][]? GetOrComputeClosedSection() =>
+            _closedSection ??= Section.GetClosedSection(out _, out _, out _);
         public override int GetHashCode() => HashCode.Combine(X, Y, Guid);
 
         public override bool Equals(object? obj)

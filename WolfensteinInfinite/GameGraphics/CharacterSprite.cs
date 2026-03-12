@@ -11,7 +11,9 @@ namespace WolfensteinInfinite.GameGraphics
             (AnimationState == CharacterAnimationState.DYING_LEFT ||
              AnimationState == CharacterAnimationState.DYING_RIGHT) &&
              Animations[AnimationState].IsComplete;
-
+        public bool IsAttackAnimationComplete =>
+            AnimationState == CharacterAnimationState.ATTACKING &&
+            Animations[AnimationState].IsComplete;
         public void Update(float frameTimeSeconds)
         {
             if (Animations.TryGetValue(AnimationState, out var anim))
@@ -21,8 +23,8 @@ namespace WolfensteinInfinite.GameGraphics
         {
             if (Animations.TryGetValue(AnimationState, out var anim))
                 anim.Reset();
-        }        
+        }
         public Texture32 GetTexture(float angle) => Animations[AnimationState].GetTexture(angle);
-        
+
     }
 }

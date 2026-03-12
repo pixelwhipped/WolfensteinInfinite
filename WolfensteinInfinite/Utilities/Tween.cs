@@ -3,6 +3,7 @@
     public class Tween(float seconds, Action<ITween>? onFinish) : ITween
     {
         public float Seconds { get; init; } = seconds;
+        public bool IsFinished => CurrentFrameTime == Seconds;
         public Action<ITween>? OnFinish { get; init; } = onFinish;
         public float Value => CurrentFrameTime / Seconds;
         private bool OnFinishCalled = false;

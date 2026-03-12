@@ -34,7 +34,7 @@ namespace WolfensteinInfinite.GameObjects
         public ModKeyIndex[] DecalSourceIndicies { get; set; }
         public ModKeyIndex[] ItemSourceIndicies { get; set; }
         public ModKeyIndex[] DoorSourceIndicies { get; set; }
-        
+        public int LevelScore { get; set; } = 0;
 
         internal void LoadResources(Wolfenstein wolfenstein)
         {

@@ -1,4 +1,5 @@
 ﻿//WIP Work in progress
+using Melanchall.DryWetMidi.Core;
 using SFML.Window;
 using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
@@ -415,7 +416,7 @@ namespace WolfensteinInfinite.States
     _enemiesKilled, _enemiesTotal,
     _itemsCollected, _itemsTotal,
     Game.Map.PushWalls.Count(w => w.IsComplete),
-    Game.Map.PushWalls.Count);
+    Game.Map.PushWalls.Count, Game.Map.LevelScore);
 
         private LevelCompleteState HandleExit()
         {
@@ -1751,6 +1752,8 @@ namespace WolfensteinInfinite.States
 
             // Calculate texture coordinates using door width and position
             int texX;
+            var texWidth = Game.Map.DoorTextures[door.TextureIndex].Width;
+
             if (door.IsVertical)
             {
                 // Vertical door slides horizontally
@@ -1765,9 +1768,30 @@ namespace WolfensteinInfinite.States
 
                 // Handle negative values and convert back to texture coordinate (0-1 range)
                 while (textureWorldX < 0) textureWorldX += renderWidth;
-                float textureX = (textureWorldX % renderWidth) / renderWidth;
 
-                texX = (int)(textureX * Game.Map.DoorTextures[door.TextureIndex].Width);
+                //old code
+                //float textureX = (textureWorldX % renderWidth) / renderWidth;
+                //texX = (int)(textureX * Game.Map.DoorTextures[door.TextureIndex].Width);
+
+                //New code
+                // wallX is 0-1 across the door tile
+                // Offset by OpenAmount so the texture slides with the door
+                // The right edge of the texture stays pinned to the right edge of the door (wallX=1)
+                float textureX = wallX - door.OpenAmount;
+
+                // If textureX is negative the ray is hitting the open gap — should not render
+                // but CalculateDoorIntersection already guards this so clamp to 0
+                /* Scales door
+                textureX = Math.Max(0f, textureX) / (1f - door.OpenAmount);
+                textureX = Math.Clamp(textureX, 0f, 1f);
+
+                texX = (int)(textureX * texWidth);
+                texX = Math.Clamp(texX, 0, texWidth - 1);
+                */
+                // Convert to texture pixel — no wrapping, no scaling
+                texX = (int)(textureX * texWidth);
+                if (texX < 0 || texX >= texWidth) return;
+                //texX = Math.Clamp(texX, 0, texWidth - 1);
             }
             else
             {
@@ -1777,9 +1801,30 @@ namespace WolfensteinInfinite.States
                 float textureWorldX = worldX - doorWorldPos;
 
                 while (textureWorldX < 0) textureWorldX += renderWidth;
-                float textureX = (textureWorldX % renderWidth) / renderWidth;
+                //old code
+                //float textureX = (textureWorldX % renderWidth) / renderWidth;
+                //texX = (int)(textureX * Game.Map.DoorTextures[door.TextureIndex].Width);
+                //new code
+                // wallX is 0-1 across the door tile
+                // Offset by OpenAmount so the texture slides with the door
+                // The right edge of the texture stays pinned to the right edge of the door (wallX=1)
+                float textureX = wallX - door.OpenAmount;
 
-                texX = (int)(textureX * Game.Map.DoorTextures[door.TextureIndex].Width);
+                // If textureX is negative the ray is hitting the open gap — should not render
+                // but CalculateDoorIntersection already guards this so clamp to 0
+                /* Scales door
+                textureX = Math.Max(0f, textureX) / (1f - door.OpenAmount);
+                textureX = Math.Clamp(textureX, 0f, 1f);
+
+                texX = (int)(textureX * texWidth);
+                texX = Math.Clamp(texX, 0, texWidth - 1);
+                */
+
+                // Convert to texture pixel — no wrapping, no scaling
+                texX = (int)(textureX * texWidth);
+                if (texX < 0 || texX >= texWidth) return;
+                //texX = Math.Clamp(texX, 0, texWidth - 1);
+
             }
 
             // Clamp texture coordinates
