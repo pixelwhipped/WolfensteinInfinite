@@ -1,6 +1,7 @@
 ﻿using WolfensteinInfinite.GameBible;
+using WolfensteinInfinite.GameGraphics;
+using WolfensteinInfinite.GameMap;
 using WolfensteinInfinite.States;
-using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.GameObjects
 {
@@ -9,8 +10,6 @@ namespace WolfensteinInfinite.GameObjects
     // -------------------------------------------------------------------------
     public class RadioObject(int x, int y, ISprite sprite) : DynamicObject(x + 0.5f, y + 0.5f, DynamicObjectType.PickupItem, sprite), IInteractable
     {
-        public int X { get; set; } = x;
-        public int Y { get; set; } = y;
 
         public bool CanInteract(Game game) =>
             game.Map.Objectives.GetValueOrDefault(MapFlags.HAS_SECRET_MESSAGE) &&

@@ -1,5 +1,6 @@
-﻿using WolfensteinInfinite.States;
-using WolfensteinInfinite.WolfMod;
+﻿using WolfensteinInfinite.GameGraphics;
+using WolfensteinInfinite.GameMap;
+using WolfensteinInfinite.States;
 
 namespace WolfensteinInfinite.GameObjects
 {
@@ -8,8 +9,6 @@ namespace WolfensteinInfinite.GameObjects
     // -------------------------------------------------------------------------
     public class DynamitePlacementObject : DynamicObject, IInteractable
     {
-        public int X { get; set; }
-        public int Y { get; set; }
         public bool IsPlaced { get; private set; } = false;
 
         private readonly ISprite _unplacedSprite;

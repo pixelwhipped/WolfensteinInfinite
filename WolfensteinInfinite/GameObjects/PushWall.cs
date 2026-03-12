@@ -5,8 +5,8 @@ namespace WolfensteinInfinite.GameObjects
 {
     public class PushWall : IInteractable
     {
-        public int X { get; set; }
-        public int Y { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
         public Direction Direction { get; set; }
         public int TextureIndex { get; set; }
         public bool IsMoving { get; private set; } = false;
@@ -34,7 +34,7 @@ namespace WolfensteinInfinite.GameObjects
             MoveOffset -= 1.0f;
 
             // Clear the tile the wall just left
-            map.WorldMap[Y][X] = MapSection.ClosedSectionInterior;
+            map.WorldMap[(int)Y][(int)X] = MapSection.ClosedSectionInterior;
 
             // Calculate where the wall wants to move next
             var (nextX, nextY) = Direction switch
@@ -50,12 +50,12 @@ namespace WolfensteinInfinite.GameObjects
             bool blocked =
                 nextY < 0 || nextY >= map.WorldMap.Length ||
                 nextX < 0 || nextX >= map.WorldMap[0].Length ||
-                map.WorldMap[nextY][nextX] >= 0; // >= 0 means wall
+                map.WorldMap[(int)nextY][(int)nextX] >= 0; // >= 0 means wall
 
             if (blocked)
             {
                 // Stop — wall stays at its current tile permanently
-                map.WorldMap[Y][X] = TextureIndex;
+                map.WorldMap[(int)Y][(int)X] = TextureIndex;
                 IsMoving = false;
                 IsComplete = true;
             }
@@ -64,7 +64,7 @@ namespace WolfensteinInfinite.GameObjects
                 // Advance — occupy the next tile
                 X = nextX;
                 Y = nextY;
-                map.WorldMap[Y][X] = TextureIndex;
+                map.WorldMap[(int)Y][(int)X] = TextureIndex;
             }
         }
     }

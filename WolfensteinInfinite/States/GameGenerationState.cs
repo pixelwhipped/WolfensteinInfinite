@@ -1,6 +1,9 @@
-﻿using SFML.Window;
-using System.Windows.Controls.Primitives;
+﻿//Clean
+using SFML.Window;
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
+using WolfensteinInfinite.GameGraphics;
+using WolfensteinInfinite.GameMap;
 using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.WolfMod;
 
@@ -101,14 +104,18 @@ namespace WolfensteinInfinite.States
 
             var (m, s) = rootOptions[Random.Shared.Next(0, rootOptions.Count)];
 
-            var avgRoomDim = Math.Ceiling(sections.Average(p => p.Value.Average(k => k.Width * k.Height)));
+            double avgRoomDim = Math.Ceiling(sections.Average(p =>
+            {
+                static int selector(MapSection k) => k.Width * k.Height;
+                return p.Value.Average(selector);
+            }));
             var maxRooms = Math.Ceiling((Wolfenstein.Config.MaxMapSize * Wolfenstein.Config.MaxMapSize) / avgRoomDim);
 
             var targetRooms = Math.Max((int)Math.Ceiling((Math.Clamp(Level, 1, 100) / 100f) * maxRooms), 15);
             Progress = 20;
             Thread.Sleep(50);
-            ///Will need a test to check if new level differnt from previous level.
-            MapGenerator builder = new MapGenerator(Wolfenstein, Wolfenstein.Config.MaxMapSize, Wolfenstein.Config.MaxMapSize, m, s, sections, Level, targetRooms, attemptObjectives, out string[] finalPassErrors);
+
+            MapGenerator builder = new(Wolfenstein, Wolfenstein.Config.MaxMapSize, Wolfenstein.Config.MaxMapSize, m, s, sections, Level, targetRooms, attemptObjectives, out string[] finalPassErrors);
             if (!builder.Success) //Retries
             {
                 var inc = 40 / maxAttempts;

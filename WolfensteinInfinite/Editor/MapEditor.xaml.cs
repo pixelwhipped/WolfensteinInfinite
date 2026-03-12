@@ -3,9 +3,11 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
+using WolfensteinInfinite.GameHelpers;
 using WolfensteinInfinite.GameObjects;
-using WolfensteinInfinite.Util;
+using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.Editor

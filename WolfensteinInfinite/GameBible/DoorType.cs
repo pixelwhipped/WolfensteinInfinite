@@ -1,4 +1,5 @@
-﻿using WolfensteinInfinite.WolfMod;
+﻿using WolfensteinInfinite.Engine.Graphics;
+using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.GameBible
 {

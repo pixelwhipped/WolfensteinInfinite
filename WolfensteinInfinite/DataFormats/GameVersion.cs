@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿//Clean
+using System.IO;
+using WolfensteinInfinite.Engine.Graphics;
+using WolfensteinInfinite.Utilities;
 
 namespace WolfensteinInfinite.DataFormats
 {
@@ -38,7 +41,7 @@ namespace WolfensteinInfinite.DataFormats
         public string VGAHuffman => FileHelpers.Shared.GetDataFilePath(Path.ChangeExtension(TREE_FILE, Extension));
         public string VGAOffsets => FileHelpers.Shared.GetDataFilePath(Path.ChangeExtension(HEAD_FILE, Extension));
         public string VGATextures => FileHelpers.Shared.GetDataFilePath(Path.ChangeExtension(GRAPH_FILE, Extension));
-        public string[] FileList => new string[] { AudioOffsets, AudioChunks, VideoAudio, LevelAtlas, LevelMaps, VGAHuffman, VGAOffsets, VGATextures };
+        public string[] FileList => [AudioOffsets, AudioChunks, VideoAudio, LevelAtlas, LevelMaps, VGAHuffman, VGAOffsets, VGATextures];
         public bool IsAvailable => FileList.All(p => File.Exists(p));
     }
 }

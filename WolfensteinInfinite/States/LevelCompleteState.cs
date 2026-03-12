@@ -1,7 +1,7 @@
-﻿using SFML.Window;
-using WolfensteinInfinite.GameBible;
+﻿//WIP Work in progress
+using SFML.Window;
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameObjects;
-using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.States
 {

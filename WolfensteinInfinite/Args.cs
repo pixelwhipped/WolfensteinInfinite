@@ -1,4 +1,5 @@
-﻿namespace WolfensteinInfinite
+﻿//Clean
+namespace WolfensteinInfinite
 {
     public static class Args
     {

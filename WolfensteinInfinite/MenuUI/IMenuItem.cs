@@ -1,4 +1,6 @@
-﻿namespace WolfensteinInfinite.MenuUI
+﻿using WolfensteinInfinite.Engine.Graphics;
+
+namespace WolfensteinInfinite.MenuUI
 {
     public interface IMenuItem
     {

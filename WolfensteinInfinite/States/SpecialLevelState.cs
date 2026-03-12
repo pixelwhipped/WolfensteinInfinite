@@ -1,5 +1,8 @@
-﻿using SFML.Window;
+﻿//Wip Work in Progress, Untested
+using SFML.Window;
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
+using WolfensteinInfinite.GameMap;
 using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.WolfMod;
 

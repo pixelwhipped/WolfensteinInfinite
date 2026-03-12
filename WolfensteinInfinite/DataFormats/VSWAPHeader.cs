@@ -1,4 +1,5 @@
-﻿namespace WolfensteinInfinite.DataFormats
+﻿//Clean
+namespace WolfensteinInfinite.DataFormats
 {
     public class VSWAPHeader(ushort chunkCount, ushort spriteStart, ushort soundStart, uint[] chunkOffsets, ushort[] chunkLengths)
     {

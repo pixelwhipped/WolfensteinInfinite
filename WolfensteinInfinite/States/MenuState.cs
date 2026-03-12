@@ -1,6 +1,9 @@
-﻿using SFML.Window;
+﻿//Clean
+using SFML.Window;
 using WolfensteinInfinite.Editor;
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
+using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.MenuUI;
 
@@ -109,7 +112,6 @@ namespace WolfensteinInfinite.States
                     ShowStatus($"Missing mods: {string.Join(", ", missing)}");
                     return;
                 }
-                //NextState = new GameGenerationState(Wolfenstein, save.Player, save.Difficulty, save.Level);
                 save.Map.LoadResources(Wolfenstein);
                 var px = save.Player.PlaneX;
                 var py = save.Player.PlaneY;

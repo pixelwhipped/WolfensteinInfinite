@@ -1,9 +1,13 @@
-﻿using SFML.Window;
+﻿//WIP Work in progress
+using SFML.Window;
+using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
-using WolfensteinInfinite.GameAudio;
 using WolfensteinInfinite.GameBible;
+using WolfensteinInfinite.GameGraphics;
+using WolfensteinInfinite.GameHelpers;
+using WolfensteinInfinite.GameMap;
 using WolfensteinInfinite.GameObjects;
-using WolfensteinInfinite.Util;
+using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.States
@@ -15,7 +19,7 @@ namespace WolfensteinInfinite.States
         private Texture32 HudBuffer { get; init; }
         public LinearPointTween DamageTween { get; init; }
         public LinearPointTween PickupTween { get; init; }
-        public WeaponTransitionState WeaponTransitionState { get; init; }
+        public WeaponTransition WeaponTransitionState { get; init; }
 
         public RGBA8[] MapColors;
         // private readonly Texture32 Buffer;
@@ -82,7 +86,7 @@ namespace WolfensteinInfinite.States
             DamageTween.End();
             PickupTween = new(0.75f, null, [1f, 0f]);
             PickupTween.End();
-            WeaponTransitionState = new WeaponTransitionState(wolfenstein.GetWeapon(game.Player.Weapon), WeaponChanged);
+            WeaponTransitionState = new WeaponTransition(wolfenstein.GetWeapon(game.Player.Weapon), WeaponChanged);
             Wolfenstein.WeaponAnimations[Game.Player.Weapon].OnFire = new Action(DoAttack);
 
             //PlaneX = 0.0f;   //the 2d raycaster version of camera plane
@@ -530,7 +534,7 @@ namespace WolfensteinInfinite.States
 
             Texture32 GetFace()
             {
-                SpriteAnimation face;
+                Animation face;
                 if (Game.Player.GodMode) face = Wolfenstein.GameResources.HudFaces[0];
                 else if (Game.Player.Health >= 70) face = Wolfenstein.GameResources.HudFaces[1];
                 else if (Game.Player.Health >= 55) face = Wolfenstein.GameResources.HudFaces[2];

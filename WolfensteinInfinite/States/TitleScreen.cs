@@ -1,4 +1,8 @@
-﻿namespace WolfensteinInfinite.States
+﻿//Clean
+using WolfensteinInfinite.Engine.Graphics;
+using WolfensteinInfinite.GameGraphics;
+
+namespace WolfensteinInfinite.States
 {
     public class TitleScreen(Wolfenstein wolfenstein) : GameState(wolfenstein)
     {

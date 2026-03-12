@@ -1,8 +1,8 @@
-﻿using NAudio.Midi;
-using SFML.Graphics;
+﻿using SFML.Graphics;
+using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
-using WolfensteinInfinite.GameAudio;
-using WolfensteinInfinite.WolfMod;
+using WolfensteinInfinite.GameHelpers;
+using WolfensteinInfinite.Utilities;
 
 namespace WolfensteinInfinite
 {
@@ -64,7 +64,7 @@ namespace WolfensteinInfinite
         public Texture32 ElevatorSide { get; init; }
         public Texture32 ElevatorDoor { get; init; }
         public Texture32 PlayerStart { get; init; }
-        public SpriteAnimation[] HudFaces { get; init; }
+        public GameGraphics.Animation[] HudFaces { get; init; }
         public GameResources(byte[] pallet)
         {
             Pallet = pallet;
@@ -121,13 +121,13 @@ namespace WolfensteinInfinite
             TitleLoadGame = FileHelpers.Shared.LoadSurface32($"GameData\\Base\\Pictures\\LoadGame.png");
             HudFaces =
             [
-                Animations.Create(Animations.Create("GodMode", "GameData\\Base\\Pictures", ["GodMode.png"], 1)),
-                Animations.Create(Animations.Create("90+", "GameData\\Base\\Pictures", 115, 3, 1)),
-                Animations.Create(Animations.Create("70+", "GameData\\Base\\Pictures", 118, 3, 1)),
-                Animations.Create(Animations.Create("55+", "GameData\\Base\\Pictures", 121, 3, 1)),
-                Animations.Create(Animations.Create("35+", "GameData\\Base\\Pictures", 124, 3, 1)),
-                Animations.Create(Animations.Create("20+", "GameData\\Base\\Pictures", 127, 3, 1)),
-                Animations.Create(Animations.Create("0+", "GameData\\Base\\Pictures", 130, 2, 1))
+                AnimationHelpers.Create(AnimationHelpers.Create("GodMode", "GameData\\Base\\Pictures", ["GodMode.png"], 1)),
+                AnimationHelpers.Create(AnimationHelpers.Create("90+", "GameData\\Base\\Pictures", 115, 3, 1)),
+                AnimationHelpers.Create(AnimationHelpers.Create("70+", "GameData\\Base\\Pictures", 118, 3, 1)),
+                AnimationHelpers.Create(AnimationHelpers.Create("55+", "GameData\\Base\\Pictures", 121, 3, 1)),
+                AnimationHelpers.Create(AnimationHelpers.Create("35+", "GameData\\Base\\Pictures", 124, 3, 1)),
+                AnimationHelpers.Create(AnimationHelpers.Create("20+", "GameData\\Base\\Pictures", 127, 3, 1)),
+                AnimationHelpers.Create(AnimationHelpers.Create("0+", "GameData\\Base\\Pictures", 130, 2, 1))
             ];
             EditRandomEnemy = FileHelpers.Shared.LoadSurface32($"GameData\\Base\\Pictures\\RandomEnemy.png");
             EditExperimentEnemy = FileHelpers.Shared.LoadSurface32($"GameData\\Base\\Pictures\\ExperimentEnemy.png");

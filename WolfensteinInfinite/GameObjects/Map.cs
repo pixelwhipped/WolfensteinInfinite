@@ -1,5 +1,7 @@
 ﻿using System.Text.Json.Serialization;
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
+using WolfensteinInfinite.GameMap;
 using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.GameObjects

@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿//Clean
+using System.Text;
 
 namespace WolfensteinInfinite.DataFormats
 {

@@ -1,12 +1,11 @@
-﻿using WolfensteinInfinite.GameBible;
-using WolfensteinInfinite.WolfMod;
+﻿using WolfensteinInfinite.GameMap;
 
 namespace WolfensteinInfinite.GameObjects
 {
     public class Door : IInteractable
     {
-        public int X { get; set; }
-        public int Y { get; set; }
+        public float X { get; set; }
+        public float Y { get; set; }
         public float OpenAmount { get; set; }
         public bool IsOpening { get; set; }
         public bool IsClosing { get; set; }

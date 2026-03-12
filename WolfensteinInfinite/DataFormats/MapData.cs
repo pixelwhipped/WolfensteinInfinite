@@ -1,4 +1,6 @@
-﻿namespace WolfensteinInfinite.DataFormats
+﻿//Clean
+//SpawnMapObject Incomplete but not required, kept for reference and others
+namespace WolfensteinInfinite.DataFormats
 {
     public class MapData
     {

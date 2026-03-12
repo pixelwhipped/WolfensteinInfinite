@@ -1,4 +1,7 @@
 ﻿
+using WolfensteinInfinite.Engine.Graphics;
+using WolfensteinInfinite.GameGraphics;
+
 namespace WolfensteinInfinite.GameObjects
 {
     public class StaticSprite : ISprite

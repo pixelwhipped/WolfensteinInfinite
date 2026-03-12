@@ -1,4 +1,6 @@
-﻿namespace WolfensteinInfinite.MenuUI
+﻿using WolfensteinInfinite.Engine.Graphics;
+
+namespace WolfensteinInfinite.MenuUI
 {
     public class MenuItemOnOff(string text, Action<IMenuItem> action, bool state, int designWidth, IGameFont font, bool enabled = true, RGBA8? color = null) : IMenuItem
     {

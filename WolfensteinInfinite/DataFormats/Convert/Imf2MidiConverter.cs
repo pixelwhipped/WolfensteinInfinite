@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿//Clean
+using System.IO;
 using System.Text;
 
 namespace WolfensteinInfinite.DataFormats.Convert

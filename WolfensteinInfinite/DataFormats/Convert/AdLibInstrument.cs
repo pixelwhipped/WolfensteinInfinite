@@ -1,4 +1,5 @@
-﻿namespace WolfensteinInfinite.DataFormats.Convert
+﻿//Clean
+namespace WolfensteinInfinite.DataFormats.Convert
 {
     public struct AdLibInstrument(byte midiProgram = 0)
     {

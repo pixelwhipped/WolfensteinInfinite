@@ -1,5 +1,7 @@
-﻿using SFML.System;
+﻿//Clean
+using SFML.System;
 using SFML.Window;
+using WolfensteinInfinite.Engine.Graphics;
 
 namespace WolfensteinInfinite.States
 {

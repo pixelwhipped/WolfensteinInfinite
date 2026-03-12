@@ -1,8 +1,11 @@
-﻿using SFML.Window;
+﻿//Clean
+using SFML.Window;
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
+using WolfensteinInfinite.GameGraphics;
+using WolfensteinInfinite.GameHelpers;
 using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.MenuUI;
-using WolfensteinInfinite.Util;
 
 namespace WolfensteinInfinite.States
 {

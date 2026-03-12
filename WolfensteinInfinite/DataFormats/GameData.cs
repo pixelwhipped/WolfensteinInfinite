@@ -1,6 +1,10 @@
-﻿using SFML.Audio;
+﻿//Render map not used, for debug and initial testing only.  commented use out in ReadMapData
+//Clean
+using SFML.Audio;
 using System.IO;
 using WolfensteinInfinite.DataFormats.Convert;
+using WolfensteinInfinite.Engine.Graphics;
+using WolfensteinInfinite.Utilities;
 
 namespace WolfensteinInfinite.DataFormats
 {
@@ -427,8 +431,8 @@ namespace WolfensteinInfinite.DataFormats
         {
             var table = new (ushort Width, ushort Height)[Version.PictureCounts];
             int compressedLength = offsets[1] - offsets[0] - 4;
-            int expandedLength = BitConverter.ToInt32(VGATexturesData.Take(4).ToArray(), 0);
-            byte[] expandedChunk = HuffmanExpand(VGATexturesData.Skip(4).Take(compressedLength).ToArray(), expandedLength);
+            int expandedLength = BitConverter.ToInt32([.. VGATexturesData.Take(4)], 0);
+            byte[] expandedChunk = HuffmanExpand([.. VGATexturesData.Skip(4).Take(compressedLength)], expandedLength);
             for (int i = 0; i < Version.PictureCounts; i++)
             {
                 table[i].Width = BitConverter.ToUInt16(expandedChunk, 4 * i);
@@ -539,7 +543,7 @@ namespace WolfensteinInfinite.DataFormats
             int compressedLength = PictureAtlas.ChunkOffsets[nextIndex] - PictureAtlas.ChunkOffsets[magicNumber];
 
             // Read compressed data
-            byte[] compressedData = VGATexturesData.Skip(PictureAtlas.ChunkOffsets[magicNumber]).Take(compressedLength).ToArray();
+            byte[] compressedData = [.. VGATexturesData.Skip(PictureAtlas.ChunkOffsets[magicNumber]).Take(compressedLength)];
 
             // Get expanded length from first 4 bytes
             int expandedLength = BitConverter.ToInt32(compressedData, 0);
@@ -717,7 +721,7 @@ namespace WolfensteinInfinite.DataFormats
             return new VSWAPHeader(chunkCount, spriteStart, soundStart, chunkOffsets, chunkLengths);
         }
         // Handles the decompression of data using RLEW compression scheme
-        private byte[] RLEWDecompress(short topRLEW, short bottomRLEW, byte[] input)
+        private static byte[] RLEWDecompress(short topRLEW, short bottomRLEW, byte[] input)
         {
             List<byte> result = [];
             int inputIterator = 2;
@@ -756,7 +760,7 @@ namespace WolfensteinInfinite.DataFormats
             return [.. result];
         }
         // Handles the decompression of data using ID Software's LZ compression scheme
-        private byte[] CarmackDecompress(byte[] input)
+        private static byte[] CarmackDecompress(byte[] input)
         {
             List<byte> result = [];
 

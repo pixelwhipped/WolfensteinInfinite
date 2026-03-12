@@ -5,10 +5,14 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using WolfensteinInfinite.DataFormats;
+using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
-using WolfensteinInfinite.GameAudio;
 using WolfensteinInfinite.GameBible;
+using WolfensteinInfinite.GameGraphics;
+using WolfensteinInfinite.GameHelpers;
+using WolfensteinInfinite.GameMap;
 using WolfensteinInfinite.States;
+using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite
@@ -35,7 +39,7 @@ namespace WolfensteinInfinite
         public Dictionary<string, Dictionary<int, Texture32>> Decals { get; init; } = [];
         public Dictionary<string, Dictionary<int, CharacterSprite>> CharacterSprites { get; init; } = [];
         public Dictionary<string, Dictionary<string, ProjectileSprite>> ProjectileSprites { get; init; } = [];
-        public Dictionary<string, Dictionary<string, SpriteAnimation>> SpriteAnimations { get; init; } = [];
+        public Dictionary<string, Dictionary<string, GameGraphics.Animation>> SpriteAnimations { get; init; } = [];
         public Dictionary<string, PlayerWeapon> PlayerWeapons { get; init; } = [];
         public Dictionary<string, WeaponAnimation> WeaponAnimations { get; init; } = [];
         public Dictionary<string, Texture32> WeaponHudTextures { get; init; } = [];
@@ -129,10 +133,10 @@ namespace WolfensteinInfinite
             PlayerWeapons.Add("MachineGun", new PlayerWeapon("MachineGun", 20, WeaponType.MACHINE_GUN, AmmoType.BULLET, null, 12, 1, "GameData\\Base\\Pictures\\HudMachineGun.png", "GameData\\Base\\Sprites", 426, 5, 2, 2, 3));
             PlayerWeapons.Add("ChainGun", new PlayerWeapon("ChainGun", 30, WeaponType.CHAIN_GUN, AmmoType.BULLET, null, 11, 2, "GameData\\Base\\Pictures\\HudChainGun.png", "GameData\\Base\\Sprites", 431, 5, 2, 2, 3));
 
-            WeaponAnimations.Add("Knife", Animations.Create(PlayerWeapons["Knife"]));
-            WeaponAnimations.Add("Pistol", Animations.Create(PlayerWeapons["Pistol"]));
-            WeaponAnimations.Add("MachineGun", Animations.Create(PlayerWeapons["MachineGun"]));
-            WeaponAnimations.Add("ChainGun", Animations.Create(PlayerWeapons["ChainGun"]));
+            WeaponAnimations.Add("Knife", AnimationHelpers.Create(PlayerWeapons["Knife"]));
+            WeaponAnimations.Add("Pistol", AnimationHelpers.Create(PlayerWeapons["Pistol"]));
+            WeaponAnimations.Add("MachineGun", AnimationHelpers.Create(PlayerWeapons["MachineGun"]));
+            WeaponAnimations.Add("ChainGun", AnimationHelpers.Create(PlayerWeapons["ChainGun"]));
 
             foreach (var w in PlayerWeapons.Values)
             {
@@ -407,7 +411,7 @@ namespace WolfensteinInfinite
                             for (int j = 0; j < m.Enemies.Length; j++)
                             {
                                 var enemy = m.Enemies[j];
-                                CharacterSprites[m.Name].Add(enemy.MapID, new CharacterSprite(enemy.SpritePath, enemy.StartSprite, enemy.AnimationType));
+                                CharacterSprites[m.Name].Add(enemy.MapID, CharacterHelpers.ReadChatacterAnimations(enemy.SpritePath, enemy.StartSprite, enemy.AnimationType));
                             }
 
                             foreach (var enemy in m.Enemies)
@@ -549,7 +553,7 @@ namespace WolfensteinInfinite
             experiment = null;
             experimentSprite = null;
             if (mod.ExperimentalEnemy.Length <= 0) return;
-            Dictionary<CharacterAnimationState, SpriteAnimation> Animations = [];
+            Dictionary<CharacterAnimationState, GameGraphics.Animation> Animations = [];
             var e = mod.ExperimentalEnemy[Random.Shared.Next(0, mod.ExperimentalEnemy.Length)];
             var composit = new Texture32(704, 64);
             var top = ExperimentalEnemyTexture[mod.Name][e.TopSpriteOptions[Random.Shared.Next(0, e.TopSpriteOptions.Length)]];
@@ -597,8 +601,8 @@ namespace WolfensteinInfinite
                 tex.Draw(i * -64, 0, composit);
                 animation.Add(tex);
             }
-            Animations.Add(CharacterAnimationState.STANDING, new SpriteAnimation([.. animation], 1, 4, 3.5f));
-            Animations.Add(CharacterAnimationState.WALKING, new SpriteAnimation([.. animation], 1, 4, 3.5f));
+            Animations.Add(CharacterAnimationState.STANDING, new GameGraphics.Animation([.. animation], 1, 4, 3.5f));
+            Animations.Add(CharacterAnimationState.WALKING, new GameGraphics.Animation([.. animation], 1, 4, 3.5f));
             animation.Clear();
             for (int i = 4; i < 7; i++)
             {
@@ -606,7 +610,7 @@ namespace WolfensteinInfinite
                 tex.Draw(i * -64, 0, composit);
                 animation.Add(tex);
             }
-            Animations.Add(CharacterAnimationState.ATTACKING, new SpriteAnimation([.. animation], 1, 3, 3.5f));
+            Animations.Add(CharacterAnimationState.ATTACKING, new GameGraphics.Animation([.. animation], 1, 3, 3.5f));
             animation.Clear();
 
             for (int i = 7; i < 8; i++)
@@ -615,7 +619,7 @@ namespace WolfensteinInfinite
                 tex.Draw(i * -64, 0, composit);
                 animation.Add(tex);
             }
-            Animations.Add(CharacterAnimationState.DEAD, new SpriteAnimation([.. animation], 1, 1, 1));
+            Animations.Add(CharacterAnimationState.DEAD, new GameGraphics.Animation([.. animation], 1, 1, 1));
             animation.Clear();
 
             for (int i = 8; i < 11; i++)
@@ -624,8 +628,8 @@ namespace WolfensteinInfinite
                 tex.Draw(i * -64, 0, composit);
                 animation.Add(tex);
             }
-            Animations.Add(CharacterAnimationState.DYING_LEFT, new SpriteAnimation([.. animation], 1, 3, 3.5f));
-            Animations.Add(CharacterAnimationState.DYING_RIGHT, new SpriteAnimation([.. animation], 1, 3, 3.5f));
+            Animations.Add(CharacterAnimationState.DYING_LEFT, new GameGraphics.Animation([.. animation], 1, 3, 3.5f));
+            Animations.Add(CharacterAnimationState.DYING_RIGHT, new GameGraphics.Animation([.. animation], 1, 3, 3.5f));
 
             experimentSprite = new CharacterSprite(Animations);
 

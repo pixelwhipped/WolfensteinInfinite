@@ -22,7 +22,7 @@ namespace WolfensteinInfinite.Engine.Graphics
                     else
                     {
                         h.H = v;
-                        var rgb = ColorSpace.RGBA8FromHSL((float)h.H, (float)h.S, (float)h.L, (float)h.A);
+                        var rgb = ColorHelpers.RGBA8FromHSL((float)h.H, (float)h.S, (float)h.L, (float)h.A);
                         ret.PutPixel(x, y, rgb.R, rgb.G, rgb.B, a);
                     }
                 }

@@ -1,4 +1,5 @@
 ﻿using SFML.Window;
+using WolfensteinInfinite.Engine.Graphics;
 
 namespace WolfensteinInfinite.MenuUI
 {

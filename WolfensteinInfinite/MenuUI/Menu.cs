@@ -1,6 +1,7 @@
 ﻿using SFML.System;
 using SFML.Window;
-using WolfensteinInfinite.GameAudio;
+using WolfensteinInfinite.Engine.Audio;
+using WolfensteinInfinite.Engine.Graphics;
 
 namespace WolfensteinInfinite.MenuUI
 {

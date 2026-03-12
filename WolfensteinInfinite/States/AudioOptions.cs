@@ -1,5 +1,8 @@
-﻿using SFML.Window;
-using WolfensteinInfinite.GameAudio;
+﻿//Clean
+using SFML.Window;
+using WolfensteinInfinite.Engine.Audio;
+using WolfensteinInfinite.Engine.Graphics;
+using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.MenuUI;
 
 namespace WolfensteinInfinite.States

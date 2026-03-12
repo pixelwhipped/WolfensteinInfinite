@@ -1,7 +1,11 @@
-﻿using SFML.Window;
-using WolfensteinInfinite.GameAudio;
+﻿//Clean
+using SFML.Window;
+using WolfensteinInfinite.Engine.Audio;
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
+using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.MenuUI;
+using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.States
@@ -41,7 +45,7 @@ namespace WolfensteinInfinite.States
             {
                 FixedXPosition = 0
             };
-            PickupItems = wolfenstein.PickupItemTypes.Values.Where(p => p.ItemType != PickupItemType.SPAWNER && p.ItemType != PickupItemType.MISSION_OBJECTIVE).ToArray();
+            PickupItems = [.. wolfenstein.PickupItemTypes.Values.Where(p => p.ItemType != PickupItemType.SPAWNER && p.ItemType != PickupItemType.MISSION_OBJECTIVE)];
             Attacks = [.. wolfenstein.PlayerWeapons.Values.OrderBy(p => p.PreferedOrder)];
             var modOptions = Wolfenstein.Mods.Keys.ToArray();
             ModSelector = new MenuItemOptionSelector("Mod", OnMenuAction, modOptions, 0, 140, wolfenstein.GameResources.TinyFont);

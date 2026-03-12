@@ -1,4 +1,6 @@
-﻿using WolfensteinInfinite.States;
+﻿using WolfensteinInfinite.GameGraphics;
+using WolfensteinInfinite.GameMap;
+using WolfensteinInfinite.States;
 using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.GameObjects
@@ -8,8 +10,6 @@ namespace WolfensteinInfinite.GameObjects
     // -------------------------------------------------------------------------
     public class POWCompanionObject(float x, float y, ISprite sprite) : DynamicObject(x, y, DynamicObjectType.Enemy, sprite)
     {
-        public int X { get; set; } = (int)x;
-        public int Y { get; set; } = (int)y;
 
         private const float FollowRange = 10f;
         private const float MoveSpeed = 3.5f;

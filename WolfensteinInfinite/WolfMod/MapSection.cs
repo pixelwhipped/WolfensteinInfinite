@@ -1,8 +1,5 @@
-﻿using NAudio.CoreAudioApi;
-using Newtonsoft.Json;
-using System;
+﻿using Newtonsoft.Json;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 
 namespace WolfensteinInfinite.WolfMod
 {

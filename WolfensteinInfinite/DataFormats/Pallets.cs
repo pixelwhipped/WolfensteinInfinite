@@ -1,4 +1,7 @@
-﻿namespace WolfensteinInfinite.DataFormats
+﻿//Clean
+using WolfensteinInfinite.Engine.Graphics;
+
+namespace WolfensteinInfinite.DataFormats
 {
     public static class Pallets
     {

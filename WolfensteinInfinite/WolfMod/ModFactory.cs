@@ -1,6 +1,6 @@
 ﻿using WolfensteinInfinite.DataFormats;
 using WolfensteinInfinite.GameBible;
-using WolfensteinInfinite.Util;
+using WolfensteinInfinite.GameHelpers;
 //sounds
 //digi2 some sort of explode/slap
 //digi3 door open
@@ -320,8 +320,8 @@ namespace WolfensteinInfinite.WolfMod
                     new(35, "WeedsWest", $"Wolfenstein3D\\Sprites\\49.png", true, false, Direction.WEST)
             ],
                 Animations = [
-                Animations.Create("RocketTrail", $"Wolfenstein3D\\Sprites", 370, 4, 4),
-                    Animations.Create("RocketImpact", $"Wolfenstein3D\\Sprites", 370, 4, 4)
+                AnimationHelpers.Create("RocketTrail", $"Wolfenstein3D\\Sprites", 370, 4, 4),
+                    AnimationHelpers.Create("RocketImpact", $"Wolfenstein3D\\Sprites", 370, 4, 4)
             ],
                 Projectiles =
             [

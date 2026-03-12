@@ -1,4 +1,5 @@
 ﻿using WolfensteinInfinite.GameBible;
+using WolfensteinInfinite.Utilities;
 
 namespace WolfensteinInfinite.WolfMod
 {

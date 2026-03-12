@@ -1,4 +1,5 @@
-﻿namespace WolfensteinInfinite.DataFormats
+﻿//Clean
+namespace WolfensteinInfinite.DataFormats
 {
     [Flags]
     public enum MapDirection

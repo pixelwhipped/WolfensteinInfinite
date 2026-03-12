@@ -1,5 +1,6 @@
-﻿using WolfensteinInfinite.GameAudio;
+﻿using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.GameBible;
+using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.States;
 using WolfensteinInfinite.WolfMod;
 

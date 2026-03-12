@@ -1,4 +1,6 @@
-﻿namespace WolfensteinInfinite.MenuUI
+﻿using WolfensteinInfinite.Engine.Graphics;
+
+namespace WolfensteinInfinite.MenuUI
 {
     public class MenuItemOptionSelector(string text, Action<IMenuItem> action, string[] options, int initial, int designWidth, IGameFont font, bool enabled = true, RGBA8? color = null) : IMenuItem
     {

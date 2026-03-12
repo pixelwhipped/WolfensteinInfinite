@@ -1,4 +1,5 @@
-﻿namespace WolfensteinInfinite.DataFormats
+﻿//Clean
+namespace WolfensteinInfinite.DataFormats
 {
     public class PictureAtlas((ushort width, ushort Height)[] picTable, int[] chunkOffsets)
     {

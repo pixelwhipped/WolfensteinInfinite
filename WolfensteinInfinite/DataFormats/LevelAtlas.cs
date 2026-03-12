@@ -1,4 +1,5 @@
-﻿namespace WolfensteinInfinite.DataFormats
+﻿//Clean
+namespace WolfensteinInfinite.DataFormats
 {
     /// <summary>
     /// Structure describing how to find the individual levels in the GAMEAPS file.

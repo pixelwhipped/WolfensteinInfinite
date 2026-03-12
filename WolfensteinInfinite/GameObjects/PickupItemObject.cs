@@ -1,4 +1,5 @@
 ﻿using WolfensteinInfinite.GameBible;
+using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.States;
 
 namespace WolfensteinInfinite.GameObjects
