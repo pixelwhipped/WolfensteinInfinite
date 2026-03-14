@@ -19,7 +19,7 @@ namespace WolfensteinInfinite.States
         private const float MinDisplayTime = 2.0f;
         private readonly LevelStats _stats;
         //Score, Enemy, Items, Secrets
-        private Tween[] Tweens = new Tween[] { new(2, null), new(2, null), new(2, null), new(2, null) };
+        private Tween[] Tweens = [new(1, null), new(1, null), new(1, null), new(1, null)];
         public LevelCompleteState(Wolfenstein wolfenstein, Player player, Map map,
             LevelStats stats, GameState nextLevelState) : base(wolfenstein)
         {

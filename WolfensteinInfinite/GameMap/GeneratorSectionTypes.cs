@@ -78,21 +78,10 @@ namespace WolfensteinInfinite.GameMap
             var radio = builder.Sections.Where(p => p.Section.HasRadio && p.Section.IntendedMinLevel <= level).ToArray();
             var dynamite = builder.Sections.Where(p => p.Section.HasDynamite && p.Section.IntendedMinLevel <= level).ToArray();
             var dynamitePlacement = builder.Sections.Where(p => p.Section.HasDynamitePlacement && p.Section.IntendedMinLevel <= level).ToArray();
-            var other = builder.Sections.Where(p => p.Section.HasNothing(p.Mod) && p.Section.IntendedMinLevel <= level).ToArray();
+            var other = builder.Sections.Where(p => p.Section.HasNothing(p.Mod) && !p.Section.HasPlayerStart && !p.Section.HasPlayerExit && p.Section.IntendedMinLevel <= level).ToArray();
 
-            return Validate(new GeneratorSectionTypes(
-                [.. starts.OrderBy(x => Random.Shared.Next())],
-                [.. ends.OrderBy(x => Random.Shared.Next())],
-                [.. keyLocations.OrderBy(x => Random.Shared.Next())],
-                [.. keyLockedDoors.OrderBy(x => Random.Shared.Next())],
-                [.. boss.OrderBy(x => Random.Shared.Next())],
-                [.. pow.OrderBy(x => Random.Shared.Next())],
-                [.. secret.OrderBy(x => Random.Shared.Next())],
-                [.. radio.OrderBy(x => Random.Shared.Next())],
-                [.. dynamite.OrderBy(x => Random.Shared.Next())],
-                [.. dynamitePlacement.OrderBy(x => Random.Shared.Next())],
-                [.. other.OrderBy(x => Random.Shared.Next())]
-                ), out errors);
+            //These are suffled in MapGenerator
+            return Validate(new GeneratorSectionTypes(starts, ends, keyLocations, keyLockedDoors, boss, pow, secret, radio, dynamite, dynamitePlacement, other), out errors);
         }
     }
 

@@ -97,7 +97,11 @@
         public bool TryConnect(TKey connectionPoint, TValue parent, TValue child)
         {
             if (child == null) return false;
-            if (!CanConnect(connectionPoint, parent, child)) return false;
+            if (!CanConnect(connectionPoint, parent, child))
+            {
+                System.Diagnostics.Debug.WriteLine($"CanConnect failed at {connectionPoint}");
+                return false;
+            }
             if (!parent.Connections.TryGetValue(connectionPoint, out var currentChild)) return false;
             if (!child.Connections.TryGetValue(connectionPoint, out var currentChildConnection)) return false;
             if (currentChild == null || currentChild.Node != null) return false;
@@ -406,14 +410,14 @@
 
             return reachable;
         }
-
-
+        
         public bool TryPopulateRecursive(Func<TValue, TValue[]> availableNodes, int maxDepth = 1000)
         {
-            var attemptedConnections = new HashSet<string>();
-            return PopulateRecursiveInternal(RootNode, availableNodes, attemptedConnections, 0, maxDepth);
+           var attemptedConnections = new HashSet<string>();
+           return PopulateRecursiveInternal(RootNode, availableNodes, attemptedConnections, 0, maxDepth);
         }
 
+        
         private bool PopulateRecursiveInternal(
             TValue currentNode,
             Func<TValue, TValue[]> availableNodes,
@@ -478,7 +482,10 @@
                     {
                         return true; // Success - keep this connection!
                     }
-
+                    // Always disconnect and try next candidate — the subtree failed
+                    attemptedConnections.Add(attemptKey);
+                    if (!TryDisconnect(openConnection.Key, currentNode, candidate)) return false;
+                    /*
                     // Only disconnect and try next candidate if we're still trying to solve THIS node's connection
                     // Don't disconnect if the failure was deeper in the tree
                     var stillHasOpenConnections = currentNode.Connections.Any(c => c.Node == null);
@@ -500,7 +507,7 @@
                         // DON'T disconnect - this connection is good, we just need to complete other parts
                         // Return false to signal we need to try a different path elsewhere
                         return false;
-                    }
+                    }*/
                 }
                 else
                 {

@@ -17,6 +17,26 @@ namespace WolfensteinInfinite.GameMap
         public int X { get; init; } = xOffset;
         public int Y { get; init; } = yOffset;
         public Guid Guid { get; init; } = Guid.NewGuid();
+        private (int MinX, int MinY, int MaxX, int MaxY)? _contentBounds;
+        public (int MinX, int MinY, int MaxX, int MaxY) ContentBounds
+        {
+            get
+            {
+                if (_contentBounds.HasValue) return _contentBounds.Value;
+                var cs = GetOrComputeClosedSection();
+                int minX = Width, maxX = 0, minY = Height, maxY = 0;
+                for (int i = 0; i < Height; i++)
+                    for (int j = 0; j < Width; j++)
+                    {
+                        var v = cs?[i][j] ?? MapSection.ClosedSectionNothing;
+                        if (v == MapSection.ClosedSectionNothing || v == MapSection.ClosedSectionExterior) continue;
+                        if (j < minX) minX = j; if (j > maxX) maxX = j;
+                        if (i < minY) minY = i; if (i > maxY) maxY = i;
+                    }
+                _contentBounds = (minX, minY, maxX, maxY);
+                return _contentBounds.Value;
+            }
+        }
         private int[][]? _closedSection;
         public int[][]? GetOrComputeClosedSection() =>
             _closedSection ??= Section.GetClosedSection(out _, out _, out _);

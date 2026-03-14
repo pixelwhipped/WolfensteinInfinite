@@ -1168,6 +1168,7 @@ namespace WolfensteinInfinite.States
                 }
                 else if (door.IsClosing)
                 {
+                    if (!DoorCanClose(door)) continue;
                     door.OpenAmount -= door.OpenSpeed * deltaTime;
                     if (door.OpenAmount <= 0.0f)
                     {
@@ -1184,6 +1185,32 @@ namespace WolfensteinInfinite.States
                     }
                 }
             }
+        }
+
+        private bool DoorCanClose(Door door)
+        {
+            int playerMapX = (int)Game.Player.PosX;
+            int playerMapY = (int)Game.Player.PosY;
+            
+            int[] dx = [0, -1, 1, 0, 0];
+            int[] dy = [0, 0, 0, -1, 1];
+            for (int i = 0; i < 5; i++)
+            {
+                int checkX = playerMapX + dx[i];
+                int checkY = playerMapY + dy[i];
+                if (door.X == checkX && door.Y == checkY) return false;
+            }
+
+            foreach (var e in DynamicObjects.Where(d => d is EnemyObject))
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    int checkX = (int)e.X + dx[i];
+                    int checkY = (int)e.Y + dy[i];
+                    if (door.X == checkX && door.Y == checkY) return false;
+                }
+            }
+            return true;
         }
 
         public void DrawZBuffer(Texture32 buffer)
@@ -1249,9 +1276,9 @@ namespace WolfensteinInfinite.States
             var px = (mapWidth - 1 - (int)Game.Player.PosX) * size;
             var py = (int)(Game.Player.PosY * size);
             buffer.RectFill(px - 1, py - 1, 3, 3, 255, 255, 0);
-            buffer.Line(px, py,
-                (int)(px - (Game.Player.DirX * 20)),
-                (int)(py + (Game.Player.DirY * 20)),
+                buffer.Line(px, py,
+                (int)(px - (Game.Player.DirX * 10)),
+                (int)(py + (Game.Player.DirY * 10)),
                 255, 255, 0);
         }
 

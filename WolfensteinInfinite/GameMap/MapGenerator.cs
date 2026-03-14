@@ -1,4 +1,5 @@
-﻿using WolfensteinInfinite.Engine.Graphics;
+﻿using System.Diagnostics;
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.States;
@@ -13,7 +14,7 @@ namespace WolfensteinInfinite.GameMap
         public int Width { get; init; }
         public int Height { get; init; }
         public int Level { get; init; }
-        public InosculationTree<(int X, int T), MapGeneratorSection>? Tree { get; init; }
+        public InosculationTree<(int X, int ), MapGeneratorSection>? Tree { get; init; }
         public Dictionary<Guid, MapGeneratorSection> MapLayers { get; init; } = [];
         public MapGeneratorSection[] Sections { get; init; }
         public GeneratorSectionTypes SectionByTypes { get; init; }
@@ -68,7 +69,8 @@ namespace WolfensteinInfinite.GameMap
             finalPassErrors = [.. errors];
 
         }
-        private int LastSectionHash = 0;
+        // Tracks how many times each section template has been used this generation
+        private readonly Dictionary<int, int> _sectionUsageCount = [];
         private MapGeneratorSection[] GetNodes(MapGeneratorSection origin)
         {
             var nodes = new List<MapGeneratorSection>();
@@ -107,9 +109,8 @@ namespace WolfensteinInfinite.GameMap
             bool CanPlaceExit()
             {
                 if (placeLockedDoor && HasPlaced.LockedDoor == false) return false;
-                if (placeBoss && bossPlacements > 0) return MapLayers.Count / TargetRoomCount > 0.9;
-                return MapLayers.Count / TargetRoomCount > 0.8;
-
+                if (placeBoss && bossPlacements > 0) return (float)MapLayers.Count / TargetRoomCount > 0.9f;
+                return (float)MapLayers.Count / TargetRoomCount > 0.8f;
             }
 
             var canPlace = new SpecialPlacements
@@ -169,12 +170,11 @@ namespace WolfensteinInfinite.GameMap
             // Calculate distance from edge as a percentage
             var roomsLeftPercent = (float)Math.Min(MapLayers.Count, TargetRoomCount) / TargetRoomCount;
 
-
             // distanceFromEdgePercent should only ever be 0% to 50% so we need to multiply by 2 to get full 100% range
-
             // Calculate how many doors to allow
             // When we're near the target room count (>80%), prefer cap pieces (1 door)
             // Otherwise, scale based on distance from edge
+            var globalMaxDoors = SectionByTypes.All.Max(s => s.Section.GetConnections().Length);
             int useDoors;
             int minDoors = 1;
             if (roomsLeftPercent > 0.8f)
@@ -184,24 +184,20 @@ namespace WolfensteinInfinite.GameMap
             else
             {
                 // Scale doors based on distance from edge (closer to edge = fewer doors)
-                useDoors = (int)Math.Max(1, Math.Ceiling(maxDoors * (distanceFromEdgePercent * 2)));
-                if (roomsLeftPercent < 0.2f) minDoors = 2;
+                useDoors = (int)Math.Max(1, Math.Ceiling(globalMaxDoors * (distanceFromEdgePercent * 2)));
             }
-            // IMPORTANT: Always include 1-door sections (cap pieces) as a fallback
-            // This ensures we can always close off open doors
-            foreach (var doorCount in sectionsByDoorCount.Keys.OrderBy(k => k))
+
+            foreach (var doorCount in GetDoorPriority(origin, sectionsByDoorCount, roomsLeftPercent, useDoors, minDoors))
             {
-                if (doorCount <= useDoors && doorCount >= minDoors)
-                {
-                    prioritizedSections.AddRange(sectionsByDoorCount[doorCount]);
-                }
+                    prioritizedSections.AddRange(
+                    sectionsByDoorCount[doorCount]);
             }
+            
             // If we filtered out everything, ensure we at least have cap pieces
             if (prioritizedSections.Count == 0 && sectionsByDoorCount.TryGetValue(1, out List<int>? indicies))
             {
                 prioritizedSections.AddRange(indicies);
             }
-
 
             // Generate candidates from prioritized sections
             foreach (var i in prioritizedSections)
@@ -227,39 +223,67 @@ namespace WolfensteinInfinite.GameMap
                     }
                 }
             }
-            if (useDoors == 1 && openConnectionCount == 1) nodes.RemoveAll(p => !p.Section.HasPlayerExit);
+            if (useDoors == 1 && openConnectionCount == 1) nodes.RemoveAll(p => !p.Section.HasPlayerExit); //At the end
             else if (useDoors > 1 && openConnectionCount == 1)
             {
                 if (nodes.Any(p => p.Section.GetConnections().Length > 1))
-                    nodes.RemoveAll(p => p.Section.GetConnections().Length == 1);
+                    nodes.RemoveAll(p => p.Section.GetConnections().Length == 1); //Remove all the terminators
             }
 
-            var returnNodes = new List<MapGeneratorSection>();
-            foreach (var n in nodes)
-            {
-                if (n.Section.SectionHash == LastSectionHash)
+            var usageSorted = nodes
+                .OrderBy(n =>
                 {
-                    continue;
-                }
-                returnNodes.Add(n);
-            }
-            var lastIndex = nodes.FindIndex(p => p.Section.SectionHash == LastSectionHash);
-            if (lastIndex >= 0)
-                returnNodes.Add(nodes[lastIndex]);
-            return [.. returnNodes];
+                    _sectionUsageCount.TryGetValue(n.Section.SectionHash, out int uses);
+                    return uses;
+                })
+                .ToList();
+            // TEMP DEBUG
+            var s8candidates = usageSorted.Where(n => n.Section.GetConnections().Length >= 3).ToList();
+
+            Debug.WriteLine($"Rooms={MapLayers.Count} useDoors={useDoors} lastDoors={_lastPlacedDoorCount} avg={(_recentDoorCounts.Count > 0 ? _recentDoorCounts.Average() : 0):F1} candidates={nodes.Count} 3+door={s8candidates.Count}");
+            return [.. usageSorted];
         }
 
+        private int _lastPlacedDoorCount = 1;
+        private IEnumerable<int> GetDoorPriority(MapGeneratorSection origin,Dictionary<int, List<int>> sectionsByDoorCount,float roomsLeftPercent,int useDoors,int minDoors)
+        {
+            var priority = GetDoorPriorityBiased(origin,sectionsByDoorCount, roomsLeftPercent, useDoors, minDoors);
+            return priority.Where(k => k <= useDoors && k >= minDoors);
+        }
+        private IEnumerable<int> GetDoorPriorityBiased(MapGeneratorSection origin, Dictionary<int, List<int>> sectionsByDoorCount, float roomsLeftPercent, int useDoors, int minDoors)
+        {
+            if (roomsLeftPercent > 0.8f)
+                return sectionsByDoorCount.Keys.OrderBy(k => k);
+
+            var avgRecentDoors = _recentDoorCounts.Count > 0
+                ? _recentDoorCounts.Average() : 1.0;
+
+            // Only cap branching if the last 3 rooms averaged 2.5+ doors
+            var branchChance = (int)MathHelpers.Lerp(60, 20, roomsLeftPercent);
+            var maxBranchDoors = roomsLeftPercent < 0.7f ? 3 : 2;
+
+            if (avgRecentDoors >= 2.5)
+            {
+                var cap = Random.Shared.Next(100) < branchChance ? maxBranchDoors : 2;
+                return sectionsByDoorCount.Keys.Where(k => k <= cap).OrderBy(k => k);
+            }
+            else
+            {
+                return sectionsByDoorCount.Keys.Where(k => k <= maxBranchDoors).OrderBy(k => k);
+            }
+        }
         private void OnDisconnect((int X, int Y) key, MapGeneratorSection section)
         {
             if (MapLayers.ContainsKey(section.Guid))
             {
                 MapLayers.Remove(section.Guid);
                 FlattenMap();
+                if (_sectionUsageCount.TryGetValue(section.Section.SectionHash, out int current))
+                    _sectionUsageCount[section.Section.SectionHash] = Math.Max(0, current - 1);
             }
         }
         private void OnConnect((int X, int Y) key, MapGeneratorSection child) => PutMap(child.X, child.Y, child);
 
-        //This whole function shoudl be simpler.  Just check parant child can connext via door then check for any overlays.
         private bool CanConnect((int X, int Y) key, MapGeneratorSection parent, MapGeneratorSection child)
         {
 
@@ -326,14 +350,45 @@ namespace WolfensteinInfinite.GameMap
                     if (existingValue == MapSection.ClosedSectionWall)
                     {
                         if (childValue == MapSection.ClosedSectionWallAny) continue;
-                        //Need to check actual wall type and mod
-                        if (MapLayers.Any(p => child.Mod == p.Value.Mod && child.Section.Walls[i][j] == p.Value.Section.Walls[mapY][mapX])) continue;
+                        if (child.Section.Walls[i][j] < 0) continue; // child is empty here — no conflict
+                        var match = MapLayers.FirstOrDefault(p =>
+                        {
+                            var localY = mapY - p.Value.Y;
+                            var localX = mapX - p.Value.X;
+                            if (localY < 0 || localY >= p.Value.Section.Height) return false;
+                            if (localX < 0 || localX >= p.Value.Section.Width) return false;
+                            return child.Mod == p.Value.Mod &&
+                                   child.Section.Walls[i][j] == p.Value.Section.Walls[localY][localX];
+                        });
+                        if (match.Value != null) continue;
+                        // Log what we actually found vs what we needed
+                        var existing = MapLayers.FirstOrDefault(p =>
+                        {
+                            var localY = mapY - p.Value.Y;
+                            var localX = mapX - p.Value.X;
+                            return localY >= 0 && localY < p.Value.Section.Height &&
+                                   localX >= 0 && localX < p.Value.Section.Width &&
+                                   p.Value.Section.Walls[localY][localX] >= 0;
+                        });
+                        Debug.WriteLine($"  FAIL: wall mismatch at ({mapX},{mapY}) childWall={child.Section.Walls[i][j]} existingWall={(existing.Value != null ? existing.Value.Section.Walls[mapY - existing.Value.Y][mapX - existing.Value.X] : -99)} childMod={child.Mod.Name} existingMod={existing.Value?.Mod.Name}");
                         return false;
                     }
+                    
                     if (existingValue == MapSection.ClosedSectionWallAny)
                     {
                         if (childValue == MapSection.ClosedSectionWallAny) continue;
                         if (childValue == MapSection.ClosedSectionWall) continue;
+                        if (child.Section.Walls[i][j] < 0) continue; // child is empty here — no conflict
+                        // Translate world coords to local coords for the placed section
+                        if (MapLayers.Any(p =>
+                        {
+                            var localY = mapY - p.Value.Y;
+                            var localX = mapX - p.Value.X;
+                            if (localY < 0 || localY >= p.Value.Section.Height) return false;
+                            if (localX < 0 || localX >= p.Value.Section.Width) return false;
+                            return child.Mod == p.Value.Mod &&
+                                   child.Section.Walls[i][j] == p.Value.Section.Walls[localY][localX];
+                        })) continue;
                         return false;
                     }
 
@@ -353,58 +408,51 @@ namespace WolfensteinInfinite.GameMap
             FlatMap = MapSection.Empty(Width, Height, MapSection.ClosedSectionNothing);
             foreach (var l in MapLayers.Values)
             {
-                var cs = l.Section.GetClosedSection(out _, out _, out _);
-                if (cs == null) return;
-                for (int i = 0; i < Height; i++)
+                var cs = l.GetOrComputeClosedSection();
+                if (cs == null) continue;
+                for (int i = 0; i < l.Section.Height; i++)
                 {
-                    for (int j = 0; j < Width; j++)
+                    for (int j = 0; j < l.Section.Width; j++)
                     {
+                        var worldY = l.Y + i;
+                        var worldX = l.X + j;
+                        if (worldX < 0 || worldX >= Width || worldY < 0 || worldY >= Height) continue;
                         var layerVal = cs[i][j];
                         if (layerVal == MapSection.ClosedSectionInterior) layerVal = MapSection.ClosedSectionFill;
                         if (layerVal == MapSection.ClosedSectionExterior) layerVal = MapSection.ClosedSectionNothing;
                         if (layerVal == MapSection.ClosedSectionNothing) continue;
-                        var currentVal = FlatMap[i][j];
-                        if (currentVal != MapSection.ClosedSectionNothing) continue;
-                        FlatMap[i][j] = layerVal;
+                        if (FlatMap[worldY][worldX] != MapSection.ClosedSectionNothing) continue;
+                        FlatMap[worldY][worldX] = layerVal;
                     }
                 }
             }
         }
 
+
+        private readonly Queue<int> _recentDoorCounts = new();
         public void PutMap(int x, int y, MapGeneratorSection section)
         {
-            var map = new MapSection(Width, Height);
-            var height = section.Section.Height;
-            foreach (var l in Enum.GetValues<MapArrayLayouts>())
-            {
-                for (int i = 0; i < height; i++)
-                {
-                    if (i + y < 0) continue;
-                    if (i + y >= Height) break;
-                    var array = section.Section.GetLayout(l);
-                    var mapLayer = map.GetLayout(l);
-                    for (int j = 0; j < array[0].Length; j++)
-                    {
-                        if (j + x < 0) continue;
-                        if (j + x >= Width) break;
-                        mapLayer[y + i][x + j] = array[i][j];
-                    }
-                }
-            }
-            var gm = new MapGeneratorSection(0, 0, section.Mod, map, map.GetConnections());
+            _recentDoorCounts.Enqueue(section.Connections.Length);
+            if (_recentDoorCounts.Count > 3) _recentDoorCounts.Dequeue();
+            _lastPlacedDoorCount = section.Connections.Length;
+
+            // Store the small section at its world position — no expansion needed
+            var gm = new MapGeneratorSection(x, y, section.Mod, section.Section, section.Section.GetConnections(x, y));
             if (!MapLayers.TryAdd(section.Guid, gm)) MapLayers[section.Guid] = gm;
             FlattenMap();
-            LastSectionHash = section.Section.SectionHash;
-        }
 
+            if (_sectionUsageCount.TryGetValue(section.Section.SectionHash, out int current))
+                _sectionUsageCount[section.Section.SectionHash] = current + 1;
+            else
+                _sectionUsageCount.Add(section.Section.SectionHash, 1);
+        }
         internal Map? ToGameMap(Player player, Difficulties difficulty, int Level)
         {
-
             var floor = new Texture32(64, 64);
             var playerX = -1;
             var playerY = -1;
             floor.Clear(128, 128, 128);
-            var texture = new Texture32(Width * 64, Height * 64); //This will be saved as an image and works correclty
+            var texture = new Texture32(Width * 64, Height * 64);
             texture.Clear(0, 0, 0);
             var doorList = new List<(int x, int y, int t)>();
             var decalList = new List<Decal>();
@@ -421,16 +469,14 @@ namespace WolfensteinInfinite.GameMap
             var itemsKeyIndicies = new Dictionary<ModKeyIndex, int>();
             var decalKeyIndicies = new Dictionary<ModKeyIndex, int>();
             var enemyKeyIndicies = new Dictionary<ModKeyIndex, int>();
-            var specialKeyIndicies = new Dictionary<ModKeyIndex, int>(); //required for exits/secrets
-
-            var wallMap = MapSection.Empty(Width, Height);  //This will be the basis for the fullmap
+            var specialKeyIndicies = new Dictionary<ModKeyIndex, int>();
+            var wallMap = MapSection.Empty(Width, Height);
             var doorMap = MapSection.Empty(Width, Height);
             var itemsMap = MapSection.Empty(Width, Height);
             var decalsMap = MapSection.Empty(Width, Height);
-            //var enemyMap = MapSection.Empty(Width, Height);
             var specialMap = MapSection.Empty(Width, Height);
 
-            //Set wall map floors, not using MapSection.ClosedSectionFill as it's a positive number and can effect wall tiles.
+            // Set wall map floors from FlatMap (already in world coords)
             for (int y = 0; y < FlatMap.Length; y++)
             {
                 for (int x = 0; x < FlatMap[0].Length; x++)
@@ -443,9 +489,10 @@ namespace WolfensteinInfinite.GameMap
                 }
             }
 
-            //Go over all layers and build up maps and objects like doors, decals etc.
+            // Go over all layers and build up maps and objects
             foreach (var layer in MapLayers.Values)
             {
+                Debug.WriteLine($"Layer: X={layer.X} Y={layer.Y} SectionSize={layer.Section.Width}x{layer.Section.Height}");
                 if (!requiredMods.Contains(layer.Mod.Name)) requiredMods.Add(layer.Mod.Name);
                 var walls = layer.Section.GetLayout(MapArrayLayouts.WALLS);
                 var doors = layer.Section.GetLayout(MapArrayLayouts.DOORS);
@@ -455,27 +502,36 @@ namespace WolfensteinInfinite.GameMap
                 var special = layer.Section.GetLayout(MapArrayLayouts.SPECIAL);
                 var diff = layer.Section.GetLayout(MapArrayLayouts.DIFFICULTY);
 
-                //done
+                // Walls
                 for (int y = 0; y < walls.Length; y++)
                 {
+                    var worldY = layer.Y + y;
+                    if (worldY < 0 || worldY >= Height) continue;
                     for (int x = 0; x < walls[0].Length; x++)
                     {
+                        var worldX = layer.X + x;
+                        if (worldX < 0 || worldX >= Width) continue;
                         if (walls[y][x] < 0) continue;
-                        var key = new ModKeyIndex(layer.Mod.Name, walls[y][x]); //We nned to keep a map to original texture index and new index
+                        var key = new ModKeyIndex(layer.Mod.Name, walls[y][x]);
                         if (!wallKeyIndicies.TryGetValue(key, out int index))
                         {
                             index = wallKeyIndicies.Count;
                             wallKeyIndicies.Add(key, index);
                         }
-                        wallMap[y][x] = index;  
-                        texture.Draw(x * 64, y * 64, Wolfenstein.Textures[key.Mod][key.Index]);
+                        wallMap[worldY][worldX] = index;
+                        texture.Draw(worldX * 64, worldY * 64, Wolfenstein.Textures[key.Mod][key.Index]);
                     }
                 }
-                //done
+
+                // Doors
                 for (int y = 0; y < doors.Length; y++)
                 {
+                    var worldY = layer.Y + y;
+                    if (worldY < 0 || worldY >= Height) continue;
                     for (int x = 0; x < doors[0].Length; x++)
                     {
+                        var worldX = layer.X + x;
+                        if (worldX < 0 || worldX >= Width) continue;
                         if (doors[y][x] < 0) continue;
                         var key = new ModKeyIndex(layer.Mod.Name, doors[y][x]);
                         if (!doorKeyIndicies.TryGetValue(key, out int index))
@@ -483,18 +539,27 @@ namespace WolfensteinInfinite.GameMap
                             index = doorKeyIndicies.Count;
                             doorKeyIndicies.Add(key, index);
                         }
-                        if (!Wolfenstein.Doors.TryGetValue(key.Index, out DoorType? value)) return null;
-                        doorMap[y][x] = index;
-                        wallMap[y][x] = InGameState.DOOR_TILE; //This is negative so should be fine
-                        texture.Draw(x * 64, y * 64, value.DoorTexture);
-                        doorList.Add((x, y, index));
+                        if (!Wolfenstein.Doors.TryGetValue(key.Index, out DoorType? value))
+                        {
+                            Debug.WriteLine($"NULL: Door key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
+                            return null;
+                        }
+                        doorMap[worldY][worldX] = index;
+                        wallMap[worldY][worldX] = InGameState.DOOR_TILE;
+                        texture.Draw(worldX * 64, worldY * 64, value.DoorTexture);
+                        doorList.Add((worldX, worldY, index));
                     }
                 }
 
+                // Items
                 for (int y = 0; y < items.Length; y++)
                 {
+                    var worldY = layer.Y + y;
+                    if (worldY < 0 || worldY >= Height) continue;
                     for (int x = 0; x < items[0].Length; x++)
                     {
+                        var worldX = layer.X + x;
+                        if (worldX < 0 || worldX >= Width) continue;
                         if (items[y][x] < 0) continue;
                         if (SkipSpecialChance(special, x, y)) continue;
                         var key = new ModKeyIndex(layer.Mod.Name, items[y][x]);
@@ -503,17 +568,26 @@ namespace WolfensteinInfinite.GameMap
                             index = itemsKeyIndicies.Count;
                             itemsKeyIndicies.Add(key, index);
                         }
-                        if (!Wolfenstein.PickupItems.TryGetValue(key.Index, out Texture32? value)) return null;   
-                        
-                        itemList.Add(new Item { X = x, Y = y, ItemType = key.Index, TextureIndex = index });
-                        itemsMap[y][x] = index;
-                        texture.Draw(x * 64, y * 64, value);
+                        if (!Wolfenstein.PickupItems.TryGetValue(key.Index, out Texture32? value))
+                        {
+                            Debug.WriteLine($"NULL: Item key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
+                            return null;
+                        }
+                        itemList.Add(new Item { X = worldX, Y = worldY, ItemType = key.Index, TextureIndex = index });
+                        itemsMap[worldY][worldX] = index;
+                        texture.Draw(worldX * 64, worldY * 64, value);
                     }
                 }
+
+                // Decals
                 for (int y = 0; y < decals.Length; y++)
                 {
+                    var worldY = layer.Y + y;
+                    if (worldY < 0 || worldY >= Height) continue;
                     for (int x = 0; x < decals[0].Length; x++)
                     {
+                        var worldX = layer.X + x;
+                        if (worldX < 0 || worldX >= Width) continue;
                         if (decals[y][x] < 0) continue;
                         if (SkipSpecialChance(special, x, y)) continue;
                         var key = new ModKeyIndex(layer.Mod.Name, decals[y][x]);
@@ -523,15 +597,21 @@ namespace WolfensteinInfinite.GameMap
                             decalKeyIndicies.Add(key, index);
                         }
                         var md = Wolfenstein.Mods[key.Mod].Decals[key.Index];
-                        decalList.Add(new Decal { X = x, Y = y, TextureIndex = index, LightSource =  md.LightSource, Passable = md.Passable, Direction = md.Direction});
-                        decalsMap[y][x] = index;
-                        texture.Draw(x * 64, y * 64, Wolfenstein.Decals[key.Mod][key.Index]);
+                        decalList.Add(new Decal { X = worldX, Y = worldY, TextureIndex = index, LightSource = md.LightSource, Passable = md.Passable, Direction = md.Direction });
+                        decalsMap[worldY][worldX] = index;
+                        texture.Draw(worldX * 64, worldY * 64, Wolfenstein.Decals[key.Mod][key.Index]);
                     }
                 }
+
+                // Enemies
                 for (int y = 0; y < enemy.Length; y++)
                 {
+                    var worldY = layer.Y + y;
+                    if (worldY < 0 || worldY >= Height) continue;
                     for (int x = 0; x < enemy[0].Length; x++)
                     {
+                        var worldX = layer.X + x;
+                        if (worldX < 0 || worldX >= Width) continue;
                         if (enemy[y][x] < 0) continue;
                         if (SkipSpecialChance(special, x, y)) continue;
                         var key = new ModKeyIndex(layer.Mod.Name, enemy[y][x]);
@@ -539,27 +619,33 @@ namespace WolfensteinInfinite.GameMap
                         {
                             index = enemyKeyIndicies.Count;
                             enemyKeyIndicies.Add(key, index);
-                        }   
+                        }
                         if (diff[y][x] >= (int)difficulty)
                         {
-                            //var t = Wolfenstein.CharacterSprites[layer.Mod.Name][index].GetTexture(0);
                             var t = Wolfenstein.CharacterSprites[layer.Mod.Name][enemy[y][x]].GetTexture(0);
-                            texture.Draw(x * 64, y * 64, t);
+                            texture.Draw(worldX * 64, worldY * 64, t);
                             enemyPlacements.Add(new EnemyPlacement
                             {
-                                X = x,
-                                Y = y,
+                                X = worldX,
+                                Y = worldY,
                                 EnemyMapId = enemy[y][x],
                                 Mod = layer.Mod.Name
                             });
-
                         }
                     }
                 }
+
+                // Special
                 for (int y = 0; y < special.Length; y++)
                 {
+                    var worldY = layer.Y + y;
+                    if (worldY < 0 || worldY >= Height) continue;
                     for (int x = 0; x < special[0].Length; x++)
                     {
+                        var worldX = layer.X + x;
+                        if (worldX < 0 || worldX >= Width) continue;
+                        if (special[y][x] == 0)
+                            Debug.WriteLine($"  Found player start at local ({x},{y}) world ({layer.X + x},{layer.Y + y})");
                         if (special[y][x] < 0) continue;
                         var key = new ModKeyIndex(layer.Mod.Name, special[y][x]);
                         if (!specialKeyIndicies.TryGetValue(key, out int index))
@@ -567,96 +653,127 @@ namespace WolfensteinInfinite.GameMap
                             index = specialKeyIndicies.Count;
                             specialKeyIndicies.Add(key, index);
                         }
-
-                        if (key.Index == 0) //Player Start
+                        if (key.Index == 0) // Player Start
                         {
-                            specialMap[y][x] = index;
-                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null; ;
-                            texture.Draw(x * 64, y * 64, value);
-                            playerX = x;
-                            playerY = y;
+                            specialMap[worldY][worldX] = index;
+                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
+                            {
+                                Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
+                                return null;
+                            }
+                            texture.Draw(worldX * 64, worldY * 64, value);
+                            playerX = worldX;
+                            playerY = worldY;
                         }
-                        else if (key.Index == 1) //Random enemy
+                        else if (key.Index == 1) // Random enemy
                         {
                             if (diff[y][x] >= (int)difficulty)
                             {
-                                specialMap[y][x] = index;
-                                if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null; ;
-                                texture.Draw(x * 64, y * 64, value);
+                                specialMap[worldY][worldX] = index;
+                                if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
+                                {
+                                    Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
+                                    return null;
+                                }
+                                texture.Draw(worldX * 64, worldY * 64, value);
                             }
                         }
-                        else if (key.Index == 2) //Experiment enemy
+                        else if (key.Index == 2) // Experiment enemy
                         {
                             if (diff[y][x] >= (int)difficulty)
                             {
-                                specialMap[y][x] = index;
-                                if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null; ;
-                                texture.Draw(x * 64, y * 64, value);
+                                specialMap[worldY][worldX] = index;
+                                if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
+                                {
+                                    Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
+                                    return null;
+                                }
+                                texture.Draw(worldX * 64, worldY * 64, value);
                             }
                         }
-                        else if (key.Index == 3) //Exit
+                        else if (key.Index == 3) // Exit
                         {
-                            specialMap[y][x] = index;
-                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null; ;
-                            texture.Draw(x * 64, y * 64, value);
-                            Map.Exits.Add(new ExitWall() { X =  x, Y = y });
+                            specialMap[worldY][worldX] = index;
+                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
+                            {
+                                Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
+                                return null;
+                            }
+                            texture.Draw(worldX * 64, worldY * 64, value);
+                            Map.Exits.Add(new ExitWall() { X = worldX, Y = worldY });
                         }
                         else if (key.Index == 4) // Push North
                         {
-                            specialMap[y][x] = index;
-                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
-                            texture.Draw(x * 64, y * 64, value);
+                            specialMap[worldY][worldX] = index;
+                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
+                            {
+                                Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
+                                return null;
+                            }
+                            texture.Draw(worldX * 64, worldY * 64, value);
                             Map.PushWalls.Add(new PushWall
                             {
-                                X = x,
-                                Y = y,
+                                X = worldX,
+                                Y = worldY,
                                 Direction = Direction.NORTH,
-                                TextureIndex = wallMap[y][x] >= 0 ? wallMap[y][x] : 0
+                                TextureIndex = wallMap[worldY][worldX] >= 0 ? wallMap[worldY][worldX] : 0
                             });
                         }
                         else if (key.Index == 5) // Push East
                         {
-                            specialMap[y][x] = index;
-                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
-                            texture.Draw(x * 64, y * 64, value);
+                            specialMap[worldY][worldX] = index;
+                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
+                            {
+                                Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
+                                return null;
+                            }
+                            texture.Draw(worldX * 64, worldY * 64, value);
                             Map.PushWalls.Add(new PushWall
                             {
-                                X = x,
-                                Y = y,
+                                X = worldX,
+                                Y = worldY,
                                 Direction = Direction.EAST,
-                                TextureIndex = wallMap[y][x] >= 0 ? wallMap[y][x] : 0
+                                TextureIndex = wallMap[worldY][worldX] >= 0 ? wallMap[worldY][worldX] : 0
                             });
                         }
                         else if (key.Index == 6) // Push South
                         {
-                            specialMap[y][x] = index;
-                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
-                            texture.Draw(x * 64, y * 64, value);
+                            specialMap[worldY][worldX] = index;
+                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
+                            {
+                                Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
+                                return null;
+                            }
+                            texture.Draw(worldX * 64, worldY * 64, value);
                             Map.PushWalls.Add(new PushWall
                             {
-                                X = x,
-                                Y = y,
+                                X = worldX,
+                                Y = worldY,
                                 Direction = Direction.SOUTH,
-                                TextureIndex = wallMap[y][x] >= 0 ? wallMap[y][x] : 0
+                                TextureIndex = wallMap[worldY][worldX] >= 0 ? wallMap[worldY][worldX] : 0
                             });
                         }
                         else if (key.Index == 7) // Push West
                         {
-                            specialMap[y][x] = index;
-                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
-                            texture.Draw(x * 64, y * 64, value);
+                            specialMap[worldY][worldX] = index;
+                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
+                            {
+                                Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
+                                return null;
+                            }
+                            texture.Draw(worldX * 64, worldY * 64, value);
                             Map.PushWalls.Add(new PushWall
                             {
-                                X = x,
-                                Y = y,
+                                X = worldX,
+                                Y = worldY,
                                 Direction = Direction.WEST,
-                                TextureIndex = wallMap[y][x] >= 0 ? wallMap[y][x] : 0
+                                TextureIndex = wallMap[worldY][worldX] >= 0 ? wallMap[worldY][worldX] : 0
                             });
                         }
-
                     }
                 }
             }
+
             var file = FileHelpers.Shared.GetDataFilePath("GeneratedMap.png");
             var image = new SFML.Graphics.Image((uint)texture.Width, (uint)texture.Height, texture.Pixels);
             image.SaveToFile(file);
@@ -670,7 +787,11 @@ namespace WolfensteinInfinite.GameMap
                 player.DirX = dX;
                 player.DirY = dY;
             }
-            else return null;
+            else
+            {
+                Debug.WriteLine($"playerX={playerX} playerY={playerY}");
+                return null;
+            }
 
             Map.WorldMap = wallMap;
             Map.WallSourceIndicies = [.. wallKeyIndicies.Keys];
@@ -692,7 +813,7 @@ namespace WolfensteinInfinite.GameMap
                     IsVertical = DetermineDoorOrientation(x, y, wallMap)
                 });
             }
-
+            Debug.WriteLine($"playerX={playerX} playerY={playerY}");
             return Map;
         }
 

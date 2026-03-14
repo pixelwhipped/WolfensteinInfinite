@@ -1,4 +1,4 @@
-﻿namespace WolfensteinInfinite.GameMap
+﻿    namespace WolfensteinInfinite.GameMap
 {
     public class SpecialPlacements
     {

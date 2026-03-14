@@ -79,7 +79,7 @@ namespace WolfensteinInfinite.States
         }
         public void GenerateMap()
         {
-            int maxAttempts = 20;
+            int maxAttempts = 50;
             MapFlags[] attemptObjectives = [];
             var mods = Wolfenstein.Config.Mods.Where(p => p.Enabled);
             var modBuilders = Wolfenstein.BuilderMods
@@ -155,6 +155,8 @@ namespace WolfensteinInfinite.States
                 static int selector(MapSection k) => k.Width * k.Height;
                 return p.Value.Average(selector);
             }));
+
+
             var maxRooms = Math.Ceiling(
                 (Wolfenstein.Config.MaxMapSize * Wolfenstein.Config.MaxMapSize) / avgRoomDim);
             var targetRooms = Math.Max(

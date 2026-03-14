@@ -14,5 +14,10 @@ namespace WolfensteinInfinite.Utilities
 
             return -epsilon < delta && epsilon > delta;
         }
+
+        public static float Lerp(float start, float end, float by)
+        {
+            return start + (end - start) * by;
+        }
     }
 }
