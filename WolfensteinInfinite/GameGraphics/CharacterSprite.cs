@@ -7,13 +7,15 @@ namespace WolfensteinInfinite.GameGraphics
 
         private readonly Dictionary<CharacterAnimationState, Animation> Animations = animations;
         public CharacterAnimationState AnimationState { get; set; } = CharacterAnimationState.STANDING;
-        public bool IsDeathAnimationComplete =>
+        public bool IsDeathAnimationComplete => AnimationState ==  CharacterAnimationState.DEAD || (
             (AnimationState == CharacterAnimationState.DYING_LEFT ||
              AnimationState == CharacterAnimationState.DYING_RIGHT) &&
-             Animations[AnimationState].IsComplete;
+             Animations[AnimationState].IsComplete);
         public bool IsAttackAnimationComplete =>
             AnimationState == CharacterAnimationState.ATTACKING &&
             Animations[AnimationState].IsComplete;
+
+        public bool HasAnimation(CharacterAnimationState state) => Animations.ContainsKey(state);
         public void Update(float frameTimeSeconds)
         {
             if (Animations.TryGetValue(AnimationState, out var anim))
@@ -25,6 +27,8 @@ namespace WolfensteinInfinite.GameGraphics
                 anim.Reset();
         }
         public Texture32 GetTexture(float angle) => Animations[AnimationState].GetTexture(angle);
+
+        public CharacterSprite Clone() => new(Animations.ToDictionary(kvp => kvp.Key,kvp => new Animation(kvp.Value)));
 
     }
 }

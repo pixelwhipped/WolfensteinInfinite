@@ -13,6 +13,17 @@ namespace WolfensteinInfinite.GameGraphics
         private float CurrentFrameTime { get; set; }
         private float FramesPerSecond { get; init; }
         private Texture32[][] Textures { get; init; }
+
+        public Animation(Animation source)
+        {
+            Loop = source.Loop;
+            Directions = source.Directions;
+            Frames = source.Frames;
+            FramesPerSecond = source.FramesPerSecond;
+            Textures = source.Textures; // shared — textures are read-only
+            CurrentFrame = 0;
+            CurrentFrameTime = 0;
+        }
         public Animation(Texture32[] textures, int directions, int frames, float framesPerSecond)
         {
             FramesPerSecond = framesPerSecond;

@@ -7,6 +7,7 @@ namespace WolfensteinInfinite.GameObjects
     {
         public float X { get; set; } = x;
         public float Y { get; set; } = y;
+        public float YOffset { get; set; } = 0f;
         public bool IsAlive { get; set; } = true;
         public DynamicObjectType ObjectType { get; } = type;
         public ISprite Sprite { get; } = sprite;

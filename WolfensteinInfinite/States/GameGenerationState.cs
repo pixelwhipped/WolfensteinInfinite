@@ -171,20 +171,6 @@ namespace WolfensteinInfinite.States
 
             if (!builder.Success)
             {
-                var inc = 40 / maxAttempts;
-                for (int i = 0; i < maxAttempts; i++)
-                {
-                    builder = new MapGenerator(
-                        Wolfenstein, Wolfenstein.Config.MaxMapSize, Wolfenstein.Config.MaxMapSize,
-                        m, s, sections, Level, targetRooms, attemptObjectives, out finalPassErrors);
-                    if (builder.Success) break;
-                    Progress += inc;
-                    Thread.Sleep(50);
-                }
-            }
-
-            if (!builder.Success)
-            {
                 NextState = new GameGenerationRetryState(Wolfenstein, Player, Difficulty, Level);
                 return;
             }

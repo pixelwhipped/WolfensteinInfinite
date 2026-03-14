@@ -38,7 +38,7 @@ namespace WolfensteinInfinite.GameObjects
 
         public EnemyObject(float x, float y, CharacterSprite sprite, Enemy enemy,
             Difficulties difficulty, string mod, Wolfenstein wolfenstein, int level)
-            : base(x, y, DynamicObjectType.Enemy, sprite)
+            : base(x, y, DynamicObjectType.Enemy, sprite.Clone())
         {
             Enemy = enemy;
             Mod = mod;
@@ -75,6 +75,7 @@ namespace WolfensteinInfinite.GameObjects
         private void SetAnimation(CharacterAnimationState anim)
         {
             if (AnimationState == anim) return;
+            if (!CharacterSprite.HasAnimation(anim)) return; // guard
             AnimationState = anim;
             CharacterSprite.AnimationState = anim;
             CharacterSprite.ResetAnimation();
@@ -132,7 +133,7 @@ namespace WolfensteinInfinite.GameObjects
             }
             return true;
         }
-
+        private float _smoothedFacingAngle = 180f;
         private void TryMoveTowardPlayer(float frameTime, InGameState state)
         {
             var dx = state.Game.Player.PosX - X;
@@ -143,8 +144,12 @@ namespace WolfensteinInfinite.GameObjects
             var nx = dx / dist;
             var ny = dy / dist;
 
-            FacingAngle = MathF.Atan2(ny, nx) * (180f / MathF.PI);
-            FacingAngle = (FacingAngle + 360f) % 360f;
+            var targetAngle = MathF.Atan2(ny, nx) * (180f / MathF.PI);
+            targetAngle = (targetAngle + 360f) % 360f;
+            var angleDiff = MathF.Abs(targetAngle - _smoothedFacingAngle) % 360f;
+            if (angleDiff > 180f) angleDiff = 360f - angleDiff;
+            if (angleDiff > 15f) _smoothedFacingAngle = targetAngle;
+            FacingAngle = _smoothedFacingAngle;
 
             var speed = WorldSpeed * frameTime;
             var newX = X + nx * speed;
@@ -268,12 +273,26 @@ namespace WolfensteinInfinite.GameObjects
             HitPoints -= amount;
             if (HitPoints <= 0)
             {
+                SpawnDrops(state);
                 HitPoints = 0;
-                _isDying = true;
+                _isDying = true;                
                 AIState = EnemyAIState.Dead;
-                SetAnimation(Random.Shared.Next(2) == 0
-                    ? CharacterAnimationState.DYING_LEFT
-                    : CharacterAnimationState.DYING_RIGHT);
+                // Pick a dying animation that actually exists
+                // Pick whichever dying animations actually exist, randomise only between valid ones
+                var dyingOptions = new List<CharacterAnimationState>();
+                if (CharacterSprite.HasAnimation(CharacterAnimationState.DYING_LEFT))
+                    dyingOptions.Add(CharacterAnimationState.DYING_LEFT);
+                if (CharacterSprite.HasAnimation(CharacterAnimationState.DYING_RIGHT))
+                    dyingOptions.Add(CharacterAnimationState.DYING_RIGHT);
+
+                if (dyingOptions.Count > 0)
+                    SetAnimation(dyingOptions[Random.Shared.Next(dyingOptions.Count)]);
+                else
+                {
+                    _isCorpse = true;
+                    if (CharacterSprite.HasAnimation(CharacterAnimationState.DEAD))
+                        SetAnimation(CharacterAnimationState.DEAD);
+                }
                 state.Game.Player.Score += PointsReward;
                 state.Game.Map.LevelScore += PointsReward;
                 PlaySound(Enemy.DeathSounds, state);
@@ -297,8 +316,7 @@ namespace WolfensteinInfinite.GameObjects
                 if (CharacterSprite.IsDeathAnimationComplete)
                 {
                     _isCorpse = true;
-                    SpawnDrops(state);
-                    // Stay IsAlive=true so corpse renders — just stops all updates above
+                    SetAnimation(CharacterAnimationState.DEAD);                    
                 }
                 return;
             }
@@ -374,7 +392,7 @@ namespace WolfensteinInfinite.GameObjects
                 if (kvp.Value == null) continue;
                 if (!state.Wolfenstein.PickupItems.TryGetValue(kvp.Key, out var texture)) continue;
                 state.DynamicObjects.Add(
-                    new PickupItemObject(X, Y, new StaticSprite(texture), kvp.Value));
+                    new PickupItemObject(X, Y, new StaticSprite(texture), kvp.Value, kvp.Value.ItemType !=PickupItemType.SPAWNER));
             }
         }
     }

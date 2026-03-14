@@ -892,7 +892,7 @@ namespace WolfensteinInfinite.States
         public void UpdateInput(float frameTime)
         {
             float moveSpeed = frameTime * 5.0f;
-            float rotSpeed = frameTime * 3.0f;
+            float rotSpeed = frameTime * 2.0f;
 
             if (Wolfenstein.Graphics.IsKeyDown(SFML.Window.Keyboard.Key.Up))
             {
@@ -1393,8 +1393,14 @@ namespace WolfensteinInfinite.States
                 int spriteScreenX = (int)((buffer.Width / 2f) * (1f + transformX / transformY));
 
                 int spriteHeight = (int)MathF.Abs(buffer.Height / transformY);
-                int drawStartY = Math.Max(0, -spriteHeight / 2 + buffer.Height / 2);
-                int drawEndY = Math.Min(buffer.Height - 1, spriteHeight / 2 + buffer.Height / 2);
+
+                // Y offset in screen space — scale by distance like the sprite itself
+                int screenYOffset = obj.YOffset != 0f
+                    ? (int)(obj.YOffset * buffer.Height / transformY)
+                    : 0;
+
+                int drawStartY = Math.Max(0, -spriteHeight / 2 + buffer.Height / 2 + screenYOffset);
+                int drawEndY = Math.Min(buffer.Height - 1, spriteHeight / 2 + buffer.Height / 2 + screenYOffset);
 
                 int spriteWidth = (int)MathF.Abs(buffer.Height / transformY);
                 int drawStartX = Math.Max(0, -spriteWidth / 2 + spriteScreenX);
