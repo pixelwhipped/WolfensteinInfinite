@@ -272,11 +272,11 @@ namespace WolfensteinInfinite.GameObjects
             Alert(state);
             HitPoints -= amount;
             if (HitPoints <= 0)
-            {
-                SpawnDrops(state);
+            {                
                 HitPoints = 0;
                 _isDying = true;                
                 AIState = EnemyAIState.Dead;
+                SpawnDrops(state);
                 // Pick a dying animation that actually exists
                 // Pick whichever dying animations actually exist, randomise only between valid ones
                 var dyingOptions = new List<CharacterAnimationState>();
@@ -291,7 +291,7 @@ namespace WolfensteinInfinite.GameObjects
                 {
                     _isCorpse = true;
                     if (CharacterSprite.HasAnimation(CharacterAnimationState.DEAD))
-                        SetAnimation(CharacterAnimationState.DEAD);
+                        SetAnimation(CharacterAnimationState.DEAD);                    
                 }
                 state.Game.Player.Score += PointsReward;
                 state.Game.Map.LevelScore += PointsReward;

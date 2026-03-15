@@ -62,8 +62,15 @@ namespace WolfensteinInfinite.GameMap
             else
             {
                 PutMap(x, y, section);
-                Tree = new InosculationTree<(int X, int Y), MapGeneratorSection>(section, CanConnect, OnConnect, OnDisconnect);
-                Success = Tree.TryPopulateRecursive(GetNodes);
+                if (section.Connections.Length == 0 && section.Section.HasPlayerStart && section.Section.HasPlayerExit)
+                {
+                    Success = true;
+                }
+                else
+                {
+                    Tree = new InosculationTree<(int X, int Y), MapGeneratorSection>(section, CanConnect, OnConnect, OnDisconnect);
+                    Success = Tree.TryPopulateRecursive(GetNodes);
+                }
             }
             if (!Success) errors.Add("Unable to populate map");
             finalPassErrors = [.. errors];
@@ -814,6 +821,51 @@ namespace WolfensteinInfinite.GameMap
                 });
             }
             Debug.WriteLine($"playerX={playerX} playerY={playerY}");
+            // Pre-populate objectives based on what was actually placed in the map
+            foreach (var layer in MapLayers.Values)
+            {
+                var items = layer.Section.GetLayout(MapArrayLayouts.ITEMS);
+                var doors = layer.Section.GetLayout(MapArrayLayouts.DOORS);
+
+                for (int y = 0; y < items.Length; y++)
+                    for (int x = 0; x < items[0].Length; x++)
+                    {
+                        if (items[y][x] < 0) continue;
+                        var key = new ModKeyIndex(layer.Mod.Name, items[y][x]);
+                        if (!Wolfenstein.PickupItemTypes.TryGetValue(key.Index, out var pickupItem)) continue;
+                        switch (pickupItem.Name)
+                        {
+                            case "Key":
+                                Map.Objectives[MapFlags.HAS_LOCKED_DOOR] = true; break;
+                            case "Secret":
+                                Map.Objectives[MapFlags.HAS_SECRET_MESSAGE] = true; break;
+                            case "Dynamite":
+                                Map.Objectives[MapFlags.HAS_BOOM] = true; break;
+                            case "POW":
+                                Map.Objectives[MapFlags.HAS_POW] = true; break;
+                        }
+                    }
+
+                // Boss objective — check enemy layer for boss-type enemies
+                var enemy = layer.Section.GetLayout(MapArrayLayouts.ENEMY);
+                var special = layer.Section.GetLayout(MapArrayLayouts.SPECIAL);
+                for (int y = 0; y < special.Length; y++)
+                    for (int x = 0; x < special[0].Length; x++)
+                        if (special[y][x] == 2) // Experiment enemy = boss
+                            Map.Objectives[MapFlags.HAS_BOSS] = true;
+
+                for (int y = 0; y < enemy.Length; y++)
+                    for (int x = 0; x < enemy[0].Length; x++)
+                    {
+                        if (enemy[y][x] < 0) continue;
+                        var modVal = Wolfenstein.Mods[layer.Mod.Name];
+                        var bossIds = modVal.Enemies
+                            .Where(p => (int)p.EnemyType >= 5 && (int)p.EnemyType <= 12)
+                            .Select(p => p.MapID);
+                        if (bossIds.Contains(enemy[y][x]))
+                            Map.Objectives[MapFlags.HAS_BOSS] = true;
+                    }
+            }
             return Map;
         }
 

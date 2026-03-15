@@ -28,11 +28,16 @@ namespace WolfensteinInfinite.GameObjects
             if (dropped)
             {
                 _tween = new LinearPointTween(
-                    seconds: 2f,
-                    onFinish: null,
-                    points: [-0.45f, -0.6f, 0f]  // up then back down (negative = above center)
+                    seconds: 1.5f,
+                    onFinish: _ => finished(),
+                    points: [0.25f, 0.35f, 0.0f]  // up then back down (negative = above center)
                 );
             }
+        }
+
+        private Action<ITween>? finished()
+        {
+            return null;
         }
 
         public override void Update(float frameTime, InGameState state)

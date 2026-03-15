@@ -15,7 +15,7 @@
         <Grid Background="Black">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                 <ComboBox x:Name="ModSelection" Width="150" SelectionChanged="ModSelection_SelectionChanged"/>
-                
+				<ComboBox x:Name="SaveTargetSelection" Width="80"/>
                 <ComboBox x:Name="MapSectionSelection" Width="60" SelectionChanged="MapSectionSelection_SelectionChanged"/>
                 <Label Content="Min Level"/>
                 <Slider x:Name="MinLevelSld" Minimum="1" Maximum="100" Width="200" ValueChanged="MinLevelSld_ValueChanged"/>
@@ -23,8 +23,7 @@
                 <Button x:Name="DuplicateBtn" Content="Duplicate" IsEnabled="False" Click="DuplicateBtn_Click"/>
                 <ComboBox x:Name="DifficultySelection" Width="150" SelectionChanged="DifficultySelection_SelectionChanged"/>
                 <Button x:Name="SaveBtn" Content="Save" IsEnabled="False" Click="SaveBtn_Click"/>
-                <Button x:Name="SaveAllBtn" Content="Save All" IsEnabled="False" Click="SaveAllBtn_Click"/>
-                <ComboBox x:Name="SaveTargetSelection" Width="80"/>
+                <Button x:Name="SaveAllBtn" Content="Save All" IsEnabled="False" Click="SaveAllBtn_Click"/>                
                 <Button x:Name="TestBtn" Content="Test" IsEnabled="False" Click="TestBtn_Click" Visibility="Hidden"/>
             </StackPanel>
         </Grid>

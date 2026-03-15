@@ -6,6 +6,7 @@ using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.MenuUI;
+using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.States
 {
@@ -83,21 +84,44 @@ namespace WolfensteinInfinite.States
             {
                 if (Args.TestMode)
                 {
-                    var testMap = Wolfenstein.TestMaps
-                        .FirstOrDefault(m => m.Value.Length > 0);
-                    if (testMap.Value != null)
+                    var mods = Wolfenstein.Config.Mods.Where(p => p.Enabled);
+                    var modBuilders = Wolfenstein.TestMaps
+                        .Where(p => mods.Any(mo => mo.Name == p.Key) && p.Value.MapSections.Length > 0)
+                        .ToArray();
+                    if (modBuilders.Length == 0)
                     {
+                        NextState = new NewGameState(Wolfenstein, this);
+                        return;
+                    }
+                    var t = new List<(string mod, MapSection section)>();
+                    foreach (var builder in modBuilders)
+                    {
+                        foreach (var section in builder.Value.MapSections)
+                        {
+                            t.Add((builder.Key, section));
+                        }
+                    }
+                    var tests = t.ToArray();
+                    if (tests.Length > 0)
+                    {
+                        var testMap = tests[Random.Shared.Next(tests.Length)];
                         NextState = new SpecialLevelState(
                             Wolfenstein,
                             new Player("TEST"),
                             Difficulties.BRING_EM_ON,
                             1,
-                            testMap.Key,
-                            testMap.Value[0]);
-                        return;
+                            testMap.mod,
+                            testMap.section);
+                    }
+                    else
+                    {
+                        NextState = new NewGameState(Wolfenstein, this);
                     }
                 }
-                NextState = new NewGameState(Wolfenstein, this);
+                else
+                {
+                    NextState = new NewGameState(Wolfenstein, this);
+                }
             }
             else if (item.Text == "Continue")
             {

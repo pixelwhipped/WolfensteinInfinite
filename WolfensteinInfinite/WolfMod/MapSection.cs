@@ -199,6 +199,46 @@ namespace WolfensteinInfinite.WolfMod
             {
                 for (int x = 0; x < array[0].Length; x++)
                 {
+                    if (array[y][x] < 0) continue;
+
+                    bool hasVoid = false;
+                    // Only treat true exterior/nothing as void — NOT interior
+                    if (y == 0 || y == array.Length - 1 ||
+                        x == 0 || x == array[0].Length - 1)
+                    {
+                        hasVoid = true;
+                    }
+                    else
+                    {
+                        if (y + 1 < array.Length &&
+                            closedSection[y + 1][x] == MapSection.ClosedSectionNothing ||
+                            closedSection[y + 1][x] == MapSection.ClosedSectionExterior) hasVoid = true;
+                        if (!hasVoid && y - 1 >= 0 &&
+                            (closedSection[y - 1][x] == MapSection.ClosedSectionNothing ||
+                             closedSection[y - 1][x] == MapSection.ClosedSectionExterior)) hasVoid = true;
+                        if (!hasVoid && x + 1 < array[0].Length &&
+                            (closedSection[y][x + 1] == MapSection.ClosedSectionNothing ||
+                             closedSection[y][x + 1] == MapSection.ClosedSectionExterior)) hasVoid = true;
+                        if (!hasVoid && x - 1 >= 0 &&
+                            (closedSection[y][x - 1] == MapSection.ClosedSectionNothing ||
+                             closedSection[y][x - 1] == MapSection.ClosedSectionExterior)) hasVoid = true;
+                    }
+
+                    if (hasVoid) connections.Add((x + xOffset, y + yOffset));
+                }
+            }
+            return [.. connections];
+        }
+        public (int X, int Y)[] GetConnectionsOld(int xOffset = 0, int yOffset = 0)
+        {
+            var connections = new List<(int X, int Y)>();
+            var closedSection = GetClosedSection(out _, out _, out _);
+            if (closedSection == null) return [.. connections];
+            var array = GetLayout(MapArrayLayouts.DOORS);
+            for (int y = 0; y < array.Length; y++)
+            {
+                for (int x = 0; x < array[0].Length; x++)
+                {
 
                     if (array[y][x] >= 0)
                     {

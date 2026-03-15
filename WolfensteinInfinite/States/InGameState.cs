@@ -430,7 +430,7 @@ namespace WolfensteinInfinite.States
             {
                 var specials = Game.Mods
                     .Where(m => Wolfenstein.SpecialMaps.ContainsKey(m))
-                    .SelectMany(m => Wolfenstein.SpecialMaps[m]
+                    .SelectMany(m => Wolfenstein.SpecialMaps[m].MapSections
                         .Select(s => (Mod: m, Section: s)))
                     .ToArray();
 
@@ -438,8 +438,8 @@ namespace WolfensteinInfinite.States
                 {
                     var chosen = specials[Random.Shared.Next(specials.Length)];
                     nextLevel = new SpecialLevelState(
-                        Wolfenstein, Game.Player, Game.Map.Difficulty,
-                        Game.Map.Level, chosen.Mod, chosen.Section);
+                    Wolfenstein, Game.Player, Game.Map.Difficulty,
+                    Game.Map.Level, chosen.Mod, chosen.Section);
                 }
                 else
                 {
@@ -570,22 +570,31 @@ namespace WolfensteinInfinite.States
                 HudBuffer.DrawString(x, 13, $"{am}", Wolfenstein.GameResources.NumberFont, null);
             }
 
-            // Objective icons — On when map has objective, flash when complete
-            bool HasObj(MapFlags f) => Game.Map.Objectives.GetValueOrDefault(f);
-            bool DoneObj(MapFlags f) => Game.Map.ObjectivesComplete.GetValueOrDefault(f);
+            // Current weapon HUD sprite — drawn at x=255, y=4
+            if (Wolfenstein.WeaponHudTextures.TryGetValue(WeaponTransitionState.TransitionWeapon.Name, out Texture32? value))
+            {
+                HudBuffer.Draw(264, 4, value);
+            }            
+                
 
-            // Key
+            // Objective icons — On when map has objective, flash when complete
+            bool HasObj(MapFlags f) => Game.Map.Objectives.ContainsKey(f);
+            bool DoneObj(MapFlags f) => Game.Map.ObjectivesComplete.GetValueOrDefault(f);
+            // Objective icons — stacked vertically, first at 251,3 then +20
+            int objY = 3;
             if (HasObj(MapFlags.HAS_LOCKED_DOOR))
-                HudBuffer.Draw(232, 3, DoneObj(MapFlags.HAS_LOCKED_DOOR)
+            {
+                HudBuffer.Draw(251, objY, HasObj(MapFlags.HAS_LOCKED_DOOR)
                     ? Wolfenstein.GameResources.KeyOn
                     : Wolfenstein.GameResources.KeyOff);
-
-            // Dynamite — show countdown if active
+                objY += 20;
+            }
             if (HasObj(MapFlags.HAS_BOOM))
             {
-                HudBuffer.Draw(241, 3, DoneObj(MapFlags.HAS_BOOM)
+                HudBuffer.Draw(251, objY, DoneObj(MapFlags.HAS_BOOM)
                     ? Wolfenstein.GameResources.DynamiteOn
                     : Wolfenstein.GameResources.DynamiteOff);
+                objY += 20;
                 if (_dynamiteCountdownActive)
                 {
                     var countStr = ((int)_dynamiteCountdown).ToString();
@@ -595,18 +604,19 @@ namespace WolfensteinInfinite.States
                         _dynamiteCountdown < 10f ? RGBA8.RED : RGBA8.YELLOW);
                 }
             }
-
-            // Secret/Radio
             if (HasObj(MapFlags.HAS_SECRET_MESSAGE))
-                HudBuffer.Draw(250, 3, DoneObj(MapFlags.HAS_SECRET_MESSAGE)
+            {
+                HudBuffer.Draw(251, objY, DoneObj(MapFlags.HAS_SECRET_MESSAGE)
                     ? Wolfenstein.GameResources.SecretOn
                     : Wolfenstein.GameResources.SecretOff);
-
-            // POW
+                objY += 20;
+            }
             if (HasObj(MapFlags.HAS_POW))
-                HudBuffer.Draw(259, 3, DoneObj(MapFlags.HAS_POW)
+            {
+                HudBuffer.Draw(251, objY, DoneObj(MapFlags.HAS_POW)
                     ? Wolfenstein.GameResources.PrisonerOfWarOn
                     : Wolfenstein.GameResources.PrisonerOfWarOff);
+            }
 
             HudBuffer.RectFill(0, 0, HudBuffer.Width, HudBuffer.Height, 255, 255, 255, (byte)(128 * PickupTween.Value));
             (byte[] pixels, byte[] pallet) = Quantization.Quantize32BitAI(HudBuffer.Pixels, 48);
@@ -1191,7 +1201,7 @@ namespace WolfensteinInfinite.States
         {
             int playerMapX = (int)Game.Player.PosX;
             int playerMapY = (int)Game.Player.PosY;
-            
+
             int[] dx = [0, -1, 1, 0, 0];
             int[] dy = [0, 0, 0, -1, 1];
             for (int i = 0; i < 5; i++)
@@ -1276,10 +1286,10 @@ namespace WolfensteinInfinite.States
             var px = (mapWidth - 1 - (int)Game.Player.PosX) * size;
             var py = (int)(Game.Player.PosY * size);
             buffer.RectFill(px - 1, py - 1, 3, 3, 255, 255, 0);
-                buffer.Line(px, py,
-                (int)(px - (Game.Player.DirX * 10)),
-                (int)(py + (Game.Player.DirY * 10)),
-                255, 255, 0);
+            buffer.Line(px, py,
+            (int)(px - (Game.Player.DirX * 10)),
+            (int)(py + (Game.Player.DirY * 10)),
+            255, 255, 0);
         }
 
         public void DrawMaplast(Texture32 buffer)
@@ -1394,10 +1404,13 @@ namespace WolfensteinInfinite.States
 
                 int spriteHeight = (int)MathF.Abs(buffer.Height / transformY);
 
-                // Y offset in screen space — scale by distance like the sprite itself
-                int screenYOffset = obj.YOffset != 0f
-                    ? (int)(obj.YOffset * buffer.Height / transformY)
-                    : 0;
+                int rawOffset = (int)(obj.YOffset * spriteHeight);
+                int maxLift = Math.Max(0, -spriteHeight / 2 + buffer.Height / 2); // how far up before clipping
+                int screenYOffset = -Math.Min(rawOffset, maxLift);
+                //if (obj is PickupItemObject)
+                //{
+                //    System.Diagnostics.Debug.WriteLine($"PickupItem YOffset={obj.YOffset} screenYOffset={screenYOffset}");
+                //}
 
                 int drawStartY = Math.Max(0, -spriteHeight / 2 + buffer.Height / 2 + screenYOffset);
                 int drawEndY = Math.Min(buffer.Height - 1, spriteHeight / 2 + buffer.Height / 2 + screenYOffset);
@@ -1420,8 +1433,18 @@ namespace WolfensteinInfinite.States
                         0, texWidth - 1);
 
                     if (transformY >= ZBuffer[stripe]) continue;
-
                     for (int y = drawStartY; y < drawEndY; y++)
+                    {
+                        int d = (y - screenYOffset) * 256 - buffer.Height * 128 + spriteHeight * 128;
+                        int texY = Math.Clamp(((d * texHeight) / spriteHeight) / 256, 0, texHeight - 1);
+                        texture.GetPixel(texX, texY, out byte r, out byte g, out byte b, out byte a);
+                        if (a == 0) continue;
+                        buffer.PutPixel(stripe, y,
+                            (byte)(r * finalBrightness),
+                            (byte)(g * finalBrightness),
+                            (byte)(b * finalBrightness), a);
+                    }
+                    /*for (int y = drawStartY; y < drawEndY; y++)
                     {
                         int d = y * 256 - buffer.Height * 128 + spriteHeight * 128;
                         int texY = Math.Clamp(((d * texHeight) / spriteHeight) / 256, 0, texHeight - 1);
@@ -1431,7 +1454,7 @@ namespace WolfensteinInfinite.States
                             (byte)(r * finalBrightness),
                             (byte)(g * finalBrightness),
                             (byte)(b * finalBrightness), a);
-                    }
+                    }*/
                 }
             }
         }
@@ -1802,29 +1825,14 @@ namespace WolfensteinInfinite.States
                 // Handle negative values and convert back to texture coordinate (0-1 range)
                 while (textureWorldX < 0) textureWorldX += renderWidth;
 
-                //old code
-                //float textureX = (textureWorldX % renderWidth) / renderWidth;
-                //texX = (int)(textureX * Game.Map.DoorTextures[door.TextureIndex].Width);
-
-                //New code
                 // wallX is 0-1 across the door tile
                 // Offset by OpenAmount so the texture slides with the door
                 // The right edge of the texture stays pinned to the right edge of the door (wallX=1)
                 float textureX = wallX - door.OpenAmount;
 
-                // If textureX is negative the ray is hitting the open gap — should not render
-                // but CalculateDoorIntersection already guards this so clamp to 0
-                /* Scales door
-                textureX = Math.Max(0f, textureX) / (1f - door.OpenAmount);
-                textureX = Math.Clamp(textureX, 0f, 1f);
-
-                texX = (int)(textureX * texWidth);
-                texX = Math.Clamp(texX, 0, texWidth - 1);
-                */
                 // Convert to texture pixel — no wrapping, no scaling
                 texX = (int)(textureX * texWidth);
                 if (texX < 0 || texX >= texWidth) return;
-                //texX = Math.Clamp(texX, 0, texWidth - 1);
             }
             else
             {
@@ -1834,29 +1842,13 @@ namespace WolfensteinInfinite.States
                 float textureWorldX = worldX - doorWorldPos;
 
                 while (textureWorldX < 0) textureWorldX += renderWidth;
-                //old code
-                //float textureX = (textureWorldX % renderWidth) / renderWidth;
-                //texX = (int)(textureX * Game.Map.DoorTextures[door.TextureIndex].Width);
-                //new code
-                // wallX is 0-1 across the door tile
                 // Offset by OpenAmount so the texture slides with the door
                 // The right edge of the texture stays pinned to the right edge of the door (wallX=1)
                 float textureX = wallX - door.OpenAmount;
 
-                // If textureX is negative the ray is hitting the open gap — should not render
-                // but CalculateDoorIntersection already guards this so clamp to 0
-                /* Scales door
-                textureX = Math.Max(0f, textureX) / (1f - door.OpenAmount);
-                textureX = Math.Clamp(textureX, 0f, 1f);
-
-                texX = (int)(textureX * texWidth);
-                texX = Math.Clamp(texX, 0, texWidth - 1);
-                */
-
                 // Convert to texture pixel — no wrapping, no scaling
                 texX = (int)(textureX * texWidth);
                 if (texX < 0 || texX >= texWidth) return;
-                //texX = Math.Clamp(texX, 0, texWidth - 1);
 
             }
 
@@ -1882,8 +1874,8 @@ namespace WolfensteinInfinite.States
                 int texY = (int)texPos & (Game.Map.DoorTextures[door.TextureIndex].Height - 1);
                 texPos += step;
                 var bl = Math.Min((side == 1 ? 0.5f * dist : 1f * dist) * doorDarkening + lightBoost * LightIntensity, 1f);
-                Game.Map.DoorTextures[door.TextureIndex].GetPixel(texX, texY, out byte r, out byte g, out byte b, out _);
-                buffer.PutPixel(x, y, (byte)(r * bl), (byte)(g * bl), (byte)(b * bl), 255);
+                Game.Map.DoorTextures[door.TextureIndex].GetPixel(texX, texY, out byte r, out byte g, out byte b, out byte a);
+                buffer.PutPixel(x, y, (byte)(r * bl), (byte)(g * bl), (byte)(b * bl), a);
             }
 
             //SET THE ZBUFFER FOR THE SPRITE CASTING

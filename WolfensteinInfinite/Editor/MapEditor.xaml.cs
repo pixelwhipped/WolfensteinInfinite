@@ -3,9 +3,11 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameHelpers;
+using WolfensteinInfinite.GameMap;
 using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
@@ -287,7 +289,16 @@ namespace WolfensteinInfinite.Editor
                     else if (ActiveSection.Items[y][x] >= 0)
                         tile = GetSpecialBitmapItem(ActiveMod.Name, sp, ActiveSection.Items[y][x]);
                     else if (ActiveSection.Enemy[y][x] >= 0)
-                        tile = GetSpecialBitmapEnemy(ActiveMod.Name, sp, ActiveSection.Enemy[y][x]);
+                    {
+                        tile = GetEnemyBitmap(ActiveMod.Name, ActiveSection.Enemy[y][x]);
+                        BlitTile(_mapBitmap, tile, x * TileSize, y * TileSize);
+                        // Overlay difficulty indicator
+                        var diff = ActiveSection.Difficulty[y][x];
+                        BlitDifficultyOverlay(_mapBitmap, diff, x * TileSize, y * TileSize);
+                        return; // already blit, skip final BlitTile call
+                    }
+                    /*else if (ActiveSection.Enemy[y][x] >= 0)
+                        tile = GetSpecialBitmapEnemy(ActiveMod.Name, sp, ActiveSection.Enemy[y][x]);*/
                 }
                 else
                     tile = GetSpecialBitmap(ActiveMod.Name, sp, ActiveSection.Walls[y][x]);
@@ -306,6 +317,31 @@ namespace WolfensteinInfinite.Editor
             BlitTile(_mapBitmap, tile, x * TileSize, y * TileSize);
         }
 
+        private static unsafe void BlitDifficultyOverlay(WriteableBitmap dest, int difficulty, int px, int py)
+        {
+
+            var colour = GetDifficultyColor(difficulty);
+
+            dest.Lock();
+            byte* dst = (byte*)dest.BackBuffer + py * dest.BackBufferStride + px * 4;
+
+            // Draw a 10x10 dot in top-left corner
+            for (int row = 2; row < 12; row++)
+            {
+                byte* rowPtr = dst + row * dest.BackBufferStride;
+                for (int col = 2; col < 12; col++)
+                {
+                    int offset = col * 4;
+                    rowPtr[offset] = colour.b; // BGRA
+                    rowPtr[offset + 1] = colour.g;
+                    rowPtr[offset + 2] = colour.r;
+                    rowPtr[offset + 3] = 255;
+                }
+            }
+
+            dest.AddDirtyRect(new Int32Rect(px, py, TileSize, TileSize));
+            dest.Unlock();
+        }
         private static unsafe void BlitTile(WriteableBitmap dest, WriteableBitmap? src, int px, int py)
         {
             dest.Lock();
@@ -352,6 +388,18 @@ namespace WolfensteinInfinite.Editor
             InitializeOptions();
         }
 
+        // Colour per difficulty: 0=green, 1=yellow, 2=orange, 3=red
+        public static (byte r, byte g, byte b) GetDifficultyColor(int difficulty)
+        {
+            (byte r, byte g, byte b) colour = difficulty switch
+            {
+                0 => (0, 200, 0),
+                1 => (200, 200, 0),
+                2 => (255, 140, 0),
+                _ => (200, 0, 0)
+            };
+            return colour;
+        }
         private void InitializeOptions()
         {
             foreach (var mod in Wolfenstein.Mods)
@@ -363,14 +411,32 @@ namespace WolfensteinInfinite.Editor
                 }
             }
             foreach (var difficulty in Enum.GetValues<Difficulties>())
-                DifficultySelection.Items.Add(DifficultyHelpers.GetDifficultyString(difficulty));
+            {
+                var st = new StackPanel() { Orientation = Orientation.Horizontal, Height = 16 };
+                var c = GetDifficultyColor((int)difficulty);
+                Rectangle myRgbRectangle = new Rectangle();
+                myRgbRectangle.Width = 14;
+                myRgbRectangle.Height = 414;
+                Color myColor = Color.FromArgb(255, c.r, c.g, c.b);
+                SolidColorBrush mySolidColorBrush = new SolidColorBrush(myColor);
+
+                myRgbRectangle.Fill = mySolidColorBrush;
+                var tb = new TextBlock();
+                tb.Text = DifficultyHelpers.GetDifficultyString(difficulty);
+                st.Children.Add(myRgbRectangle);
+                st.Children.Add(tb);
+                DifficultySelection.Items.Add(st);
+            }
             DifficultySelection.SelectedIndex = 0;
 
             SaveTargetSelection.Items.Add("map.json");
             SaveTargetSelection.Items.Add("specialmap.json");
             SaveTargetSelection.Items.Add("maptestlevel.json");
             SaveTargetSelection.SelectedIndex = 0;
-
+            SaveTargetSelection.SelectionChanged += (s, e) =>
+            {
+                if (ActiveMod != null) SetMapSectionSelections();
+            };
             SetSaveButtonStates();
         }
 
@@ -408,6 +474,54 @@ namespace WolfensteinInfinite.Editor
         }
 
         private void SetMapSectionSelections()
+        {
+            MapSectionSelection.SelectionChanged -= MapSectionSelection_SelectionChanged;
+            MapSectionSelection.Items.Clear();
+
+            if (ActiveMod == null)
+            {
+                MapSectionSelection.IsEnabled = false;
+                SetMapSectionSelections(null);
+                MapSectionSelection.SelectionChanged += MapSectionSelection_SelectionChanged;
+                return;
+            }
+
+            var target = SaveTargetSelection.SelectedItem as string ?? "map.json";
+            var targetSections = LoadSectionsForTarget(ActiveMod.Name, target);
+
+            // Update BuilderMods so SetMapSectionSelections(int) can find the sections
+            Wolfenstein.BuilderMods[ActiveMod.Name].MapSections = targetSections;
+
+            foreach (var section in targetSections)
+                MapSectionSelection.Items.Add(section.Id.ToString());
+            MapSectionSelection.Items.Add("New");
+
+            if (targetSections.Length != 0)
+            {
+                MapSectionSelection.SelectionChanged += MapSectionSelection_SelectionChanged;
+                MapSectionSelection.SelectedIndex = 0;
+                SetMapSectionSelections(MapSectionSelection.SelectedIndex);
+                return;
+            }
+            else
+            {
+                SetMapSectionSelections(null);
+            }
+            MapSectionSelection.SelectionChanged += MapSectionSelection_SelectionChanged;
+        }
+        private MapSection[] LoadSectionsForTarget(string modName, string target)
+        {
+            var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{modName}\{target}");
+            if (!System.IO.File.Exists(file)) return [];
+            try
+            {
+                var b = FileHelpers.Shared.Deserialize<MapBuilder>(file);
+                return b?.MapSections ?? [];
+            }
+            catch { return []; }
+        }
+
+        private void SetMapSectionSelectionsOld()
         {
             MapSectionSelection.SelectionChanged -= MapSectionSelection_SelectionChanged;
             MapSectionSelection.Items.Clear();
@@ -940,9 +1054,12 @@ namespace WolfensteinInfinite.Editor
             var builder = Wolfenstein.BuilderMods[mod.Name];
             foreach (var s in builder.MapSections)
                 s.Layers = MapSection.Trim(s);
-            if (!builder.Validate(out errors)) return false;
+            
 
             var target = SaveTargetSelection.SelectedItem as string ?? "map.json";
+            if(target!="maptestlevel.json")
+                if (!builder.Validate(out errors)) return false;
+
             var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{mod.Name}\{target}");
             try
             {

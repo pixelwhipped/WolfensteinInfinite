@@ -876,4 +876,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ScreenShots\" />
+  </ItemGroup>
+
 </Project>

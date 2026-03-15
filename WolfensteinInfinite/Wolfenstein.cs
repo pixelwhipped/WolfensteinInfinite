@@ -32,8 +32,8 @@ namespace WolfensteinInfinite
         private Action DoRender;
         public Dictionary<string, Mod> Mods { get; init; }
         public Dictionary<string, MapBuilder> BuilderMods { get; init; }
-        public Dictionary<string, MapSection[]> SpecialMaps { get; init; }
-        public Dictionary<string, MapSection[]> TestMaps { get; init; }
+        public Dictionary<string, MapBuilder> SpecialMaps { get; init; }
+        public Dictionary<string, MapBuilder> TestMaps { get; init; }
         public Dictionary<string, Dictionary<string, Texture32>> ExperimentalEnemyTexture { get; init; } = [];
         public Dictionary<string, Dictionary<int, Texture32>> Textures { get; init; } = [];
         public Dictionary<string, Dictionary<int, Texture32>> Decals { get; init; } = [];
@@ -295,30 +295,30 @@ namespace WolfensteinInfinite
             }
         }
 
-        private Dictionary<string, MapSection[]> LoadTestMaps()
+        private Dictionary<string, MapBuilder> LoadTestMaps()
         {
-            var tests = new Dictionary<string, MapSection[]>();
+            var tests = new Dictionary<string, MapBuilder>();
             if (!Args.TestMode) return tests;
             foreach (var mod in Mods)
             {
                 var file = FileHelpers.Shared.GetDataFilePath(
                     @$"Mods\{mod.Key}\maptestlevel.json");
                 if (!File.Exists(file)) continue;
-                var m = FileHelpers.Shared.Deserialize<MapSection[]>(file);
-                if (m != null && m.Length > 0)
+                var m = FileHelpers.Shared.Deserialize<MapBuilder>(file);
+                if (m != null && m.MapSections.Length > 0)
                     tests.Add(mod.Key, m);
             }
             return tests;
         }
-        private Dictionary<string, MapSection[]> LoadSpecialMaps()
+        private Dictionary<string, MapBuilder> LoadSpecialMaps()
         {
-            var specials = new Dictionary<string, MapSection[]>();
+            var specials = new Dictionary<string, MapBuilder>();
             foreach (var mod in Mods)
             {
                 var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{mod.Key}\specialmap.json");
                 if (!File.Exists(file)) continue;
-                var m = FileHelpers.Shared.Deserialize<MapSection[]>(file);
-                if (m != null && m.Length > 0)
+                var m = FileHelpers.Shared.Deserialize<MapBuilder>(file);
+                if (m != null && m.MapSections.Length > 0)
                     specials.Add(mod.Key, m);
             }
             return specials;
@@ -672,14 +672,14 @@ namespace WolfensteinInfinite
             var specialPath = FileHelpers.Shared.GetDataFilePath($@"Mods\{modName}\specialmap.json");
             if (File.Exists(specialPath))
             {
-                var sections = FileHelpers.Shared.Deserialize<MapSection[]>(specialPath);
+                var sections = FileHelpers.Shared.Deserialize<MapBuilder>(specialPath);
                 if (sections != null) SpecialMaps[modName] = sections;
             }
 
             var testPath = FileHelpers.Shared.GetDataFilePath($@"Mods\{modName}\maptestlevel.json");
             if (File.Exists(testPath))
             {
-                var sections = FileHelpers.Shared.Deserialize<MapSection[]>(testPath);
+                var sections = FileHelpers.Shared. Deserialize<MapBuilder>(testPath);
                 if (sections != null) TestMaps[modName] = sections;
             }
         }
