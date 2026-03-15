@@ -16,7 +16,7 @@ Wolfenstein Infinite is a fan-made, procedurally generated first-person shooter 
 The game is built on a modular architecture — nearly everything from enemies and weapons to map sections and music is defined by mod files, meaning the game can be extended or reskinned without touching the engine.
 
 **This project exists as a love letter to id Software and the game that defined a genre. Much love and respect to John Carmack, Adrian Carmack, John Romero, Tom Hall, Kevin Cloud, Jay Wilbur, and the entire id Software team.**
-
+![Preview](https://github.com/pixelwhipped/WolfensteinInfinite/blob/master/WolfensteinInfinite/ScreenShots/Capture001.PNG)
 ---
 
 ## Status
@@ -30,6 +30,8 @@ This is a very early public release. Core systems are in place but many things a
 - Map editor exists but is slow on large section sets
 - Save/load system is in place but not battle tested
 - Many polish items are outstanding
+- Experimental boss generation
+![Experimental](https://github.com/pixelwhipped/WolfensteinInfinite/blob/master/WolfensteinInfinite/ScreenShots/Capture001.PNG)
 
 If you find bugs — and you will — please open an issue. If you want to contribute, read the modding section below.
 
