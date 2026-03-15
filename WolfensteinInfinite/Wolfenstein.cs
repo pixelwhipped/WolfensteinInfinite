@@ -355,7 +355,7 @@ namespace WolfensteinInfinite
             var mods = new Dictionary<string, Mod>();
             //Check original versions and export mod files
             //foreach (var version in new Extractor(Debugger.IsAttached).GameVersions)
-            foreach (var version in new Extractor(false).GameVersions)
+            foreach (var version in new Extractor(true).GameVersions)
             {
                 var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\mod.json");
                 if (!File.Exists(file) || Debugger.IsAttached)
