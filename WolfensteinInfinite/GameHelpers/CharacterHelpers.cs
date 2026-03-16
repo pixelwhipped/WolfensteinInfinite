@@ -346,7 +346,7 @@ namespace WolfensteinInfinite.GameHelpers
             {
                 animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
             }
-            Animations.Add(CharacterAnimationState.DYING_LEFT, new Animation([.. animation], 1, 3, 3.5f));
+            Animations.Add(CharacterAnimationState.DYING_LEFT, new Animation([.. animation], 1, 3, 3.5f) { Loop = false });
             animation.Clear();
             i -= 3;
             for (; i < end; i++)

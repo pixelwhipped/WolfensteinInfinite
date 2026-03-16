@@ -108,7 +108,7 @@ namespace WolfensteinInfinite.States
                         NextState = new SpecialLevelState(
                             Wolfenstein,
                             new Player("TEST"),
-                            Difficulties.BRING_EM_ON,
+                            Difficulties.CAN_I_PLAY_DADDY,
                             1,
                             testMap.mod,
                             testMap.section);

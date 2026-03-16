@@ -1444,17 +1444,6 @@ namespace WolfensteinInfinite.States
                             (byte)(g * finalBrightness),
                             (byte)(b * finalBrightness), a);
                     }
-                    /*for (int y = drawStartY; y < drawEndY; y++)
-                    {
-                        int d = y * 256 - buffer.Height * 128 + spriteHeight * 128;
-                        int texY = Math.Clamp(((d * texHeight) / spriteHeight) / 256, 0, texHeight - 1);
-                        texture.GetPixel(texX, texY, out byte r, out byte g, out byte b, out byte a);
-                        if (a == 0) continue;
-                        buffer.PutPixel(stripe, y,
-                            (byte)(r * finalBrightness),
-                            (byte)(g * finalBrightness),
-                            (byte)(b * finalBrightness), a);
-                    }*/
                 }
             }
         }
