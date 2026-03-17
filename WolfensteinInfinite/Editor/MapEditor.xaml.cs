@@ -8,7 +8,6 @@ using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameHelpers;
 using WolfensteinInfinite.GameMap;
-using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
 
@@ -450,6 +449,7 @@ namespace WolfensteinInfinite.Editor
         {
             var m = ModSelection.SelectedItem as string;
             if (string.IsNullOrEmpty(m)) return;
+            ActiveSection = null;
             if (Wolfenstein.Mods.TryGetValue(m, out Mod? value)) SetActiveMod(value);
             SetSaveButtonStates();
         }

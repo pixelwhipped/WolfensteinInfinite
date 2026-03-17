@@ -15,7 +15,7 @@
         <Grid Background="Black">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
                 <ComboBox x:Name="ModSelection" Width="150" SelectionChanged="ModSelection_SelectionChanged"/>
-				<ComboBox x:Name="SaveTargetSelection" Width="80"/>
+                <ComboBox x:Name="SaveTargetSelection" Width="80" SelectionChanged="ModSelection_SelectionChanged"/>
                 <ComboBox x:Name="MapSectionSelection" Width="60" SelectionChanged="MapSectionSelection_SelectionChanged"/>
                 <Label Content="Min Level"/>
                 <Slider x:Name="MinLevelSld" Minimum="1" Maximum="100" Width="200" ValueChanged="MinLevelSld_ValueChanged"/>
