@@ -28,7 +28,7 @@ namespace WolfensteinInfinite.GameObjects
             if (dropped)
             {
                 _tween = new LinearPointTween(
-                    seconds: 1.5f,
+                    seconds: 0.5f,
                     onFinish: _ => finished(),
                     points: [0.25f, 0.35f, 0.0f]  // up then back down (negative = above center)
                 );

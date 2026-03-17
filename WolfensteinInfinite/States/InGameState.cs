@@ -740,6 +740,7 @@ namespace WolfensteinInfinite.States
                 Game.Player.Ammo.TryAdd(ammo, 0);
                 Game.Player.Ammo[ammo] = Math.Min(Game.Player.Ammo[ammo] + item.Modifier, 999);
             }
+            WeaponTransition(Game.Player.Weapons[Game.Player.Weapons.IndexOf(item.Name)]);
             PickupTween.Reset();
             return true;
         }
