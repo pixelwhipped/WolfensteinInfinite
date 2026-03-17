@@ -1,5 +1,4 @@
 //WIP Work in progress
-using Melanchall.DryWetMidi.Core;
 using SFML.Window;
 using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
@@ -864,6 +863,7 @@ namespace WolfensteinInfinite.States
                 CastWalls(buffer, x);
                 CastPushWalls(buffer, x);
                 CastDoors(buffer, x);
+                CastDirectionalDecals(buffer, x);
             }
             CastSprites(buffer);
             DrawMap(buffer);
@@ -1355,6 +1355,10 @@ namespace WolfensteinInfinite.States
             {
                 var obj = living[SpriteOrder[i]];
 
+                // Directional decals are rendered as wall-planes (not as sprites).
+                if (obj is DecalObject { Decal.Direction: not Direction.NONE })
+                    continue;
+
                 // For directional decals, cull if player is on the wrong side
                 if (obj is DecalObject decalObj && decalObj.Decal.Direction != Direction.NONE)
                 {
@@ -1557,6 +1561,118 @@ namespace WolfensteinInfinite.States
                     buffer.PutPixel(x, y, (byte)(r * bl), (byte)(g * bl), (byte)(b * bl), 255);
                 }
                 ZBuffer[x] = perpWallDist;
+            }
+        }
+
+        private void CastDirectionalDecals(Texture32 buffer, int x)
+        {
+            foreach (var d in Game.Map.Decals)
+            {
+                if (d.Direction == Direction.NONE) continue;
+
+                var texture = Game.Map.DecalTextures[d.TextureIndex];
+                if (texture == null) continue;
+
+                float cameraX = 2 * x / (float)buffer.Width - 1;
+                float rayDirX = Game.Player.DirX + PlaneX * cameraX;
+                float rayDirY = Game.Player.DirY + PlaneY * cameraX;
+
+                float perpWallDist;
+                float wallX;
+                int side; // 0 = vertical face (EW), 1 = horizontal face (NS)
+
+                switch (d.Direction)
+                {
+                    case Direction.NORTH:
+                    {
+                        if (rayDirY == 0) continue;
+                        perpWallDist = (d.Y - Game.Player.PosY) / rayDirY;
+                        if (perpWallDist <= 0) continue;
+                        float hitX = Game.Player.PosX + perpWallDist * rayDirX;
+                        if (hitX < d.X || hitX > d.X + 1f) continue;
+                        wallX = hitX - MathF.Floor(hitX);
+                        side = 1;
+                        break;
+                    }
+                    case Direction.SOUTH:
+                    {
+                        if (rayDirY == 0) continue;
+                        perpWallDist = (d.Y + 1f - Game.Player.PosY) / rayDirY;
+                        if (perpWallDist <= 0) continue;
+                        float hitX = Game.Player.PosX + perpWallDist * rayDirX;
+                        if (hitX < d.X || hitX > d.X + 1f) continue;
+                        wallX = hitX - MathF.Floor(hitX);
+                        side = 1;
+                        break;
+                    }
+                    case Direction.WEST:
+                    {
+                        if (rayDirX == 0) continue;
+                        perpWallDist = (d.X - Game.Player.PosX) / rayDirX;
+                        if (perpWallDist <= 0) continue;
+                        float hitY = Game.Player.PosY + perpWallDist * rayDirY;
+                        if (hitY < d.Y || hitY > d.Y + 1f) continue;
+                        wallX = hitY - MathF.Floor(hitY);
+                        side = 0;
+                        break;
+                    }
+                    case Direction.EAST:
+                    {
+                        if (rayDirX == 0) continue;
+                        perpWallDist = (d.X + 1f - Game.Player.PosX) / rayDirX;
+                        if (perpWallDist <= 0) continue;
+                        float hitY = Game.Player.PosY + perpWallDist * rayDirY;
+                        if (hitY < d.Y || hitY > d.Y + 1f) continue;
+                        wallX = hitY - MathF.Floor(hitY);
+                        side = 0;
+                        break;
+                    }
+                    default:
+                        continue;
+                }
+
+                const float zEps = 0.0005f;
+                if (perpWallDist > ZBuffer[x] + zEps) continue;
+
+                int lineHeight = (int)(buffer.Height / perpWallDist);
+                int drawStart = Math.Max(0, -lineHeight / 2 + buffer.Height / 2);
+                int drawEnd = Math.Min(buffer.Height - 1, lineHeight / 2 + buffer.Height / 2);
+
+                int texX = (int)(wallX * texture.Width);
+                if (side == 0 && rayDirX > 0) texX = texture.Width - texX - 1;
+                if (side == 1 && rayDirY < 0) texX = texture.Width - texX - 1;
+                texX = Math.Clamp(texX, 0, texture.Width - 1);
+
+                float step = 1.0f * texture.Height / lineHeight;
+                float texPos = (drawStart - buffer.Height / 2 + lineHeight / 2) * step;
+
+                var dist = 1f - Math.Min(perpWallDist, RenderDistance) / RenderDistance;
+                var lightBoost = GetTileBrightness(d.X, d.Y);
+
+                for (int y = drawStart; y <= drawEnd; y++)
+                {
+                    int texY = (int)texPos & (texture.Height - 1);
+                    texPos += step;
+
+                    var bl = Math.Min((side == 1 ? 0.5f * dist : 1f * dist) + lightBoost * LightIntensity, 1f);
+
+                    texture.GetPixel(texX, texY, out byte r, out byte g, out byte b, out byte a);
+                    if (a == 0) continue;
+
+                    if (a < 255)
+                    {
+                        buffer.GetPixel(x, y, out byte br, out byte bg, out byte bb, out _);
+                        float fa = a / 255f;
+                        r = (byte)(r * fa * bl + br * (1f - fa));
+                        g = (byte)(g * fa * bl + bg * (1f - fa));
+                        b = (byte)(b * fa * bl + bb * (1f - fa));
+                        buffer.PutPixel(x, y, r, g, b, 255);
+                    }
+                    else
+                    {
+                        buffer.PutPixel(x, y, (byte)(r * bl), (byte)(g * bl), (byte)(b * bl), 255);
+                    }
+                }
             }
         }
         private void CastWalls(Texture32 buffer, int x)
