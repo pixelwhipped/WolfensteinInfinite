@@ -718,13 +718,16 @@ namespace WolfensteinInfinite.GameMap
                                 return null;
                             }
                             texture.Draw(worldX * 64, worldY * 64, value);
-                            Map.PushWalls.Add(new PushWall
+                            var pw = new PushWall
                             {
                                 X = worldX,
                                 Y = worldY,
                                 Direction = Direction.NORTH,
                                 TextureIndex = wallMap[worldY][worldX] >= 0 ? wallMap[worldY][worldX] : 0
-                            });
+                            };
+                            pw.InitRenderPos();
+                            Map.PushWalls.Add(pw);
+                            wallMap[worldY][worldX] = -1;
                         }
                         else if (key.Index == 5) // Push East
                         {
@@ -735,13 +738,16 @@ namespace WolfensteinInfinite.GameMap
                                 return null;
                             }
                             texture.Draw(worldX * 64, worldY * 64, value);
-                            Map.PushWalls.Add(new PushWall
+                            var pw = new PushWall
                             {
                                 X = worldX,
                                 Y = worldY,
                                 Direction = Direction.EAST,
                                 TextureIndex = wallMap[worldY][worldX] >= 0 ? wallMap[worldY][worldX] : 0
-                            });
+                            };
+                            pw.InitRenderPos();
+                            Map.PushWalls.Add(pw);
+                            wallMap[worldY][worldX] = -1;
                         }
                         else if (key.Index == 6) // Push South
                         {
@@ -752,13 +758,16 @@ namespace WolfensteinInfinite.GameMap
                                 return null;
                             }
                             texture.Draw(worldX * 64, worldY * 64, value);
-                            Map.PushWalls.Add(new PushWall
+                            var pw = new PushWall
                             {
                                 X = worldX,
                                 Y = worldY,
                                 Direction = Direction.SOUTH,
                                 TextureIndex = wallMap[worldY][worldX] >= 0 ? wallMap[worldY][worldX] : 0
-                            });
+                            };
+                            pw.InitRenderPos();
+                            Map.PushWalls.Add(pw);
+                            wallMap[worldY][worldX] = -1;
                         }
                         else if (key.Index == 7) // Push West
                         {
@@ -769,13 +778,16 @@ namespace WolfensteinInfinite.GameMap
                                 return null;
                             }
                             texture.Draw(worldX * 64, worldY * 64, value);
-                            Map.PushWalls.Add(new PushWall
+                            var pw = new PushWall
                             {
                                 X = worldX,
                                 Y = worldY,
                                 Direction = Direction.WEST,
                                 TextureIndex = wallMap[worldY][worldX] >= 0 ? wallMap[worldY][worldX] : 0
-                            });
+                            };
+                            pw.InitRenderPos();
+                            Map.PushWalls.Add(pw);
+                            wallMap[worldY][worldX] = -1;
                         }
                     }
                 }

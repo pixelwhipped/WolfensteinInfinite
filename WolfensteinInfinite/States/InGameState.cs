@@ -1,4 +1,4 @@
-﻿//WIP Work in progress
+//WIP Work in progress
 using Melanchall.DryWetMidi.Core;
 using SFML.Window;
 using WolfensteinInfinite.Engine.Audio;
@@ -574,8 +574,8 @@ namespace WolfensteinInfinite.States
             if (Wolfenstein.WeaponHudTextures.TryGetValue(WeaponTransitionState.TransitionWeapon.Name, out Texture32? value))
             {
                 HudBuffer.Draw(264, 4, value);
-            }            
-                
+            }
+
 
             // Objective icons — On when map has objective, flash when complete
             bool HasObj(MapFlags f) => Game.Map.Objectives.ContainsKey(f);
@@ -861,8 +861,9 @@ namespace WolfensteinInfinite.States
             for (int x = 0; x < buffer.Width; x++)
             {
                 CastFloors(buffer, x);
-                CastDoors(buffer, x);
                 CastWalls(buffer, x);
+                CastPushWalls(buffer, x);
+                CastDoors(buffer, x);
             }
             CastSprites(buffer);
             DrawMap(buffer);
@@ -1448,6 +1449,116 @@ namespace WolfensteinInfinite.States
             }
         }
 
+        private void CastPushWalls(Texture32 buffer, int x)
+        {
+            foreach (var wall in Game.Map.PushWalls)
+            {
+                float cameraX = 2 * x / (float)buffer.Width - 1;
+                float rayDirX = Game.Player.DirX + PlaneX * cameraX;
+                float rayDirY = Game.Player.DirY + PlaneY * cameraX;
+
+                // Treat the push wall as a full 1x1 AABB at its render position (tile corner)
+                float minX = wall.RenderX;
+                float maxX = wall.RenderX + 1.0f;
+                float minY = wall.RenderY;
+                float maxY = wall.RenderY + 1.0f;
+
+                // Ray-box intersection (slab method)
+                float tNear = float.NegativeInfinity;
+                float tFar = float.PositiveInfinity;
+
+                // X slabs
+                if (rayDirX == 0)
+                {
+                    if (Game.Player.PosX < minX || Game.Player.PosX > maxX)
+                        continue;
+                }
+                else
+                {
+                    float tx1 = (minX - Game.Player.PosX) / rayDirX;
+                    float tx2 = (maxX - Game.Player.PosX) / rayDirX;
+                    if (tx1 > tx2) (tx1, tx2) = (tx2, tx1);
+                    tNear = MathF.Max(tNear, tx1);
+                    tFar = MathF.Min(tFar, tx2);
+                }
+
+                // Y slabs
+                if (rayDirY == 0)
+                {
+                    if (Game.Player.PosY < minY || Game.Player.PosY > maxY)
+                        continue;
+                }
+                else
+                {
+                    float ty1 = (minY - Game.Player.PosY) / rayDirY;
+                    float ty2 = (maxY - Game.Player.PosY) / rayDirY;
+                    if (ty1 > ty2) (ty1, ty2) = (ty2, ty1);
+                    tNear = MathF.Max(tNear, ty1);
+                    tFar = MathF.Min(tFar, ty2);
+                }
+
+                if (tNear > tFar || tFar <= 0)
+                    continue;
+
+                float perpWallDist = tNear;
+                if (perpWallDist <= 0) continue;
+                if (perpWallDist >= ZBuffer[x]) continue; // something closer already drawn
+
+                float hitX = Game.Player.PosX + perpWallDist * rayDirX;
+                float hitY = Game.Player.PosY + perpWallDist * rayDirY;
+
+                // Determine which face was hit (0 = vertical, 1 = horizontal)
+                int side;
+                if (MathF.Abs(hitX - minX) < 0.0001f || MathF.Abs(hitX - maxX) < 0.0001f)
+                    side = 0; // vertical face, like EW wall
+                else
+                    side = 1; // horizontal face, like NS wall
+
+                int lineHeight = (int)(buffer.Height / perpWallDist);
+                int drawStart = Math.Max(0, -lineHeight / 2 + buffer.Height / 2);
+                int drawEnd = Math.Min(buffer.Height - 1, lineHeight / 2 + buffer.Height / 2);
+
+                var texture = Game.Map.WallTextures[wall.TextureIndex];
+                if (texture == null) continue;
+
+                // Compute wallX like normal walls, using the hit position
+                float wallX;
+                if (side == 0)
+                {
+                    // vertical face, vary along Y
+                    wallX = hitY - MathF.Floor(hitY);
+                }
+                else
+                {
+                    // horizontal face, vary along X
+                    wallX = hitX - MathF.Floor(hitX);
+                }
+
+                int texX = (int)(wallX * texture.Width);
+                if (side == 0 && rayDirX > 0) texX = texture.Width - texX - 1;
+                if (side == 1 && rayDirY < 0) texX = texture.Width - texX - 1;
+                texX = Math.Clamp(texX, 0, texture.Width - 1);
+
+                float step = 1.0f * texture.Height / lineHeight;
+                float texPos = (drawStart - buffer.Height / 2 + lineHeight / 2) * step;
+
+                var dist = 1f - Math.Min(perpWallDist, RenderDistance) / RenderDistance;
+                // Light based on the current tile the wall is over
+                int tileX = (int)MathF.Floor(wall.RenderX);
+                int tileY = (int)MathF.Floor(wall.RenderY);
+                var lightBoost = GetTileBrightness(tileX, tileY);
+
+                for (int y = drawStart; y <= drawEnd; y++)
+                {
+                    int texY = (int)texPos & (texture.Height - 1);
+                    texPos += step;
+                    var bl = Math.Min((side == 1 ? 0.5f * dist : 1f * dist) + lightBoost * LightIntensity, 1f);
+                    texture.GetPixel(texX, texY, out byte r, out byte g, out byte b, out _);
+                    buffer.PutPixel(x, y, (byte)(r * bl), (byte)(g * bl), (byte)(b * bl), 255);
+                }
+                ZBuffer[x] = perpWallDist;
+            }
+        }
         private void CastWalls(Texture32 buffer, int x)
         {
             //calculate ray position and direction
@@ -1789,6 +1900,8 @@ namespace WolfensteinInfinite.States
         public void RenderDoor(Texture32 buffer, int x, int drawStart, int drawEnd, int lineHeight, float perpWallDist,
                 float rayDirX, float rayDirY, int side, Door door, int mapX, int mapY, float renderWidth)
         {
+            // Don't draw over a closer wall already rendered
+            if (ZBuffer[x] < perpWallDist) return;
             //calculate value of wallX for the inset door position
             float wallX;
             if (side == 0) wallX = Game.Player.PosY + perpWallDist * rayDirY;
@@ -1856,19 +1969,32 @@ namespace WolfensteinInfinite.States
             // Darken door slightly to show it's inset
             float doorDarkening = 0.85f;
 
-
-
+            bool anyOpaque = false;
             for (int y = drawStart; y <= drawEnd; y++)
             {
                 int texY = (int)texPos & (Game.Map.DoorTextures[door.TextureIndex].Height - 1);
                 texPos += step;
                 var bl = Math.Min((side == 1 ? 0.5f * dist : 1f * dist) * doorDarkening + lightBoost * LightIntensity, 1f);
                 Game.Map.DoorTextures[door.TextureIndex].GetPixel(texX, texY, out byte r, out byte g, out byte b, out byte a);
-                buffer.PutPixel(x, y, (byte)(r * bl), (byte)(g * bl), (byte)(b * bl), a);
+                if (a == 0) continue;
+                if (a < 255)
+                {
+                    buffer.GetPixel(x, y, out byte br, out byte bg, out byte bb, out _);
+                    float fa = a / 255f;
+                    r = (byte)(r * fa * bl + br * (1f - fa));
+                    g = (byte)(g * fa * bl + bg * (1f - fa));
+                    b = (byte)(b * fa * bl + bb * (1f - fa));
+                    buffer.PutPixel(x, y, r, g, b, 255);
+                }
+                else
+                {
+                    buffer.PutPixel(x, y, (byte)(r * bl), (byte)(g * bl), (byte)(b * bl), 255);
+                    anyOpaque = true;
+                }
             }
-
-            //SET THE ZBUFFER FOR THE SPRITE CASTING
-            ZBuffer[x] = perpWallDist; //perpendicular distance is used
+            // Only set ZBuffer if door had opaque pixels — lets sprites show through transparent areas
+            if (anyOpaque)
+                ZBuffer[x] = perpWallDist;
         }
 
         private float GetWorldBrightness(float worldX, float worldY)
