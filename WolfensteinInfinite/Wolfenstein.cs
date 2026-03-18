@@ -34,6 +34,7 @@ namespace WolfensteinInfinite
         public Dictionary<string, MapBuilder> BuilderMods { get; init; }
         public Dictionary<string, MapBuilder> SpecialMaps { get; init; }
         public Dictionary<string, MapBuilder> TestMaps { get; init; }
+        public (string mod, MapSection section)[]? TestMapSections { get; init; }
         public Dictionary<string, Dictionary<string, Texture32>> ExperimentalEnemyTexture { get; init; } = [];
         public Dictionary<string, Dictionary<int, Texture32>> Textures { get; init; } = [];
         public Dictionary<string, Dictionary<int, Texture32>> Decals { get; init; } = [];
@@ -54,6 +55,7 @@ namespace WolfensteinInfinite
         public List<MidiFile> TitleScreenMusic { get; init; } = [];
         public MidiFile? CurrentMusic { get; set; }
         public Config Config { get; init; }
+
         public Wolfenstein(App app)
         {
             Log("Cracking knuckles");
@@ -66,6 +68,7 @@ namespace WolfensteinInfinite
             BuilderMods = LoadBuilderMods();
             SpecialMaps = LoadSpecialMaps();
             TestMaps = LoadTestMaps();
+            TestMapSections = LoadTestMapSections();
 
             AudioPlaybackEngine.Instance.SoundOn = Config.Sound;
             AudioPlaybackEngine.Instance.SoundVolume = Config.SoundVolume / 100f;
@@ -92,6 +95,26 @@ namespace WolfensteinInfinite
                 Log("Listening to good tunes");
                 AudioPlaybackEngine.Instance.PlayMusic(CurrentMusic);
             }
+        }
+
+        private (string mod, MapSection section)[]? LoadTestMapSections()
+        {
+            if (!Args.TestMode) return null;
+
+            var mods = Config.Mods.Where(p => p.Enabled);
+            var modBuilders = TestMaps
+                .Where(p => mods.Any(mo => mo.Name == p.Key) && p.Value.MapSections.Length > 0)
+                .ToArray();
+            if (modBuilders.Length == 0) return null;
+            var t = new List<(string mod, MapSection section)>();
+            foreach (var builder in modBuilders)
+            {
+                foreach (var section in builder.Value.MapSections)
+                {
+                    t.Add((builder.Key, section));
+                }
+            }
+            return [.. t];
         }
 
         private void LoadBaseModItems()
@@ -162,8 +185,8 @@ namespace WolfensteinInfinite
                     new(1002, "ElevatorSide", "GameData\\Base\\Textures\\ElevatorSide.png"),
                     new(1003, "ElevatorSwitch", "GameData\\Base\\Textures\\ElevatorUp.png")
                 };
-                Textures[mod.Key].Add(1001, GameResources.ElevatorDoor);                
-                Textures[mod.Key].Add(1002, GameResources.ElevatorSide);                
+                Textures[mod.Key].Add(1001, GameResources.ElevatorDoor);
+                Textures[mod.Key].Add(1002, GameResources.ElevatorSide);
                 Textures[mod.Key].Add(1003, GameResources.ElevatorSwitchUp);
                 mod.Value.Textures = [.. t];
 
@@ -232,7 +255,7 @@ namespace WolfensteinInfinite
                     }
                 default:
                     {
-                        doRender = DoRender = new Action(() => RenderQuantize(255));
+                        doRender = DoRender = new Action(() => RenderQuantize(256));
                         break;
                     }
             }
@@ -679,7 +702,7 @@ namespace WolfensteinInfinite
             var testPath = FileHelpers.Shared.GetDataFilePath($@"Mods\{modName}\maptestlevel.json");
             if (File.Exists(testPath))
             {
-                var sections = FileHelpers.Shared. Deserialize<MapBuilder>(testPath);
+                var sections = FileHelpers.Shared.Deserialize<MapBuilder>(testPath);
                 if (sections != null) TestMaps[modName] = sections;
             }
         }

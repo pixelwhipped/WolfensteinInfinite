@@ -82,41 +82,15 @@ namespace WolfensteinInfinite.States
             }
             else if (item.Text == "New Game")
             {
-                if (Args.TestMode)
+                if (Wolfenstein.TestMapSections != null && Wolfenstein.TestMapSections.Length > 0)
                 {
-                    var mods = Wolfenstein.Config.Mods.Where(p => p.Enabled);
-                    var modBuilders = Wolfenstein.TestMaps
-                        .Where(p => mods.Any(mo => mo.Name == p.Key) && p.Value.MapSections.Length > 0)
-                        .ToArray();
-                    if (modBuilders.Length == 0)
-                    {
-                        NextState = new NewGameState(Wolfenstein, this);
-                        return;
-                    }
-                    var t = new List<(string mod, MapSection section)>();
-                    foreach (var builder in modBuilders)
-                    {
-                        foreach (var section in builder.Value.MapSections)
-                        {
-                            t.Add((builder.Key, section));
-                        }
-                    }
-                    var tests = t.ToArray();
-                    if (tests.Length > 0)
-                    {
-                        var testMap = tests[Random.Shared.Next(tests.Length)];
-                        NextState = new SpecialLevelState(
+                    NextState = new SpecialLevelState(
                             Wolfenstein,
                             new Player("TEST"),
                             Difficulties.CAN_I_PLAY_DADDY,
                             1,
-                            testMap.mod,
-                            testMap.section);
-                    }
-                    else
-                    {
-                        NextState = new NewGameState(Wolfenstein, this);
-                    }
+                            Wolfenstein.TestMapSections[0].mod,
+                            Wolfenstein.TestMapSections[0].section);
                 }
                 else
                 {

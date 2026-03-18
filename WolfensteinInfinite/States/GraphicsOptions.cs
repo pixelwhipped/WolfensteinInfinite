@@ -26,7 +26,7 @@ namespace WolfensteinInfinite.States
             Menu.MenuItems.Add(new MenuItemOptionSelector("Window Size", OnMenuAction, ["320x200", "640x400", "Fullscreen"], wolfenstein.Config.WindowSize, 180, wolfenstein.GameResources.TinyFont));
             Menu.MenuItems.Add(new MenuItemOptionSelector("Resolution", OnMenuAction, ["320x200", "640x400"], wolfenstein.Config.Resolution, 180, wolfenstein.GameResources.TinyFont));
             Menu.MenuItems.Add(new MenuItemOptionSelector("Quantization", OnMenuAction, 
-                ["64", "128", "256"], wolfenstein.Config.Quantization, 180, wolfenstein.GameResources.TinyFont));
+                ["64", "128", "256" ,"OFF"], wolfenstein.Config.Quantization, 180, wolfenstein.GameResources.TinyFont));
             Menu.MenuItems.Add(new MenuItem("Apply", OnApply, wolfenstein.GameResources.TinyFont));
         }
 

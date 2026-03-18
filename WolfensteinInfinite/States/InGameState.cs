@@ -425,7 +425,17 @@ namespace WolfensteinInfinite.States
 
             GameState nextLevel;
 
-            if (Game.Map.Level % 10 == 0)
+            if (Wolfenstein.TestMapSections != null && Wolfenstein.TestMapSections.Length < Game.Map.Level - 1)
+            {
+                nextLevel = new SpecialLevelState(
+                            Wolfenstein,
+                            Game.Player,
+                            Difficulties.CAN_I_PLAY_DADDY,
+                            Game.Map.Level,
+                            Wolfenstein.TestMapSections[Game.Map.Level - 1].mod,
+                            Wolfenstein.TestMapSections[Game.Map.Level - 1].section);
+            }
+            else if (Game.Map.Level % 10 == 0)
             {
                 var specials = Game.Mods
                     .Where(m => Wolfenstein.SpecialMaps.ContainsKey(m))
@@ -618,6 +628,7 @@ namespace WolfensteinInfinite.States
             }
 
             HudBuffer.RectFill(0, 0, HudBuffer.Width, HudBuffer.Height, 255, 255, 255, (byte)(128 * PickupTween.Value));
+
             (byte[] pixels, byte[] pallet) = Quantization.Quantize32BitAI(HudBuffer.Pixels, 48);
             var b = new Texture8(HudBuffer.Width, HudBuffer.Height, pixels, pallet);
             buffer.Blit(0, buffer.Height - (int)(HudBuffer.Height * Wolfenstein.UIScale), buffer.Width, (int)(HudBuffer.Height * Wolfenstein.UIScale), b);
@@ -1585,49 +1596,49 @@ namespace WolfensteinInfinite.States
                 switch (d.Direction)
                 {
                     case Direction.NORTH:
-                    {
-                        if (rayDirY == 0) continue;
-                        perpWallDist = (d.Y - Game.Player.PosY) / rayDirY;
-                        if (perpWallDist <= 0) continue;
-                        float hitX = Game.Player.PosX + perpWallDist * rayDirX;
-                        if (hitX < d.X || hitX > d.X + 1f) continue;
-                        wallX = hitX - MathF.Floor(hitX);
-                        side = 1;
-                        break;
-                    }
+                        {
+                            if (rayDirY == 0) continue;
+                            perpWallDist = (d.Y - Game.Player.PosY) / rayDirY;
+                            if (perpWallDist <= 0) continue;
+                            float hitX = Game.Player.PosX + perpWallDist * rayDirX;
+                            if (hitX < d.X || hitX > d.X + 1f) continue;
+                            wallX = hitX - MathF.Floor(hitX);
+                            side = 1;
+                            break;
+                        }
                     case Direction.SOUTH:
-                    {
-                        if (rayDirY == 0) continue;
-                        perpWallDist = (d.Y + 1f - Game.Player.PosY) / rayDirY;
-                        if (perpWallDist <= 0) continue;
-                        float hitX = Game.Player.PosX + perpWallDist * rayDirX;
-                        if (hitX < d.X || hitX > d.X + 1f) continue;
-                        wallX = hitX - MathF.Floor(hitX);
-                        side = 1;
-                        break;
-                    }
+                        {
+                            if (rayDirY == 0) continue;
+                            perpWallDist = (d.Y + 1f - Game.Player.PosY) / rayDirY;
+                            if (perpWallDist <= 0) continue;
+                            float hitX = Game.Player.PosX + perpWallDist * rayDirX;
+                            if (hitX < d.X || hitX > d.X + 1f) continue;
+                            wallX = hitX - MathF.Floor(hitX);
+                            side = 1;
+                            break;
+                        }
                     case Direction.WEST:
-                    {
-                        if (rayDirX == 0) continue;
-                        perpWallDist = (d.X - Game.Player.PosX) / rayDirX;
-                        if (perpWallDist <= 0) continue;
-                        float hitY = Game.Player.PosY + perpWallDist * rayDirY;
-                        if (hitY < d.Y || hitY > d.Y + 1f) continue;
-                        wallX = hitY - MathF.Floor(hitY);
-                        side = 0;
-                        break;
-                    }
+                        {
+                            if (rayDirX == 0) continue;
+                            perpWallDist = (d.X - Game.Player.PosX) / rayDirX;
+                            if (perpWallDist <= 0) continue;
+                            float hitY = Game.Player.PosY + perpWallDist * rayDirY;
+                            if (hitY < d.Y || hitY > d.Y + 1f) continue;
+                            wallX = hitY - MathF.Floor(hitY);
+                            side = 0;
+                            break;
+                        }
                     case Direction.EAST:
-                    {
-                        if (rayDirX == 0) continue;
-                        perpWallDist = (d.X + 1f - Game.Player.PosX) / rayDirX;
-                        if (perpWallDist <= 0) continue;
-                        float hitY = Game.Player.PosY + perpWallDist * rayDirY;
-                        if (hitY < d.Y || hitY > d.Y + 1f) continue;
-                        wallX = hitY - MathF.Floor(hitY);
-                        side = 0;
-                        break;
-                    }
+                        {
+                            if (rayDirX == 0) continue;
+                            perpWallDist = (d.X + 1f - Game.Player.PosX) / rayDirX;
+                            if (perpWallDist <= 0) continue;
+                            float hitY = Game.Player.PosY + perpWallDist * rayDirY;
+                            if (hitY < d.Y || hitY > d.Y + 1f) continue;
+                            wallX = hitY - MathF.Floor(hitY);
+                            side = 0;
+                            break;
+                        }
                     default:
                         continue;
                 }
