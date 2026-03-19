@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WolfensteinInfinite.Editor"
         mc:Ignorable="d"
-        Title="MapEditor" Height="450" Width="800">
+        Title="MapEditor" Height="450" Width="1000">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
@@ -19,6 +19,9 @@
                 <ComboBox x:Name="MapSectionSelection" Width="60" SelectionChanged="MapSectionSelection_SelectionChanged"/>
                 <Label Content="Min Level"/>
                 <Slider x:Name="MinLevelSld" Minimum="1" Maximum="100" Width="200" ValueChanged="MinLevelSld_ValueChanged"/>
+                <CheckBox x:Name="IsRotatableChk" Content="Rotatable" 
+          VerticalAlignment="Center" Foreground="White" Margin="5,0,0,0"
+          Checked="IsRotatableChk_Changed" Unchecked="IsRotatableChk_Changed"/>
                 <Button x:Name="DeleteBtn" Content="Delete" IsEnabled="False" Click="DeleteBtn_Click"/>
                 <Button x:Name="DuplicateBtn" Content="Duplicate" IsEnabled="False" Click="DuplicateBtn_Click"/>
                 <ComboBox x:Name="DifficultySelection" Width="150" SelectionChanged="DifficultySelection_SelectionChanged"/>
@@ -39,9 +42,11 @@
                           PreviewMouseWheel="CurrentMapView_PreviewMouseWheel">
                 <Canvas x:Name="SectionCanvas" Background="#222222"
                         MouseDown="SectionCanvas_MouseDown">
+                    
                     <Image x:Name="SectionImage"
                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                            Canvas.Left="0" Canvas.Top="0"/>
+                    <Canvas x:Name="GridCanvas" IsHitTestVisible="False"/>
                     <Canvas.RenderTransform>
                         <TransformGroup>
                             <ScaleTransform x:Name="SectionGridScale" ScaleX="1" ScaleY="1"/>
@@ -50,7 +55,9 @@
                             <TranslateTransform/>
                         </TransformGroup>
                     </Canvas.RenderTransform>
+                    
                 </Canvas>
+                
             </ScrollViewer>
 
             <GridSplitter Width="5" Grid.Column="1" HorizontalAlignment="Center"

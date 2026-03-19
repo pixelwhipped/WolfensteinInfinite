@@ -268,11 +268,60 @@ namespace WolfensteinInfinite.Editor
             for (int y = 0; y < _mapTilesH; y++)
                 for (int x = 0; x < _mapTilesW; x++)
                     RedrawTile(x, y);
-
+            DrawGridOverlay();
             CenterContent(CurrentMapView, SectionCanvas);
         }
-
         private void RedrawTile(int x, int y)
+        {
+            if (_mapBitmap == null || ActiveSection == null || ActiveMod == null) return;
+
+            WriteableBitmap? tile = null;
+            var sp = ActiveSection.Special[y][x];
+
+            if (sp >= 0)
+            {
+                if (sp >= 9 && sp <= 12)
+                {
+                    if (ActiveSection.Decals[y][x] >= 0)
+                        tile = GetSpecialBitmapDecal(ActiveMod.Name, sp, ActiveSection.Decals[y][x]);
+                    else if (ActiveSection.Items[y][x] >= 0)
+                        tile = GetSpecialBitmapItem(ActiveMod.Name, sp, ActiveSection.Items[y][x]);
+                    else if (ActiveSection.Enemy[y][x] >= 0)
+                    {
+                        BlitEnemyTile(x, y, sp);
+                        return;
+                    }
+                }
+                else
+                    tile = GetSpecialBitmap(ActiveMod.Name, sp, ActiveSection.Walls[y][x]);
+            }
+            else if (ActiveSection.Decals[y][x] >= 0)
+                tile = GetDecalBitmap(ActiveMod.Name, ActiveSection.Decals[y][x]);
+            else if (ActiveSection.Items[y][x] >= 0)
+                tile = GetItemBitmap(ActiveSection.Items[y][x]);
+            else if (ActiveSection.Enemy[y][x] >= 0)
+            {
+                BlitEnemyTile(x, y, -1);
+                return;
+            }
+            else if (ActiveSection.Doors[y][x] >= 0)
+                tile = GetDoorBitmap(ActiveSection.Doors[y][x], IsDoorBetweenWalls(x, y));
+            else if (ActiveSection.Walls[y][x] >= 0)
+                tile = GetTextureBitmap(ActiveMod.Name, ActiveSection.Walls[y][x]);
+
+            BlitTile(_mapBitmap, tile, x * TileSize, y * TileSize);
+        }
+
+        private void BlitEnemyTile(int x, int y, int specialChance) //new
+        {
+            if (_mapBitmap == null || ActiveSection == null || ActiveMod == null) return;
+            var tile = specialChance >= 9 && specialChance <= 12
+                ? GetSpecialBitmapEnemy(ActiveMod.Name, specialChance, ActiveSection.Enemy[y][x])
+                : GetEnemyBitmap(ActiveMod.Name, ActiveSection.Enemy[y][x]);
+            BlitTile(_mapBitmap, tile, x * TileSize, y * TileSize);
+            BlitDifficultyOverlay(_mapBitmap, ActiveSection.Difficulty[y][x], x * TileSize, y * TileSize);
+        }
+        private void RedrawTileOld(int x, int y)
         {
             if (_mapBitmap == null || ActiveSection == null || ActiveMod == null) return;
 
@@ -295,6 +344,7 @@ namespace WolfensteinInfinite.Editor
                         var diff = ActiveSection.Difficulty[y][x];
                         BlitDifficultyOverlay(_mapBitmap, diff, x * TileSize, y * TileSize);
                         return; // already blit, skip final BlitTile call
+
                     }
                     /*else if (ActiveSection.Enemy[y][x] >= 0)
                         tile = GetSpecialBitmapEnemy(ActiveMod.Name, sp, ActiveSection.Enemy[y][x]);*/
@@ -316,6 +366,57 @@ namespace WolfensteinInfinite.Editor
             BlitTile(_mapBitmap, tile, x * TileSize, y * TileSize);
         }
 
+        private void DrawGridOverlay()
+        {
+            GridCanvas.Children.Clear();
+            int w = _mapTilesW;
+            int h = _mapTilesH;
+            for (int tx = 0; tx <= w; tx++)
+            {
+                bool major = tx % 5 == 0;
+                var line = new System.Windows.Shapes.Line
+                {
+                    X1 = tx * TileSize,
+                    Y1 = 0,
+                    X2 = tx * TileSize,
+                    Y2 = h * TileSize,
+                    Stroke = major ? Brushes.Gray : Brushes.DimGray,
+                    StrokeThickness = major ? 1.5 : 0.5,
+                    IsHitTestVisible = false
+                };
+                GridCanvas.Children.Add(line);
+            }
+            for (int ty = 0; ty <= h; ty++)
+            {
+                bool major = ty % 5 == 0;
+                var line = new System.Windows.Shapes.Line
+                {
+                    X1 = 0,
+                    Y1 = ty * TileSize,
+                    X2 = w * TileSize,
+                    Y2 = ty * TileSize,
+                    Stroke = major ? Brushes.Gray : Brushes.DimGray,
+                    StrokeThickness = major ? 1.5 : 0.5,
+                    IsHitTestVisible = false
+                };
+                GridCanvas.Children.Add(line);
+            }
+        }
+        private void BlitEnemyTileold(int x, int y, int specialChance)
+        {
+            if (_mapBitmap == null || ActiveSection == null || ActiveMod == null) return;
+
+            // Get base enemy bitmap — use special blend if chance is active
+            WriteableBitmap? tile = specialChance >= 9 && specialChance <= 12
+                ? GetSpecialBitmapEnemy(ActiveMod.Name, specialChance, ActiveSection.Enemy[y][x])
+                : GetEnemyBitmap(ActiveMod.Name, ActiveSection.Enemy[y][x]);
+
+            BlitTile(_mapBitmap, tile, x * TileSize, y * TileSize);
+
+            // Difficulty overlay — coloured dot
+            var diff = ActiveSection.Difficulty[y][x];
+            BlitDifficultyOverlay(_mapBitmap, diff, x * TileSize, y * TileSize);
+        }
         private static unsafe void BlitDifficultyOverlay(WriteableBitmap dest, int difficulty, int px, int py)
         {
 
@@ -579,6 +680,11 @@ namespace WolfensteinInfinite.Editor
                 return;
             }
             MinLevelSld.Value = s.IntendedMinLevel;
+            IsRotatableChk.Checked -= IsRotatableChk_Changed;
+            IsRotatableChk.Unchecked -= IsRotatableChk_Changed;
+            IsRotatableChk.IsChecked = s.IsRotatable;
+            IsRotatableChk.Checked += IsRotatableChk_Changed;
+            IsRotatableChk.Unchecked += IsRotatableChk_Changed;
             if (s == ActiveSection)
             {
                 ActiveSection.Layers = MapSection.Expand(ActiveSection);
@@ -599,13 +705,19 @@ namespace WolfensteinInfinite.Editor
             }
             else if (m == "New")
             {
+                /*
                 MapSectionSelection.SelectionChanged -= MapSectionSelection_SelectionChanged;
                 var section = new MapSection() { Id = builder.MapSections.Length };
                 MapSectionSelection.Items.Insert(MapSectionSelection.Items.IndexOf("New"), section.Id.ToString());
                 MapSectionSelection.SelectedIndex = MapSectionSelection.Items.IndexOf(section.Id.ToString());
                 MapSectionSelection.SelectionChanged += MapSectionSelection_SelectionChanged;
                 builder.MapSections = [.. builder.MapSections, section];
-                SetMapSectionSelections(section.Id);
+                SetMapSectionSelections(section.Id);*/
+                var section = new MapSection()
+                { Id = builder.MapSections.Length > 0 ? builder.MapSections.Max(s => s.Id) + 1 : 0 };
+                builder.MapSections = [.. builder.MapSections, section];
+                ChangeStates[ActiveMod] = true;
+                RefreshSectionDropdown(section.Id);
             }
             else
             {
@@ -1044,7 +1156,7 @@ namespace WolfensteinInfinite.Editor
         {
             SaveBtn.IsEnabled = ActiveMod != null && ChangeStates[ActiveMod];
             SaveAllBtn.IsEnabled = ChangeStates.Any(p => p.Value);
-            MinLevelSld.IsEnabled = TestBtn.IsEnabled = DeleteBtn.IsEnabled = DuplicateBtn.IsEnabled = ActiveSection != null;
+            MinLevelSld.IsEnabled = IsRotatableChk.IsEnabled = TestBtn.IsEnabled = DeleteBtn.IsEnabled = DuplicateBtn.IsEnabled = ActiveSection != null;
         }
 
         private bool Save(Mod mod, out string[] errors)
@@ -1054,10 +1166,10 @@ namespace WolfensteinInfinite.Editor
             var builder = Wolfenstein.BuilderMods[mod.Name];
             foreach (var s in builder.MapSections)
                 s.Layers = MapSection.Trim(s);
-            
+
 
             var target = SaveTargetSelection.SelectedItem as string ?? "map.json";
-            if(target!="maptestlevel.json")
+            if (target != "maptestlevel.json")
                 if (!builder.Validate(out errors)) return false;
 
             var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{mod.Name}\{target}");
@@ -1110,14 +1222,42 @@ namespace WolfensteinInfinite.Editor
             var builder = Wolfenstein.BuilderMods[ActiveMod.Name];
             builder.MapSections = [.. builder.MapSections.Where(p => p.Id != ActiveSection.Id)];
             ChangeStates[ActiveMod] = true;
-            SetActiveMod(ActiveMod);
+            RefreshSectionDropdown();
         }
 
+        private void RefreshSectionDropdown(int? selectId = null)
+        {
+            if (ActiveMod == null) return;
+            var builder = Wolfenstein.BuilderMods[ActiveMod.Name];
+
+            MapSectionSelection.SelectionChanged -= MapSectionSelection_SelectionChanged;
+            MapSectionSelection.Items.Clear();
+            foreach (var section in builder.MapSections)
+                MapSectionSelection.Items.Add(section.Id.ToString());
+            MapSectionSelection.Items.Add("New");
+
+            if (builder.MapSections.Length > 0)
+            {
+                var targetId = selectId ?? builder.MapSections[0].Id;
+                var idx = MapSectionSelection.Items.IndexOf(targetId.ToString());
+                MapSectionSelection.SelectedIndex = idx >= 0 ? idx : 0;
+                MapSectionSelection.SelectionChanged += MapSectionSelection_SelectionChanged;
+                SetMapSectionSelections(builder.MapSections[
+                    MapSectionSelection.SelectedIndex < builder.MapSections.Length
+                        ? MapSectionSelection.SelectedIndex : 0].Id);
+            }
+            else
+            {
+                MapSectionSelection.SelectionChanged += MapSectionSelection_SelectionChanged;
+                SetMapSectionSelections(null);
+            }
+            SetSaveButtonStates();
+        }
         private void TestBtn_Click(object sender, RoutedEventArgs e)
         {
             if (ActiveMod == null || ActiveSection == null) return;
             int[][]? area = ActiveSection.GetClosedSection(out bool closed, out bool noDoors, out bool multiple);
-            MessageBox.Show($"null:{area==null} Closed: {closed} NoDoors: {noDoors} Multiple: {multiple}");
+            MessageBox.Show($"null:{area == null} Closed: {closed} NoDoors: {noDoors} Multiple: {multiple}");
         }
 
         private void MinLevelSld_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
@@ -1126,7 +1266,7 @@ namespace WolfensteinInfinite.Editor
             ActiveSection.IntendedMinLevel = Math.Clamp((int)MinLevelSld.Value, 1, 100);
         }
 
-        private void DuplicateBtn_Click(object sender, RoutedEventArgs e)
+        /*private void DuplicateBtn_Click(object sender, RoutedEventArgs e)
         {
             if (ActiveMod == null || ActiveSection == null) return;
             MapSectionSelection.SelectionChanged -= MapSectionSelection_SelectionChanged;
@@ -1138,11 +1278,30 @@ namespace WolfensteinInfinite.Editor
             MapSectionSelection.SelectionChanged += MapSectionSelection_SelectionChanged;
             builder.MapSections = [.. builder.MapSections, section];
             SetMapSectionSelections(section.Id);
+        }*/
+        private void DuplicateBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (ActiveMod == null || ActiveSection == null) return;
+            var builder = Wolfenstein.BuilderMods[ActiveMod.Name];
+            var section = ActiveSection.Clone();
+            section.Id = builder.MapSections.Length > 0
+                ? builder.MapSections.Max(s => s.Id) + 1
+                : 0;
+            builder.MapSections = [.. builder.MapSections, section];
+            ChangeStates[ActiveMod] = true;
+            RefreshSectionDropdown(section.Id);
         }
-
         private void CurrentMapView_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             // zoom reserved for later
+        }
+
+        private void IsRotatableChk_Changed(object sender, RoutedEventArgs e)
+        {
+            if (ActiveSection == null || ActiveMod == null) return;
+            ActiveSection.IsRotatable = IsRotatableChk.IsChecked == true;
+            ChangeStates[ActiveMod] = true;
+            SetSaveButtonStates();
         }
     }
 }

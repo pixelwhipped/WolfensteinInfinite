@@ -48,6 +48,18 @@ namespace WolfensteinInfinite.GameMap
                     foreach (var sec in item.Value)
                     {
                         allSection.Add(new MapGeneratorSection(0, 0, item.Key, sec, sec.GetConnections()));
+                        if (sec.IsRotatable)
+                        {
+                            for (int rot = 1; rot <= 3; rot++)
+                            {
+                                var rotated = sec.RotateSection(rot * 90);
+                                var overrides = BuildDecalOverrides(item.Key, sec, rot);
+                                var mgs = new MapGeneratorSection(0, 0, item.Key, rotated, rotated.GetConnections());
+                                // inject overrides
+                                foreach (var kvp in overrides) mgs.DecalDirectionOverrides[kvp.Key] = kvp.Value;
+                                allSection.Add(mgs);
+                            }
+                        }
                     }
                 }
             }
@@ -76,6 +88,35 @@ namespace WolfensteinInfinite.GameMap
             finalPassErrors = [.. errors];
 
         }
+
+        private static Dictionary<int, Direction> BuildDecalOverrides(Mod mod, MapSection src, int rotations)
+        {
+            var overrides = new Dictionary<int, Direction>();
+            var decalLayer = src.GetLayout(MapArrayLayouts.DECALS);
+            for (int y = 0; y < decalLayer.Length; y++)
+                for (int x = 0; x < decalLayer[0].Length; x++)
+                {
+                    int mapId = decalLayer[y][x];
+                    if (mapId < 0) continue;
+                    var decal = mod.Decals.FirstOrDefault(d => d.MapID == mapId);
+                    if (decal == null || decal.Direction == Direction.NONE) continue;
+                    var dir = decal.Direction;
+                    for (int r = 0; r < rotations; r++)
+                        dir = RotateDirection90(dir);
+                    overrides[mapId] = dir;
+                }
+            return overrides;
+        }
+
+        private static Direction RotateDirection90(Direction d) => d switch
+        {
+            Direction.NORTH => Direction.EAST,
+            Direction.EAST => Direction.SOUTH,
+            Direction.SOUTH => Direction.WEST,
+            Direction.WEST => Direction.NORTH,
+            _ => d
+        };
+
         // Tracks how many times each section template has been used this generation
         private readonly Dictionary<int, int> _sectionUsageCount = [];
         private MapGeneratorSection[] GetNodes(MapGeneratorSection origin)
@@ -457,7 +498,7 @@ namespace WolfensteinInfinite.GameMap
         {
             var floor = new Texture32(64, 64);
             var playerX = -1;
-            var playerY = -1;
+            var playerY = -1;   
             floor.Clear(128, 128, 128);
             var texture = new Texture32(Width * 64, Height * 64);
             texture.Clear(0, 0, 0);
@@ -604,7 +645,19 @@ namespace WolfensteinInfinite.GameMap
                             decalKeyIndicies.Add(key, index);
                         }
                         var md = Wolfenstein.Mods[key.Mod].Decals[key.Index];
-                        decalList.Add(new Decal { X = worldX, Y = worldY, TextureIndex = index, LightSource = md.LightSource, Passable = md.Passable, Direction = md.Direction });
+                        var dir = md.Direction;
+                        if (layer.DecalDirectionOverrides.TryGetValue(decals[y][x], out var overrideDir))
+                            dir = overrideDir;
+                        decalList.Add(new Decal
+                        {
+                            X = worldX,
+                            Y = worldY,
+                            TextureIndex = index,
+                            LightSource = md.LightSource,
+                            Passable = md.Passable,
+                            Direction = dir
+                        });
+                        
                         decalsMap[worldY][worldX] = index;
                         texture.Draw(worldX * 64, worldY * 64, Wolfenstein.Decals[key.Mod][key.Index]);
                     }

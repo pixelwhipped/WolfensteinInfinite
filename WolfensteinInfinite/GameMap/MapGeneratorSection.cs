@@ -37,6 +37,7 @@ namespace WolfensteinInfinite.GameMap
                 return _contentBounds.Value;
             }
         }
+        public Dictionary<int, Direction> DecalDirectionOverrides { get; init; } = [];
         private int[][]? _closedSection;
         public int[][]? GetOrComputeClosedSection() =>
             _closedSection ??= Section.GetClosedSection(out _, out _, out _);

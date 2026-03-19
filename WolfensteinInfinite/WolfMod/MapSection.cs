@@ -144,6 +144,8 @@ namespace WolfensteinInfinite.WolfMod
             return [.. ret];
         }
         public int Id { get; set; } = 0;
+
+        public bool IsRotatable { get; set; } = false;
         public int IntendedMinLevel { get; set; } = 1;
         [JsonIgnore]
         public bool IsFullMap => HasPlayerStart && HasPlayerExit &&
@@ -189,6 +191,41 @@ namespace WolfensteinInfinite.WolfMod
         [JsonIgnore]
         public int Height => GetLayout(MapArrayLayouts.WALLS).Length;
 
+        public MapSection RotateSection(int degrees)
+        {
+            int times = degrees / 90;
+            var current = this;
+            for (int t = 0; t < times; t++)
+                current = Rotate90Once(current);
+            return current;
+        }
+
+        private static MapSection Rotate90Once(MapSection src)
+        {
+            int h = src.Height, w = src.Width;
+            var result = new MapSection(h, w); // swapped dimensions
+
+            foreach (var layout in Enum.GetValues<MapArrayLayouts>())
+            {
+                var srcLayer = src.GetLayout(layout);
+                var dstLayer = result.GetLayout(layout);
+                for (int y = 0; y < h; y++)
+                    for (int x = 0; x < w; x++)
+                    {
+                        int newX = h - 1 - y;
+                        int newY = x;
+                        int val = srcLayer[y][x];
+                        // Rotate pushwall special values
+                        if (layout == MapArrayLayouts.SPECIAL && val >= 4 && val <= 7)
+                            val = val switch { 4 => 5, 5 => 6, 6 => 7, 7 => 4, _ => val };
+                        dstLayer[newY][newX] = val;
+                    }
+            }
+
+            result.IntendedMinLevel = src.IntendedMinLevel;
+            result.IsRotatable = false;
+            return result;
+        }
         public (int X, int Y)[] GetConnections(int xOffset = 0, int yOffset = 0)
         {
             var connections = new List<(int X, int Y)>();
@@ -225,40 +262,6 @@ namespace WolfensteinInfinite.WolfMod
                     }
 
                     if (hasVoid) connections.Add((x + xOffset, y + yOffset));
-                }
-            }
-            return [.. connections];
-        }
-        public (int X, int Y)[] GetConnectionsOld(int xOffset = 0, int yOffset = 0)
-        {
-            var connections = new List<(int X, int Y)>();
-            var closedSection = GetClosedSection(out _, out _, out _);
-            if (closedSection == null) return [.. connections];
-            var array = GetLayout(MapArrayLayouts.DOORS);
-            for (int y = 0; y < array.Length; y++)
-            {
-                for (int x = 0; x < array[0].Length; x++)
-                {
-
-                    if (array[y][x] >= 0)
-                    {
-                        //check is not door inside room. if the door is at an edge it is not inside room
-                        //if a door is facing nothing -1 in the closed section it is not inside a room
-                        bool hasVoid = false;
-                        if (y == 0) hasVoid = true;
-                        if (y == array.Length - 1) hasVoid = true;
-                        if (x == 0) hasVoid = true;
-                        if (x == array[0].Length - 1) hasVoid = true;
-
-                        if (y + 1 < array.Length && closedSection[y + 1][x] < 0) hasVoid = true;
-                        if (y - 1 >= 0 && closedSection[y - 1][x] < 0) hasVoid = true;
-
-                        if (x + 1 < array[0].Length && closedSection[y][x + 1] < 0) hasVoid = true;
-                        if (x - 1 >= 0 && closedSection[y][x - 1] < 0) hasVoid = true;
-
-                        if (hasVoid) connections.Add((x + xOffset, y + yOffset));
-                    }
-
                 }
             }
             return [.. connections];
