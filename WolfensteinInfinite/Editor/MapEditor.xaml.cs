@@ -264,6 +264,11 @@ namespace WolfensteinInfinite.Editor
             SectionImage.Height = _mapTilesH * TileSize;
             SectionCanvas.Width = _mapTilesW * TileSize;
             SectionCanvas.Height = _mapTilesH * TileSize;
+            // Ensure GridCanvas matches exactly
+            GridCanvas.Width = _mapTilesW * TileSize;
+            GridCanvas.Height = _mapTilesH * TileSize;
+            Canvas.SetLeft(GridCanvas, 0);
+            Canvas.SetTop(GridCanvas, 0);
 
             for (int y = 0; y < _mapTilesH; y++)
                 for (int x = 0; x < _mapTilesW; x++)
@@ -367,6 +372,45 @@ namespace WolfensteinInfinite.Editor
         }
 
         private void DrawGridOverlay()
+        {
+            GridCanvas.Children.Clear();
+            int w = _mapTilesW;
+            int h = _mapTilesH;
+
+            for (int tx = 0; tx <= w; tx++)
+            {
+                // Major on 5-tile intervals and always on first/last edge
+                bool major = tx % 5 == 0 || tx == w;
+                var line = new System.Windows.Shapes.Line
+                {
+                    X1 = tx * TileSize,
+                    Y1 = 0,
+                    X2 = tx * TileSize,
+                    Y2 = h * TileSize,
+                    Stroke = major ? Brushes.Gray : Brushes.DimGray,
+                    StrokeThickness = major ? 1.5 : 0.5,
+                    IsHitTestVisible = false
+                };
+                GridCanvas.Children.Add(line);
+            }
+
+            for (int ty = 0; ty <= h; ty++)
+            {
+                bool major = ty % 5 == 0 || ty == h;
+                var line = new System.Windows.Shapes.Line
+                {
+                    X1 = 0,
+                    Y1 = ty * TileSize,
+                    X2 = w * TileSize,
+                    Y2 = ty * TileSize,
+                    Stroke = major ? Brushes.Gray : Brushes.DimGray,
+                    StrokeThickness = major ? 1.5 : 0.5,
+                    IsHitTestVisible = false
+                };
+                GridCanvas.Children.Add(line);
+            }
+        }
+        private void DrawGridOverlayOld()
         {
             GridCanvas.Children.Clear();
             int w = _mapTilesW;
@@ -704,15 +748,7 @@ namespace WolfensteinInfinite.Editor
                 SetMapSectionSelections(null);
             }
             else if (m == "New")
-            {
-                /*
-                MapSectionSelection.SelectionChanged -= MapSectionSelection_SelectionChanged;
-                var section = new MapSection() { Id = builder.MapSections.Length };
-                MapSectionSelection.Items.Insert(MapSectionSelection.Items.IndexOf("New"), section.Id.ToString());
-                MapSectionSelection.SelectedIndex = MapSectionSelection.Items.IndexOf(section.Id.ToString());
-                MapSectionSelection.SelectionChanged += MapSectionSelection_SelectionChanged;
-                builder.MapSections = [.. builder.MapSections, section];
-                SetMapSectionSelections(section.Id);*/
+            {   
                 var section = new MapSection()
                 { Id = builder.MapSections.Length > 0 ? builder.MapSections.Max(s => s.Id) + 1 : 0 };
                 builder.MapSections = [.. builder.MapSections, section];
@@ -943,9 +979,10 @@ namespace WolfensteinInfinite.Editor
 
         private void DifficultySelection_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            SelectedDifficulty = DifficultySelection.SelectedIndex;/*
             var dStr = DifficultySelection.SelectedItem.ToString()
                 ?? DifficultyHelpers.GetDifficultyString(Difficulties.CAN_I_PLAY_DADDY);
-            SelectedDifficulty = (int)(DifficultyHelpers.GetStringDifficulty(dStr) ?? Difficulties.CAN_I_PLAY_DADDY);
+            SelectedDifficulty = (int)(DifficultyHelpers.GetStringDifficulty(dStr) ?? Difficulties.CAN_I_PLAY_DADDY);*/
         }
 
         // ──────────────────────────────────────────────────────────────

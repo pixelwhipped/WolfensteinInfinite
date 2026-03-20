@@ -1,6 +1,7 @@
 ﻿//Clean
 using SFML.Window;
 using WolfensteinInfinite.Editor;
+using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
@@ -63,6 +64,8 @@ namespace WolfensteinInfinite.States
             EditorItem = new MenuItem("Editor", OnMenuAction, wolfenstein.GameResources.SmallFont);
             if (Args.EditorEnabled)
                 Menu.MenuItems.Add(EditorItem);
+            //if (Wolfenstein.CurrentMusic != null)
+            //     AudioPlaybackEngine.Instance.PlayMusic(Wolfenstein.CurrentMusic);
         }
 
         private void OnMenuAction(IMenuItem item)

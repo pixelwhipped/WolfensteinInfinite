@@ -15,7 +15,7 @@ namespace WolfensteinInfinite.GameObjects
             game.Map.Objectives.GetValueOrDefault(MapFlags.HAS_SECRET_MESSAGE) &&
             !game.Map.ObjectivesComplete.GetValueOrDefault(MapFlags.HAS_SECRET_MESSAGE);
 
-        public InteractResult Interact(Game game)
+        public InteractResult Interact(Game game, Wolfenstein wolfenstein)
         {
             if (!CanInteract(game)) return InteractResult.None;
             game.Map.ObjectivesComplete[MapFlags.HAS_SECRET_MESSAGE] = true;

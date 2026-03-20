@@ -1,4 +1,6 @@
-﻿namespace WolfensteinInfinite.GameObjects
+﻿using WolfensteinInfinite.Engine.Audio;
+
+namespace WolfensteinInfinite.GameObjects
 {
     public class ExitWall : IInteractable
     {
@@ -8,12 +10,12 @@
 
         public bool CanInteract(Game game) => !IsActivated;
 
-        public InteractResult Interact(Game game)
+        public InteractResult Interact(Game game,Wolfenstein wolfenstein)
         {
             foreach (var kvp in game.Map.Objectives)
                 if (kvp.Value && !game.Map.ObjectivesComplete.GetValueOrDefault(kvp.Key))
                     return InteractResult.Locked;
-
+           // AudioPlaybackEngine.Instance.PlaySound(wolfenstein.GameResources.Effects["Pushwall"]);
             IsActivated = true;
             return InteractResult.Activated;
         }

@@ -97,11 +97,8 @@
         public bool TryConnect(TKey connectionPoint, TValue parent, TValue child)
         {
             if (child == null) return false;
-            if (!CanConnect(connectionPoint, parent, child))
-            {
-                System.Diagnostics.Debug.WriteLine($"CanConnect failed at {connectionPoint}");
-                return false;
-            }
+            if (!CanConnect(connectionPoint, parent, child)) return false;
+            
             if (!parent.Connections.TryGetValue(connectionPoint, out var currentChild)) return false;
             if (!child.Connections.TryGetValue(connectionPoint, out var currentChildConnection)) return false;
             if (currentChild == null || currentChild.Node != null) return false;

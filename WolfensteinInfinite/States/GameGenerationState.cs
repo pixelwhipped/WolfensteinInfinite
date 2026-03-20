@@ -1,10 +1,13 @@
 ﻿//Clean
+using NAudio.CoreAudioApi;
 using SFML.Window;
+using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.GameMap;
 using WolfensteinInfinite.GameObjects;
+using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.States
@@ -86,6 +89,22 @@ namespace WolfensteinInfinite.States
                 .Where(p => mods.Any(mo => mo.Name == p.Key) && p.Value.MapSections.Length > 0)
                 .ToArray();
             if (modBuilders.Length == 0) throw new Exception("No Mods with Level Sections");
+
+
+            var tracks = new List<MusicTrack>();
+            foreach (var modMusic in mods)
+            {
+                if (!Wolfenstein.Mods.TryGetValue(modMusic.Name, out var cm)) continue;
+                tracks.AddRange(cm.MusicTracks);
+            }
+            if (tracks.Count != 0)
+            {
+                //AudioPlaybackEngine.Instance.PlayMusic(FileHelpers.Shared.GetModDataFilePath(tracks[Random.Shared.Next(0, tracks.Count - 1)].File));
+            }
+            else if (Wolfenstein.CurrentMusic != null)
+            {
+                //AudioPlaybackEngine.Instance.PlayMusic(Wolfenstein.CurrentMusic);
+            }
             Progress = 10;
             Thread.Sleep(50);
 
@@ -193,7 +212,7 @@ namespace WolfensteinInfinite.States
             var game = new Game(Guid.NewGuid(), map, Player, [.. mods.Select(p => p.Name)]);
             NextState = new InGameState(Wolfenstein, game);
         }
-        
+
         public override GameState? Update(Texture32 buffer, float frameTime)
         {
             var x = (buffer.Width / 2) - (Wolfenstein.GameResources.GetPsyched.Width / 2);

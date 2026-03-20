@@ -284,11 +284,7 @@ namespace WolfensteinInfinite.GameMap
                     _sectionUsageCount.TryGetValue(n.Section.SectionHash, out int uses);
                     return uses;
                 })
-                .ToList();
-            // TEMP DEBUG
-            var s8candidates = usageSorted.Where(n => n.Section.GetConnections().Length >= 3).ToList();
-
-            Debug.WriteLine($"Rooms={MapLayers.Count} useDoors={useDoors} lastDoors={_lastPlacedDoorCount} avg={(_recentDoorCounts.Count > 0 ? _recentDoorCounts.Average() : 0):F1} candidates={nodes.Count} 3+door={s8candidates.Count}");
+                .ToList();       
             return [.. usageSorted];
         }
 
@@ -417,8 +413,7 @@ namespace WolfensteinInfinite.GameMap
                             return localY >= 0 && localY < p.Value.Section.Height &&
                                    localX >= 0 && localX < p.Value.Section.Width &&
                                    p.Value.Section.Walls[localY][localX] >= 0;
-                        });
-                        Debug.WriteLine($"  FAIL: wall mismatch at ({mapX},{mapY}) childWall={child.Section.Walls[i][j]} existingWall={(existing.Value != null ? existing.Value.Section.Walls[mapY - existing.Value.Y][mapX - existing.Value.X] : -99)} childMod={child.Mod.Name} existingMod={existing.Value?.Mod.Name}");
+                        });                       
                         return false;
                     }
                     
@@ -539,8 +534,7 @@ namespace WolfensteinInfinite.GameMap
 
             // Go over all layers and build up maps and objects
             foreach (var layer in MapLayers.Values)
-            {
-                Debug.WriteLine($"Layer: X={layer.X} Y={layer.Y} SectionSize={layer.Section.Width}x{layer.Section.Height}");
+            {                
                 if (!requiredMods.Contains(layer.Mod.Name)) requiredMods.Add(layer.Mod.Name);
                 var walls = layer.Section.GetLayout(MapArrayLayouts.WALLS);
                 var doors = layer.Section.GetLayout(MapArrayLayouts.DOORS);
@@ -587,11 +581,8 @@ namespace WolfensteinInfinite.GameMap
                             index = doorKeyIndicies.Count;
                             doorKeyIndicies.Add(key, index);
                         }
-                        if (!Wolfenstein.Doors.TryGetValue(key.Index, out DoorType? value))
-                        {
-                            Debug.WriteLine($"NULL: Door key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
-                            return null;
-                        }
+                        if (!Wolfenstein.Doors.TryGetValue(key.Index, out DoorType? value)) return null;
+                        
                         doorMap[worldY][worldX] = index;
                         wallMap[worldY][worldX] = InGameState.DOOR_TILE;
                         texture.Draw(worldX * 64, worldY * 64, value.DoorTexture);
@@ -616,11 +607,8 @@ namespace WolfensteinInfinite.GameMap
                             index = itemsKeyIndicies.Count;
                             itemsKeyIndicies.Add(key, index);
                         }
-                        if (!Wolfenstein.PickupItems.TryGetValue(key.Index, out Texture32? value))
-                        {
-                            Debug.WriteLine($"NULL: Item key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
-                            return null;
-                        }
+                        if (!Wolfenstein.PickupItems.TryGetValue(key.Index, out Texture32? value)) return null;
+                        
                         itemList.Add(new Item { X = worldX, Y = worldY, ItemType = key.Index, TextureIndex = index });
                         itemsMap[worldY][worldX] = index;
                         texture.Draw(worldX * 64, worldY * 64, value);
@@ -703,9 +691,7 @@ namespace WolfensteinInfinite.GameMap
                     for (int x = 0; x < special[0].Length; x++)
                     {
                         var worldX = layer.X + x;
-                        if (worldX < 0 || worldX >= Width) continue;
-                        if (special[y][x] == 0)
-                            Debug.WriteLine($"  Found player start at local ({x},{y}) world ({layer.X + x},{layer.Y + y})");
+                        if (worldX < 0 || worldX >= Width) continue;                        
                         if (special[y][x] < 0) continue;
                         var key = new ModKeyIndex(layer.Mod.Name, special[y][x]);
                         if (!specialKeyIndicies.TryGetValue(key, out int index))
@@ -716,11 +702,8 @@ namespace WolfensteinInfinite.GameMap
                         if (key.Index == 0) // Player Start
                         {
                             specialMap[worldY][worldX] = index;
-                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
-                            {
-                                Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
-                                return null;
-                            }
+                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
+                            
                             texture.Draw(worldX * 64, worldY * 64, value);
                             playerX = worldX;
                             playerY = worldY;
@@ -730,11 +713,8 @@ namespace WolfensteinInfinite.GameMap
                             if (diff[y][x] >= (int)difficulty)
                             {
                                 specialMap[worldY][worldX] = index;
-                                if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
-                                {
-                                    Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
-                                    return null;
-                                }
+                                if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
+                                
                                 texture.Draw(worldX * 64, worldY * 64, value);
                             }
                         }
@@ -743,33 +723,24 @@ namespace WolfensteinInfinite.GameMap
                             if (diff[y][x] >= (int)difficulty)
                             {
                                 specialMap[worldY][worldX] = index;
-                                if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
-                                {
-                                    Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
-                                    return null;
-                                }
+                                if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
+                                
                                 texture.Draw(worldX * 64, worldY * 64, value);
                             }
                         }
                         else if (key.Index == 3) // Exit
                         {
                             specialMap[worldY][worldX] = index;
-                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
-                            {
-                                Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
-                                return null;
-                            }
+                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
+                            
                             texture.Draw(worldX * 64, worldY * 64, value);
                             Map.Exits.Add(new ExitWall() { X = worldX, Y = worldY });
                         }
                         else if (key.Index == 4) // Push North
                         {
                             specialMap[worldY][worldX] = index;
-                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
-                            {
-                                Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
-                                return null;
-                            }
+                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
+                            
                             texture.Draw(worldX * 64, worldY * 64, value);
                             var pw = new PushWall
                             {
@@ -785,11 +756,8 @@ namespace WolfensteinInfinite.GameMap
                         else if (key.Index == 5) // Push East
                         {
                             specialMap[worldY][worldX] = index;
-                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
-                            {
-                                Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
-                                return null;
-                            }
+                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
+                            
                             texture.Draw(worldX * 64, worldY * 64, value);
                             var pw = new PushWall
                             {
@@ -805,11 +773,8 @@ namespace WolfensteinInfinite.GameMap
                         else if (key.Index == 6) // Push South
                         {
                             specialMap[worldY][worldX] = index;
-                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
-                            {
-                                Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
-                                return null;
-                            }
+                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
+                            
                             texture.Draw(worldX * 64, worldY * 64, value);
                             var pw = new PushWall
                             {
@@ -825,11 +790,8 @@ namespace WolfensteinInfinite.GameMap
                         else if (key.Index == 7) // Push West
                         {
                             specialMap[worldY][worldX] = index;
-                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value))
-                            {
-                                Debug.WriteLine($"NULL: Special key {key.Index} not found at worldX={worldX} worldY={worldY} index={key.Index}");
-                                return null;
-                            }
+                            if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
+                            
                             texture.Draw(worldX * 64, worldY * 64, value);
                             var pw = new PushWall
                             {
@@ -859,11 +821,8 @@ namespace WolfensteinInfinite.GameMap
                 player.DirX = dX;
                 player.DirY = dY;
             }
-            else
-            {
-                Debug.WriteLine($"playerX={playerX} playerY={playerY}");
-                return null;
-            }
+            else return null;
+            
 
             Map.WorldMap = wallMap;
             Map.WallSourceIndicies = [.. wallKeyIndicies.Keys];
@@ -885,7 +844,6 @@ namespace WolfensteinInfinite.GameMap
                     IsVertical = DetermineDoorOrientation(x, y, wallMap)
                 });
             }
-            Debug.WriteLine($"playerX={playerX} playerY={playerY}");
             // Pre-populate objectives based on what was actually placed in the map
             foreach (var layer in MapLayers.Values)
             {

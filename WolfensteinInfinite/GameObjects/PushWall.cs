@@ -33,7 +33,7 @@ namespace WolfensteinInfinite.GameObjects
         public void InitRenderPos() { RenderX = X; RenderY = Y; }
         public bool CanInteract(Game game) => !IsMoving && !IsComplete;
 
-        public InteractResult Interact(Game game)
+        public InteractResult Interact(Game game, Wolfenstein wolfenstein)
         {
             if (IsMoving || IsComplete) return InteractResult.None;
             TilesMoved = 0;

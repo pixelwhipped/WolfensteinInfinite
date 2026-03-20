@@ -6,6 +6,6 @@
         float X { get; }
         float Y { get; }
         bool CanInteract(Game game);
-        InteractResult Interact(Game game);
+        InteractResult Interact(Game game, Wolfenstein wolfenstein);
     }
 }

@@ -64,6 +64,9 @@
     <None Update="GameData\AUDIOT.WL6">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
+    <None Update="GameData\Base\Music\Complete.mid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="GameData\Base\Pictures\0.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -440,6 +443,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="GameData\Base\Sounds\MachineGun.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="GameData\Base\Sounds\Pickup.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="GameData\Base\Sounds\Pistol.wav">

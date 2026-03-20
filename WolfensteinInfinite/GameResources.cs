@@ -151,6 +151,9 @@ namespace WolfensteinInfinite
 
             //Sounds
             Effects.Add("ChangeMenu", FileHelpers.Shared.LoadAudio($"GameData\\Base\\Sounds\\ChangeMenu.wav"));
+            Effects.Add("Door", FileHelpers.Shared.LoadAudio($"GameData\\Base\\Sounds\\Door.wav"));
+            Effects.Add("Pushwall", FileHelpers.Shared.LoadAudio($"GameData\\Base\\Sounds\\Pushwall.wav"));
+            Effects.Add("Pickup", FileHelpers.Shared.LoadAudio($"GameData\\Base\\Sounds\\Pickup.wav"));
         }
     }
 }

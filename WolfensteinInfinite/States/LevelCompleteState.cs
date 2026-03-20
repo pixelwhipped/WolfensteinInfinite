@@ -1,6 +1,7 @@
 ﻿//WIP Work in progress
 using SFML.Window;
 using System.Windows.Controls.Primitives;
+using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.GameObjects;
@@ -19,7 +20,8 @@ namespace WolfensteinInfinite.States
         private const float MinDisplayTime = 2.0f;
         private readonly LevelStats _stats;
         //Score, Enemy, Items, Secrets
-        private Tween[] Tweens = [new(1, null), new(1, null), new(1, null), new(1, null)];
+        private Tween[] Tweens = [new(0.75f, null), new(0.75f, null), new(0.75f, null), new(0.75f, null)];
+        private Tween FireSound = new Tween(0.05f,null);
         public LevelCompleteState(Wolfenstein wolfenstein, Player player, Map map,
             LevelStats stats, GameState nextLevelState) : base(wolfenstein)
         {
@@ -30,6 +32,11 @@ namespace WolfensteinInfinite.States
             _nextLevelState = nextLevelState;
             ReturnState = this;
             NextState = this;
+           // AudioPlaybackEngine.Instance.PlayMusic(Wolfenstein.LevelCompleteMusic); 
+            if(stats.LevelScore == 0) Tweens[0].End();
+            if (stats.EnemiesKilled == 0) Tweens[1].End();
+            if (stats.ItemsCollected == 0) Tweens[2].End();
+            if (stats.SecretsFound == 0) Tweens[3].End();
         }
 
         public override GameState? Update(Texture32 buffer, float frameTime)
@@ -43,8 +50,16 @@ namespace WolfensteinInfinite.States
             {
                 if (t.IsFinished) continue;
                 t.Update(frameTime);
+                FireSound.Update(frameTime);
+                if (FireSound.IsFinished)
+                {
+                    FireSound.Reset();
+                    AudioPlaybackEngine.Instance.PlaySound(Wolfenstein.GameResources.Effects["ChangeMenu"]);
+                }
                 break;
             }
+            
+
             // Draw background
             buffer.Clear(0, 0, 0);
             CommonGraphics.DrawTtileAnim(buffer, GameResources, Clock, 1f);

@@ -1,4 +1,5 @@
-﻿using WolfensteinInfinite.GameMap;
+﻿using WolfensteinInfinite.Engine.Audio;
+using WolfensteinInfinite.GameMap;
 
 namespace WolfensteinInfinite.GameObjects
 {
@@ -19,7 +20,7 @@ namespace WolfensteinInfinite.GameObjects
 
         public bool CanInteract(Game game) => OpenAmount == 0f;
 
-        public InteractResult Interact(Game game)
+        public InteractResult Interact(Game game, Wolfenstein wolfenstein)
         {
             if (IsFake) return InteractResult.Opened;
             if (IsLocked)
@@ -30,6 +31,7 @@ namespace WolfensteinInfinite.GameObjects
                 game.Map.ObjectivesComplete[MapFlags.HAS_LOCKED_DOOR] = true;
             }
             IsOpening = true;
+            AudioPlaybackEngine.Instance.PlaySound(wolfenstein.GameResources.Effects["Door"]);
             return InteractResult.Opened;
         }
     }

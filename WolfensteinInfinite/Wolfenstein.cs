@@ -53,6 +53,7 @@ namespace WolfensteinInfinite
 
         public GameState? CurrentState { get; set; }
         public List<MidiFile> TitleScreenMusic { get; init; } = [];
+        public MidiFile LevelCompleteMusic { get; init; }
         public MidiFile? CurrentMusic { get; set; }
         public Config Config { get; init; }
 
@@ -75,6 +76,7 @@ namespace WolfensteinInfinite
             AudioPlaybackEngine.Instance.MusicOn = Config.Music;
             AudioPlaybackEngine.Instance.MusicVolume = Config.MusicVolume / 100f;
             Log("Remembering to good tunes");
+            LevelCompleteMusic = MidiFile.Read("GameData\\Base\\Music\\Complete.mid");
             foreach (var m in Mods.Values)
             {
                 if (string.IsNullOrWhiteSpace(m.TitleMusic)) continue;
@@ -152,9 +154,9 @@ namespace WolfensteinInfinite
 
 
             PlayerWeapons.Add("Knife", new PlayerWeapon("Knife", 0, WeaponType.KNIFE, AmmoType.MELEE, null, 9, 1, "GameData\\Base\\Pictures\\HudKnife.png", "GameData\\Base\\Sprites", 416, 5, 2, 1, 4));
-            PlayerWeapons.Add("Pistol", new PlayerWeapon("Pistol", 10, WeaponType.PISTOL, AmmoType.BULLET, null, 18, 1, "GameData\\Base\\Pictures\\HudPistol.png", "GameData\\Base\\Sprites", 421, 5, 2, 1, 4));
-            PlayerWeapons.Add("MachineGun", new PlayerWeapon("MachineGun", 20, WeaponType.MACHINE_GUN, AmmoType.BULLET, null, 12, 1, "GameData\\Base\\Pictures\\HudMachineGun.png", "GameData\\Base\\Sprites", 426, 5, 2, 2, 3));
-            PlayerWeapons.Add("ChainGun", new PlayerWeapon("ChainGun", 30, WeaponType.CHAIN_GUN, AmmoType.BULLET, null, 11, 2, "GameData\\Base\\Pictures\\HudChainGun.png", "GameData\\Base\\Sprites", 431, 5, 2, 2, 3));
+            PlayerWeapons.Add("Pistol", new PlayerWeapon("Pistol", 10, WeaponType.PISTOL, AmmoType.BULLET, "GameData\\Base\\Sounds\\Pistol.wav", 18, 1, "GameData\\Base\\Pictures\\HudPistol.png", "GameData\\Base\\Sprites", 421, 5, 2, 1, 4));
+            PlayerWeapons.Add("MachineGun", new PlayerWeapon("MachineGun", 20, WeaponType.MACHINE_GUN, AmmoType.BULLET, "GameData\\Base\\Sounds\\MachineGun.wav", 12, 1, "GameData\\Base\\Pictures\\HudMachineGun.png", "GameData\\Base\\Sprites", 426, 5, 2, 2, 3));
+            PlayerWeapons.Add("ChainGun", new PlayerWeapon("ChainGun", 30, WeaponType.CHAIN_GUN, AmmoType.BULLET, "GameData\\Base\\Sounds\\ChainGun.wav", 11, 2, "GameData\\Base\\Pictures\\HudChainGun.png", "GameData\\Base\\Sprites", 431, 5, 2, 2, 3));
 
             WeaponAnimations.Add("Knife", AnimationHelpers.Create(PlayerWeapons["Knife"]));
             WeaponAnimations.Add("Pistol", AnimationHelpers.Create(PlayerWeapons["Pistol"]));

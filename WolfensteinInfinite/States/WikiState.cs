@@ -238,8 +238,6 @@ namespace WolfensteinInfinite.States
                 ReturnState.NextState = ReturnState;
                 NextState = ReturnState;
                 AudioPlaybackEngine.Instance.StopMusic();
-                if (Wolfenstein.CurrentMusic != null)
-                    AudioPlaybackEngine.Instance.PlayMusic(Wolfenstein.CurrentMusic);
                 return;
             }
             var sel = Menu.MenuItems[Menu.Selected] as MenuItem;

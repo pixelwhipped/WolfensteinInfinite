@@ -772,7 +772,17 @@ namespace WolfensteinInfinite.States
             PickupTween.Reset();
             return true;
         }
-        public bool TryPickupItem(PickupItem item) => PickupItem(item);
+        public bool TryPickupItem(PickupItem item)
+        {
+            if (PickupItem(item))
+            {
+                AudioPlaybackEngine.Instance.PlaySound(Wolfenstein.GameResources.Effects["Pickup"]);
+                return true;
+
+
+            }
+            return false;
+        }
         public override void OnKeyPressed(KeyEventArgs k)
         {
 
@@ -1162,7 +1172,7 @@ namespace WolfensteinInfinite.States
 
                 if (target == null) continue;
 
-                var result = target.Interact(Game);
+                var result = target.Interact(Game, Wolfenstein);
 
                 // Show feedback for radio transmission
                 if (target is RadioObject &&
@@ -1267,8 +1277,6 @@ namespace WolfensteinInfinite.States
 
             buffer.RectFill(px - 1, py - 1, 3, 3, 255, 255, 0);
             buffer.Line(px, py, (int)(px + (Game.Player.DirX * 20)), (int)(py + (Game.Player.DirY * 20)), 255, 255, 0);
-
-            //Graphics.Debug = MathF.Round(angle, 2).ToString();
 
         }
 
@@ -1424,10 +1432,7 @@ namespace WolfensteinInfinite.States
                 int rawOffset = (int)(obj.YOffset * spriteHeight);
                 int maxLift = Math.Max(0, -spriteHeight / 2 + buffer.Height / 2); // how far up before clipping
                 int screenYOffset = -Math.Min(rawOffset, maxLift);
-                //if (obj is PickupItemObject)
-                //{
-                //    System.Diagnostics.Debug.WriteLine($"PickupItem YOffset={obj.YOffset} screenYOffset={screenYOffset}");
-                //}
+
 
                 int drawStartY = Math.Max(0, -spriteHeight / 2 + buffer.Height / 2 + screenYOffset);
                 int drawEndY = Math.Min(buffer.Height - 1, spriteHeight / 2 + buffer.Height / 2 + screenYOffset);

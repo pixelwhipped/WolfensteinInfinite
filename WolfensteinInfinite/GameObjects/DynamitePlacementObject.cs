@@ -28,7 +28,7 @@ namespace WolfensteinInfinite.GameObjects
             game.Map.Objectives.GetValueOrDefault(MapFlags.HAS_BOOM) &&
             !game.Map.ObjectivesComplete.GetValueOrDefault(MapFlags.HAS_BOOM);
 
-        public InteractResult Interact(Game game)
+        public InteractResult Interact(Game game, Wolfenstein wolfenstein)
         {
             if (!CanInteract(game)) return InteractResult.None;
             IsPlaced = true;
