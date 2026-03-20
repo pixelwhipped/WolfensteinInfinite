@@ -661,11 +661,19 @@ namespace WolfensteinInfinite
         internal Texture32 GetWeaponTexture(string weapon) => WeaponAnimations[weapon].GetTexture(0);
         internal Texture32 GetWeaponHudTexture(string weapon) => WeaponHudTextures[weapon];
 
-        internal void GenerateExperiment(Mod mod, int level, out Enemy? experiment, out CharacterSprite? experimentSprite)
+        internal void GenerateExperiment(Mod tryMod, int level, out Enemy? experiment, out CharacterSprite? experimentSprite)
         {
             experiment = null;
             experimentSprite = null;
-            if (mod.ExperimentalEnemy.Length <= 0) return;
+
+            var mod = tryMod.ExperimentalEnemy.Length > 0
+                ? tryMod
+                : Mods.TryGetValue("Infinite", out var inf) && inf.ExperimentalEnemy.Length > 0
+                    ? inf
+                    : null;
+
+            if (mod == null) return;
+
             Dictionary<CharacterAnimationState, GameGraphics.Animation> Animations = [];
             var e = mod.ExperimentalEnemy[Random.Shared.Next(0, mod.ExperimentalEnemy.Length)];
             var composit = new Texture32(704, 64);

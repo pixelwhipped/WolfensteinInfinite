@@ -148,8 +148,8 @@ namespace WolfensteinInfinite.States
             }
             var (w, h) = Wolfenstein.GameResources.TinyFont.MeasureString(_hudMessage);
             var x = (buffer.Width - w) / 2;
-            var y = buffer.Height - (int)(HudBuffer.Height * Wolfenstein.UIScale) - h - 6;
-            buffer.RectFill(x - 4, y - 4, w + 8, h + 8, 0, 0, 0, 180);
+            var y = 5;// buffer.Height - (int)(HudBuffer.Height * Wolfenstein.UIScale) - h - 6;
+            buffer.RectFill(x - 4, y - 4, w + 8, h + 8, 0, 0, 0, 64);
             buffer.DrawString(x, y, _hudMessage, Wolfenstein.GameResources.TinyFont, RGBA8.YELLOW);
         }
         private void RebuildDynamicObjects()
@@ -192,15 +192,23 @@ namespace WolfensteinInfinite.States
 
             foreach (var e in Game.Map.Enemies)
             {
+                if (e.IsExperimental)
+                {
+                    if (e.ExperimentalEnemy == null || e.ExperimentalSprite == null) continue;
+                    DynamicObjects.Add(new EnemyObject(
+                        e.X + 0.5f, e.Y + 0.5f,
+                        e.ExperimentalSprite,
+                        e.ExperimentalEnemy,
+                        Game.Map.Difficulty, e.Mod, Wolfenstein, Game.Map.Level));
+                    continue;
+                }
+
                 if (!Wolfenstein.CharacterSprites.TryGetValue(e.Mod, out var modSprites)) continue;
                 if (!modSprites.TryGetValue(e.EnemyMapId, out var sprite)) continue;
                 if (!Wolfenstein.Mods.TryGetValue(e.Mod, out var mod)) continue;
                 var enemy = mod.Enemies.FirstOrDefault(en => en.MapID == e.EnemyMapId);
                 if (enemy == null) continue;
-
-                DynamicObjects.Add(new EnemyObject(
-    e.X + 0.5f, e.Y + 0.5f, sprite, enemy,
-    Game.Map.Difficulty, e.Mod, Wolfenstein, Game.Map.Level));
+                DynamicObjects.Add(new EnemyObject(e.X + 0.5f, e.Y + 0.5f, sprite, enemy, Game.Map.Difficulty, e.Mod, Wolfenstein, Game.Map.Level));
             }
 
             SpriteOrder = new int[DynamicObjects.Count];
@@ -397,6 +405,7 @@ namespace WolfensteinInfinite.States
             UpdateScene(buffer, frameTime);
             UpdateWeapon(buffer, frameTime);
             UpdateHud(buffer, frameTime);
+            UpdateHudMessage(buffer, frameTime);
             if (_exitActivated)
                 buffer.RectFill(0, 0, buffer.Width, buffer.Height,
                     0, 0, 0, (byte)(255 * _exitFadeTween.Value));
@@ -633,7 +642,7 @@ namespace WolfensteinInfinite.States
             int objY = 3;
             if (HasObj(MapFlags.HAS_LOCKED_DOOR))
             {
-                HudBuffer.Draw(251, objY, HasObj(MapFlags.HAS_LOCKED_DOOR)
+                HudBuffer.Draw(251, objY, DoneObj(MapFlags.HAS_LOCKED_DOOR)
                     ? Wolfenstein.GameResources.KeyOn
                     : Wolfenstein.GameResources.KeyOff);
                 objY += 20;
@@ -673,24 +682,6 @@ namespace WolfensteinInfinite.States
             var b = new Texture8(HudBuffer.Width, HudBuffer.Height, pixels, pallet);
             buffer.Blit(0, buffer.Height - (int)(HudBuffer.Height * Wolfenstein.UIScale), buffer.Width, (int)(HudBuffer.Height * Wolfenstein.UIScale), b);
             Wolfenstein.PreserveColors = b.GetUsedColors();
-        }
-
-        private readonly bool DebugMode = true;
-        public void OnDebugKeyPresed(KeyEventArgs k)
-        {
-            if (k.Code == Keyboard.Key.D)
-            {
-                ApplyDamage(2);
-            }
-            else if (k.Code == Keyboard.Key.H)
-            {
-                if (Wolfenstein.PickupItemTypes.TryGetValue(0, out PickupItem? item)) PickupItem(item);
-            }
-            else if (k.Code == Keyboard.Key.W)
-            {
-                if (Wolfenstein.PickupItemTypes.TryGetValue(3, out PickupItem? item)) PickupItem(item);
-                if (Wolfenstein.PickupItemTypes.TryGetValue(4, out item)) PickupItem(item);
-            }
         }
 
         private bool PickupItem(PickupItem? item)
@@ -741,7 +732,8 @@ namespace WolfensteinInfinite.States
             switch (item.Name)
             {
                 case "Key":
-                    Game.Map.Objectives[MapFlags.HAS_LOCKED_DOOR] = true;
+                    //Game.Map.Objectives[MapFlags.HAS_LOCKED_DOOR] = true;
+                    Game.Map.ObjectivesComplete[MapFlags.HAS_LOCKED_DOOR] = true;
                     break;
 
                 case "Secret":
@@ -846,8 +838,6 @@ namespace WolfensteinInfinite.States
                 NextState = new PauseState(Wolfenstein, this);
                 return;
             }
-            if (DebugMode) OnDebugKeyPresed(k);
-
             if (k.Code == Wolfenstein.Config.KeyWeaponUp)
             {
                 var wi = Game.Player.Weapons.IndexOf(WeaponTransitionState.TransitionWeapon.Name);
@@ -1058,7 +1048,26 @@ namespace WolfensteinInfinite.States
                 }
                 else if (result == InteractResult.Locked)
                 {
-                    ShowHudMessage("COMPLETE OBJECTIVES FIRST");
+                    var nearLockedDoor = Game.Map.Doors.Any(d =>
+                    {
+                        var dx2 = (int)Game.Player.PosX - d.X;
+                        var dy2 = (int)Game.Player.PosY - d.Y;
+                        return d.IsLocked && Math.Abs(dx2) <= 1 && Math.Abs(dy2) <= 1;
+                    });
+
+                    if (nearLockedDoor)
+                    {
+                        ShowHudMessage("KEY REQUIRED");
+                    }
+                    else if (Game.Map.Objectives.GetValueOrDefault(MapFlags.HAS_BOSS) &&
+                             !Game.Map.ObjectivesComplete.GetValueOrDefault(MapFlags.HAS_BOSS))
+                    {
+                        ShowHudMessage("MUST DEFEAT THE BOSS!");
+                    }
+                    else
+                    {
+                        ShowHudMessage("COMPLETE OBJECTIVES FIRST");
+                    }
                 }
 
             }
@@ -1233,7 +1242,17 @@ namespace WolfensteinInfinite.States
                 if (target is RadioObject &&
                     Game.Map.ObjectivesComplete.GetValueOrDefault(MapFlags.HAS_SECRET_MESSAGE))
                     ShowHudMessage("MESSAGE TRANSMITTED");
-
+                else if (result == InteractResult.Locked)
+                {
+                    // Check if it was a locked door (key needed) or exit (objectives)
+                    var nearLockedDoor = Game.Map.Doors.Any(d =>
+                    {
+                        var dx2 = (int)Game.Player.PosX - d.X;
+                        var dy2 = (int)Game.Player.PosY - d.Y;
+                        return d.IsLocked && Math.Abs(dx2) <= 1 && Math.Abs(dy2) <= 1;
+                    });
+                    ShowHudMessage(nearLockedDoor ? "KEY REQUIRED" : "COMPLETE OBJECTIVES FIRST");
+                }
                 if (result != InteractResult.None)
                     return result;
             }

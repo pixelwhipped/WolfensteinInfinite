@@ -25,10 +25,8 @@ namespace WolfensteinInfinite.GameObjects
             if (IsFake) return InteractResult.Opened;
             if (IsLocked)
             {
-                if (!game.Map.Objectives.GetValueOrDefault(MapFlags.HAS_LOCKED_DOOR))
+                    if (!game.Map.ObjectivesComplete.GetValueOrDefault(MapFlags.HAS_LOCKED_DOOR))
                     return InteractResult.Locked;
-                // Key used — mark objective complete
-                game.Map.ObjectivesComplete[MapFlags.HAS_LOCKED_DOOR] = true;
             }
             IsOpening = true;
             AudioPlaybackEngine.Instance.PlaySound(wolfenstein.GameResources.Effects["Door"]);

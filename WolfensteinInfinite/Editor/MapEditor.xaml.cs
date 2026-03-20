@@ -217,6 +217,8 @@ namespace WolfensteinInfinite.Editor
                     }
 
                     ActiveSection.Special[y][x] = SelectedSpecialIndex;
+                    if (SelectedSpecialIndex == 1 || SelectedSpecialIndex == 2)
+                        ActiveSection.Difficulty[y][x] = SelectedDifficulty;
                     changed = true;
                 }
             }
@@ -298,7 +300,15 @@ namespace WolfensteinInfinite.Editor
                     }
                 }
                 else
+                {
                     tile = GetSpecialBitmap(ActiveMod.Name, sp, ActiveSection.Walls[y][x]);
+                    if (sp == 1 || sp == 2)
+                    {
+                        BlitTile(_mapBitmap, tile, x * TileSize, y * TileSize);
+                        BlitDifficultyOverlay(_mapBitmap, ActiveSection.Difficulty[y][x], x * TileSize, y * TileSize);
+                        return;
+                    }
+                }
             }
             else if (ActiveSection.Decals[y][x] >= 0)
                 tile = GetDecalBitmap(ActiveMod.Name, ActiveSection.Decals[y][x]);

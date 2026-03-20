@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
+using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.States;
 using WolfensteinInfinite.Utilities;
@@ -717,14 +718,53 @@ namespace WolfensteinInfinite.GameMap
                         }
                         else if (key.Index == 1) // Random enemy
                         {
-                            //Need to implemnt
+                            if (!Wolfenstein.Mods.TryGetValue(layer.Mod.Name, out var rmod)) continue;
+                            var candidates = rmod.Enemies
+                                .Where(e => (int)e.EnemyType < 5) // non-boss only
+                                .ToArray();
+                            if (candidates.Length == 0) continue;
+                            var chosen = candidates[Random.Shared.Next(candidates.Length)];
 
-
+                            var rkey = new ModKeyIndex(layer.Mod.Name, chosen.MapID);
+                            if (!enemyKeyIndicies.TryGetValue(rkey, out int ridx))
+                            {
+                                ridx = enemyKeyIndicies.Count;
+                                enemyKeyIndicies.Add(rkey, ridx);
+                            }
+                            if (diff[y][x] >= (int)difficulty)
+                            {
+                                var t = Wolfenstein.CharacterSprites[layer.Mod.Name][chosen.MapID].GetTexture(0);
+                                texture?.Draw(worldX * 64, worldY * 64, t);
+                                enemyPlacements.Add(new EnemyPlacement
+                                {
+                                    X = worldX,
+                                    Y = worldY,
+                                    EnemyMapId = chosen.MapID,
+                                    Mod = layer.Mod.Name
+                                });
+                            }
                         }
-                        else if (key.Index == 2) // Experiment enemy
+                        else if (key.Index == 2) // Experimental enemy
                         {
-                            //need to implement
-                                                       
+                            if (!Wolfenstein.Mods.TryGetValue(layer.Mod.Name, out var emod)) continue;
+                            if (diff[y][x] >= (int)difficulty)
+                            {
+                                Wolfenstein.GenerateExperiment(emod, Level,
+                                    out Enemy? experiment, out CharacterSprite? experimentSprite);
+                                if (experiment == null || experimentSprite == null) continue;
+
+                                texture?.Draw(worldX * 64, worldY * 64,
+                                    experimentSprite.GetTexture(0));
+                                enemyPlacements.Add(new EnemyPlacement
+                                {
+                                    X = worldX,
+                                    Y = worldY,
+                                    EnemyMapId = -2,
+                                    Mod = layer.Mod.Name,
+                                    ExperimentalEnemy = experiment,
+                                    ExperimentalSprite = experimentSprite
+                                });
+                            }
                         }
                         else if (key.Index == 3) // Exit
                         {
