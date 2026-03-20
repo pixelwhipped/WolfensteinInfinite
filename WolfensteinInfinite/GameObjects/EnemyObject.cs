@@ -221,6 +221,43 @@ namespace WolfensteinInfinite.GameObjects
             var curX = (int)X;
             var curY = (int)Y;
 
+            const float Radius = 0.3f;
+
+            // Check passable using corners of bounding box rather than centre tile
+            bool CanMoveX(float tx, float ty) =>
+                IsPassable(state, (int)(tx - Radius), (int)ty) &&
+                IsPassable(state, (int)(tx + Radius), (int)ty);
+
+            bool CanMoveY(float tx, float ty) =>
+                IsPassable(state, (int)tx, (int)(ty - Radius)) &&
+                IsPassable(state, (int)tx, (int)(ty + Radius));
+
+            bool movedX = false, movedY = false;
+
+            if (mapY >= 0 && mapY < state.Game.Map.WorldMap.Length &&
+                mapX >= 0 && mapX < state.Game.Map.WorldMap[0].Length &&
+                CanMoveX(newX, curY))
+            {
+                X = newX;
+                movedX = true;
+            }
+            if (mapY >= 0 && mapY < state.Game.Map.WorldMap.Length &&
+                mapX >= 0 && mapX < state.Game.Map.WorldMap[0].Length &&
+                CanMoveY(curX, newY))
+            {
+                Y = newY;
+                movedY = true;
+            }
+
+            // Corner nudge — if completely blocked try sliding along either axis
+            if (!movedX && !movedY)
+            {
+                if (MathF.Abs(nx) > MathF.Abs(ny) && CanMoveX(newX, curY))
+                    X = newX;
+                else if (CanMoveY(curX, newY))
+                    Y = newY;
+            }
+            /*
             bool movedX = false, movedY = false;
 
             if (mapY >= 0 && mapY < state.Game.Map.WorldMap.Length &&
@@ -248,7 +285,7 @@ namespace WolfensteinInfinite.GameObjects
                 // Try pure Y slide
                 else if (IsPassable(state, curX, mapY))
                     Y = newY;
-            }
+            }*/
         }
 
         private static bool IsPassable(InGameState state, int mapX, int mapY)

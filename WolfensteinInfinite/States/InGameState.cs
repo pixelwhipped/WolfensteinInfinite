@@ -1236,6 +1236,12 @@ namespace WolfensteinInfinite.States
 
                 if (target == null) continue;
 
+                // Check player is roughly facing the target
+                var toTargetX = (float)target.X + 0.5f - Game.Player.PosX;
+                var toTargetY = (float)target.Y + 0.5f - Game.Player.PosY;
+                var dot = Game.Player.DirX * toTargetX + Game.Player.DirY * toTargetY;
+                if (dot <= 0) continue; // target is behind player
+
                 var result = target.Interact(Game, Wolfenstein);
 
                 // Show feedback for radio transmission
