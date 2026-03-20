@@ -519,7 +519,7 @@ namespace WolfensteinInfinite.GameMap
             var itemsMap = MapSection.Empty(Width, Height);
             var decalsMap = MapSection.Empty(Width, Height);
             var specialMap = MapSection.Empty(Width, Height);
-
+            var wallSectionId = MapSection.Empty(Width, Height);
             // Set wall map floors from FlatMap (already in world coords)
             for (int y = 0; y < FlatMap.Length; y++)
             {
@@ -532,9 +532,11 @@ namespace WolfensteinInfinite.GameMap
                     }
                 }
             }
-
+            for (int y = 0; y < Height; y++)
+                for (int x = 0; x < Width; x++)
+                    wallSectionId[y][x] = -1;
             // Go over all layers and build up maps and objects
-            foreach (var layer in MapLayers.Values)
+            foreach (var layer in MapLayers.Values.OrderBy(l => l.Section.Id))
             {                
                 if (!requiredMods.Contains(layer.Mod.Name)) requiredMods.Add(layer.Mod.Name);
                 var walls = layer.Section.GetLayout(MapArrayLayouts.WALLS);
@@ -555,6 +557,20 @@ namespace WolfensteinInfinite.GameMap
                         var worldX = layer.X + x;
                         if (worldX < 0 || worldX >= Width) continue;
                         if (walls[y][x] < 0) continue;
+                        // WallAny (special=8): higher section ID wins
+                        bool isWallAny = special[y][x] == 8;
+                        if (isWallAny && wallSectionId[worldY][worldX] >= layer.Section.Id) continue;
+                        var key = new ModKeyIndex(layer.Mod.Name, walls[y][x]);
+                        if (!wallKeyIndicies.TryGetValue(key, out int index))
+                        {
+                            index = wallKeyIndicies.Count;
+                            wallKeyIndicies.Add(key, index);
+                        }
+                        wallMap[worldY][worldX] = index;
+                        wallSectionId[worldY][worldX] = layer.Section.Id;
+                        texture?.Draw(worldX * 64, worldY * 64, Wolfenstein.Textures[key.Mod][key.Index]);
+                        /*
+                        if (walls[y][x] < 0) continue;
                         var key = new ModKeyIndex(layer.Mod.Name, walls[y][x]);
                         if (!wallKeyIndicies.TryGetValue(key, out int index))
                         {
@@ -563,6 +579,7 @@ namespace WolfensteinInfinite.GameMap
                         }
                         wallMap[worldY][worldX] = index;
                         texture?.Draw(worldX * 64, worldY * 64, Wolfenstein.Textures[key.Mod][key.Index]);
+                        */
                     }
                 }
 
@@ -808,10 +825,10 @@ namespace WolfensteinInfinite.GameMap
                     }
                 }
             }
-
-            var file = FileHelpers.Shared.GetDataFilePath("GeneratedMap.png");
+           
             if (texture != null)
             {
+                var file = FileHelpers.Shared.GetDataFilePath("GeneratedMap.png");
                 var image = new SFML.Graphics.Image((uint)texture.Width, (uint)texture.Height, texture.Pixels);
                 image.SaveToFile(file);
             }

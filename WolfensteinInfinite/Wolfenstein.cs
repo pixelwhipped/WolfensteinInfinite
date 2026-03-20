@@ -51,7 +51,7 @@ namespace WolfensteinInfinite
         public Dictionary<int, Texture32> PickupItems { get; init; } = [];
         public Dictionary<int, DoorType> Doors { get; init; } = [];
         public Dictionary<int, Texture32> Special { get; init; } = [];
-
+        private readonly Dictionary<string, MidiFile> _musicCache = [];
         public GameState? CurrentState { get; set; }
         public List<MidiFile> TitleScreenMusic { get; init; } = [];
         public MidiFile LevelCompleteMusic { get; init; }
@@ -86,6 +86,15 @@ namespace WolfensteinInfinite
             }
             if (TitleScreenMusic.Count > 0)
                 CurrentMusic = TitleScreenMusic[Random.Shared.Next(0, TitleScreenMusic.Count - 1)];
+
+            foreach (var m in Mods.Values)
+                foreach (var track in m.MusicTracks)
+                {
+                    var path = FileHelpers.Shared.GetModDataFilePath(track.File);
+                    if (!_musicCache.ContainsKey(path))
+                        _musicCache[path] = MidiFile.Read(path);
+                }
+
             var pallet = Pallets.ToByteArray(Pallets.Wolfenstein3D);
             GameResources = new GameResources(pallet);
             AddSpecialTextures();
@@ -100,6 +109,51 @@ namespace WolfensteinInfinite
             }
         }
 
+        public void PlayMusic(string filePath)
+        {
+            if (!AudioPlaybackEngine.Instance.MusicOn) return;
+            if (!_musicCache.TryGetValue(filePath, out var midi))
+            {
+                midi = MidiFile.Read(filePath);
+                _musicCache[filePath] = midi;
+            }
+            CurrentMusic = midi;
+            AudioPlaybackEngine.Instance.PlayMusic(midi);
+        }
+
+        public void PlayMusic(MidiFile midi)
+        {
+            if (!AudioPlaybackEngine.Instance.MusicOn) return;
+            CurrentMusic = midi;
+            AudioPlaybackEngine.Instance.PlayMusic(midi);
+        }
+
+        public void PlayLevelMusic(IEnumerable<string> modNames)
+        {
+            var tracks = modNames
+                .Where(n => Mods.TryGetValue(n, out _))
+                .SelectMany(n => Mods[n].MusicTracks)
+                .ToList();
+
+            if (tracks.Count == 0)
+            {
+                // Fall back to current music if no level tracks
+                if (CurrentMusic != null)
+                    PlayMusic(CurrentMusic);
+                return;
+            }
+
+            var track = tracks[Random.Shared.Next(tracks.Count)];
+            PlayMusic(FileHelpers.Shared.GetModDataFilePath(track.File));
+        }
+
+        public void PlayTitleMusic()
+        {
+            if (TitleScreenMusic.Count == 0) return;
+            PlayMusic(TitleScreenMusic[Random.Shared.Next(TitleScreenMusic.Count)]);
+        }
+
+        public void PlayLevelCompleteMusic() => PlayMusic(LevelCompleteMusic);
         private (string mod, MapSection section)[]? LoadTestMapSections()
         {
             if (!Args.TestMode) return null;

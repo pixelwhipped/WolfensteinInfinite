@@ -82,7 +82,6 @@ namespace WolfensteinInfinite.States
         }
         public void GenerateMap()
         {
-            int maxAttempts = 50;
             MapFlags[] attemptObjectives = [];
             var mods = Wolfenstein.Config.Mods.Where(p => p.Enabled);
             var modBuilders = Wolfenstein.BuilderMods
@@ -90,7 +89,7 @@ namespace WolfensteinInfinite.States
                 .ToArray();
             if (modBuilders.Length == 0) throw new Exception("No Mods with Level Sections");
 
-
+            /*
             var tracks = new List<MusicTrack>();
             foreach (var modMusic in mods)
             {
@@ -99,12 +98,14 @@ namespace WolfensteinInfinite.States
             }
             if (tracks.Count != 0)
             {
-                //AudioPlaybackEngine.Instance.PlayMusic(FileHelpers.Shared.GetModDataFilePath(tracks[Random.Shared.Next(0, tracks.Count - 1)].File));
+                AudioPlaybackEngine.Instance.PlayMusic(FileHelpers.Shared.GetModDataFilePath(tracks[Random.Shared.Next(0, tracks.Count - 1)].File));
             }
             else if (Wolfenstein.CurrentMusic != null)
             {
-                //AudioPlaybackEngine.Instance.PlayMusic(Wolfenstein.CurrentMusic);
+                AudioPlaybackEngine.Instance.PlayMusic(Wolfenstein.CurrentMusic);
             }
+            */
+            Wolfenstein.PlayLevelMusic(mods.Select(m => m.Name));
             Progress = 10;
             Thread.Sleep(50);
 

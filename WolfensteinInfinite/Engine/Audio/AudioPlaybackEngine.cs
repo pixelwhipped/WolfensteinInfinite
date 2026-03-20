@@ -28,7 +28,9 @@ namespace WolfensteinInfinite.Engine.Audio
         public bool SoundOn { get; set; }
         public float MusicVolume { get; set; }
         public bool _musicOn;
-        public bool MusicOn { get => _musicOn;
+        public bool MusicOn
+        {
+            get => _musicOn;
             set
             {
                 if (!value) StopMusic();
@@ -87,8 +89,8 @@ namespace WolfensteinInfinite.Engine.Audio
         public void StopMusic()
         {
             MidiPlayback?.Stop();
-            while (MidiThread != null && MidiThread.IsAlive)
-                Thread.Sleep(200);
+            //while (MidiThread != null && MidiThread.IsAlive)
+            //    Thread.Sleep(200);
         }
         public void PlayMusic(string filePath)
         {
@@ -105,15 +107,16 @@ namespace WolfensteinInfinite.Engine.Audio
                 MidiPlayback.Loop = true;
                 MidiPlayback.Start();
                 while (MidiPlayback.IsRunning)
-                    Thread.Sleep(200);
-            });
+                    Thread.Sleep(100);
+            })
+            { IsBackground = true };
             MidiThread.Start();
         }
 
         private NotePlaybackData UpdateNote(NotePlaybackData rawNoteData, long rawTime, long rawLength, TimeSpan playbackTime)
         {
             //rawNoteData.Velocity = new Melanchall.DryWetMidi.Common.SevenBitNumber(0);
-            var v = (byte)Math.Clamp(rawNoteData.Velocity * MusicVolume,0,127);
+            var v = (byte)Math.Clamp(rawNoteData.Velocity * MusicVolume, 0, 127);
             var velocity = new Melanchall.DryWetMidi.Common.SevenBitNumber(v);
             return new NotePlaybackData(rawNoteData.NoteNumber, velocity, rawNoteData.OffVelocity, rawNoteData.Channel);
         }
