@@ -4,6 +4,7 @@ using SFML.Window;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using WolfensteinInfinite.DataFormats;
 using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
@@ -374,14 +375,47 @@ namespace WolfensteinInfinite
             }
             return builders;
         }
+        public static void SaveEmbeddedResource(string resourceName, string outputPath)
+        {
+            try
+            {
+                // Get the current assembly
+                var assembly = Assembly.GetExecutingAssembly();
+
+                // Open the resource stream
+                using Stream resourceStream = assembly.GetManifestResourceStream(resourceName) ?? throw new FileNotFoundException($"Resource '{resourceName}' not found in assembly.");
+
+                // Create directory if it doesn't exist
+                Directory.CreateDirectory(Path.GetDirectoryName(outputPath) ?? ".");
+
+                // Copy the resource to the output file
+                using FileStream fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write);
+                resourceStream.CopyTo(fileStream);
+
+            }
+            catch
+            {
+                //Lets not fuss for now
+            }
+        }
         private Dictionary<string, Mod> LoadMods()
         {
+            var res = Assembly.GetExecutingAssembly().GetManifestResourceNames();
+
             CheckInfiniteMod();
             var mods = new Dictionary<string, Mod>();
             //Check original versions and export mod files
             //foreach (var version in new Extractor(Debugger.IsAttached).GameVersions)
-            foreach (var version in new Extractor(true).GameVersions)
+            foreach (var version in new Extractor(Args.Rebuild || Args.RebuildWithMapImage).GameVersions)
             {
+                var map = $"WolfensteinInfinite.GameData.{version.Name}.Demo.map.json";
+                var special = $"WolfensteinInfinite.GameData.{version.Name}.Demo.specialmap.json";
+                var test = $"WolfensteinInfinite.GameData.Mods.{version.Name}.maptestlevel.json";
+                if (res.Any(p => p.Equals(map))) SaveEmbeddedResource(map, FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\map.json"));
+                if (res.Any(p => p.Equals(special))) SaveEmbeddedResource(map, FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\specialmap.json"));
+                if (res.Any(p => p.Equals(test))) SaveEmbeddedResource(map, FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\maptestlevel.json"));
+
+                //Needo to copy internal mod/map/test/special json file on rebuild requst
                 var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\mod.json");
                 if (!File.Exists(file) || Debugger.IsAttached)
                 {

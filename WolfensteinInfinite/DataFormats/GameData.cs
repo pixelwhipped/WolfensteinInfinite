@@ -174,8 +174,7 @@ namespace WolfensteinInfinite.DataFormats
                 if (sound != null)
                 {
                     byte[] wavFile = ConvertToWav(sound.Value);
-                    if (!File.Exists(file))
-                        File.WriteAllBytes(file, wavFile);
+                    File.WriteAllBytes(file, wavFile);
                     sounds.Add(new Sound(new SoundBuffer(file)));
                 }
             }
@@ -191,8 +190,7 @@ namespace WolfensteinInfinite.DataFormats
                 if (sound != null)
                 {
                     byte[] wavFile = ConvertToWav(sound.Value);
-                    if (!File.Exists(file))
-                        File.WriteAllBytes(file, wavFile);
+                    File.WriteAllBytes(file, wavFile);
                     sounds.Add(new Sound(new SoundBuffer(file)));
                 }
             }
@@ -207,8 +205,7 @@ namespace WolfensteinInfinite.DataFormats
                 var sound = ExtractMusic(i, offsets);
                 if (sound != null)
                 {
-                    if (!File.Exists(file))
-                        File.WriteAllBytes(file, sound);
+                    File.WriteAllBytes(file, sound);
                     music.Add(file);
                 }
             }
@@ -577,8 +574,7 @@ namespace WolfensteinInfinite.DataFormats
                 if (pic == null) continue;
                 var image = new SFML.Graphics.Image((uint)pic.Width, (uint)pic.Height, pic.Pixels);
                 var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{Version.Name}\Pictures\{i}.png");
-                if (!File.Exists(file))
-                    image.SaveToFile(file);
+                image.SaveToFile(file);
                 ret.Add(i, pic);
             }
             return ret;
@@ -650,8 +646,7 @@ namespace WolfensteinInfinite.DataFormats
                 if (sprite == null) continue;
                 var image = new SFML.Graphics.Image((uint)sprite.Width, (uint)sprite.Height, sprite.Pixels);
                 var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{Version.Name}\Sprites\{i}.png");
-                if (!File.Exists(file))
-                    image.SaveToFile(file);
+                image.SaveToFile(file);
                 ret.Add(i, sprite);
             }
             return ret;
@@ -698,8 +693,7 @@ namespace WolfensteinInfinite.DataFormats
                 if (texture == null) continue;
                 var image = new SFML.Graphics.Image((uint)texture.Width, (uint)texture.Height, texture.Pixels);
                 var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{Version.Name}\Textures\{i}.png");
-                if (!File.Exists(file))
-                    image.SaveToFile(file);
+                image.SaveToFile(file);
                 ret.Add(i, texture);
             }
             return ret;
@@ -910,10 +904,12 @@ namespace WolfensteinInfinite.DataFormats
                     );
 
                 var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{Version.Name}\Levels\{i}.json");
-                if (!File.Exists(file))
-                    FileHelpers.Shared.Serialize(map, file);
-                //file = FileHelper.GetDataFilePath(@$"Mods\{Version.Name}\Levels\{i}.png");
-                //RenderMap(map, file);
+                FileHelpers.Shared.Serialize(map, file);
+                if (Args.RebuildWithMapImage)
+                {
+                    file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{Version.Name}\Levels\{i}.png");
+                    RenderMap(map, file);
+                }
                 maps.Add(map);
             }
             return [.. maps];

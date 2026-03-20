@@ -15,7 +15,7 @@ namespace WolfensteinInfinite.GameObjects
             foreach (var kvp in game.Map.Objectives)
                 if (kvp.Value && !game.Map.ObjectivesComplete.GetValueOrDefault(kvp.Key))
                     return InteractResult.Locked;
-           // AudioPlaybackEngine.Instance.PlaySound(wolfenstein.GameResources.Effects["Pushwall"]);
+            AudioPlaybackEngine.Instance.PlaySound(wolfenstein.GameResources.Effects["Door"]);
             IsActivated = true;
             return InteractResult.Activated;
         }

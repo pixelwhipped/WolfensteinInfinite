@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using SFML.Graphics;
+using System.Diagnostics;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameObjects;
@@ -495,8 +496,8 @@ namespace WolfensteinInfinite.GameMap
             var playerX = -1;
             var playerY = -1;   
             floor.Clear(128, 128, 128);
-            var texture = new Texture32(Width * 64, Height * 64);
-            texture.Clear(0, 0, 0);
+            Texture32? texture = Args.GenerateMapImage ? new Texture32(Width * 64, Height * 64) : null ;
+            texture?.Clear(0, 0, 0);
             var doorList = new List<(int x, int y, int t)>();
             var decalList = new List<Decal>();
             var itemList = new List<Item>();
@@ -526,7 +527,7 @@ namespace WolfensteinInfinite.GameMap
                 {
                     if (FlatMap[y][x] == MapSection.ClosedSectionFill)
                     {
-                        texture.Draw(x * 64, y * 64, floor);
+                        texture?.Draw(x * 64, y * 64, floor);
                         if (wallMap[y][x] < 0) wallMap[y][x] = MapSection.ClosedSectionInterior;
                     }
                 }
@@ -561,7 +562,7 @@ namespace WolfensteinInfinite.GameMap
                             wallKeyIndicies.Add(key, index);
                         }
                         wallMap[worldY][worldX] = index;
-                        texture.Draw(worldX * 64, worldY * 64, Wolfenstein.Textures[key.Mod][key.Index]);
+                        texture?.Draw(worldX * 64, worldY * 64, Wolfenstein.Textures[key.Mod][key.Index]);
                     }
                 }
 
@@ -585,7 +586,7 @@ namespace WolfensteinInfinite.GameMap
                         
                         doorMap[worldY][worldX] = index;
                         wallMap[worldY][worldX] = InGameState.DOOR_TILE;
-                        texture.Draw(worldX * 64, worldY * 64, value.DoorTexture);
+                        texture?.Draw(worldX * 64, worldY * 64, value.DoorTexture);
                         doorList.Add((worldX, worldY, index));
                     }
                 }
@@ -611,7 +612,7 @@ namespace WolfensteinInfinite.GameMap
                         
                         itemList.Add(new Item { X = worldX, Y = worldY, ItemType = key.Index, TextureIndex = index });
                         itemsMap[worldY][worldX] = index;
-                        texture.Draw(worldX * 64, worldY * 64, value);
+                        texture?.Draw(worldX * 64, worldY * 64, value);
                     }
                 }
 
@@ -647,7 +648,7 @@ namespace WolfensteinInfinite.GameMap
                         });
                         
                         decalsMap[worldY][worldX] = index;
-                        texture.Draw(worldX * 64, worldY * 64, Wolfenstein.Decals[key.Mod][key.Index]);
+                        texture?.Draw(worldX * 64, worldY * 64, Wolfenstein.Decals[key.Mod][key.Index]);
                     }
                 }
 
@@ -671,7 +672,7 @@ namespace WolfensteinInfinite.GameMap
                         if (diff[y][x] >= (int)difficulty)
                         {
                             var t = Wolfenstein.CharacterSprites[layer.Mod.Name][enemy[y][x]].GetTexture(0);
-                            texture.Draw(worldX * 64, worldY * 64, t);
+                            texture?.Draw(worldX * 64, worldY * 64, t);
                             enemyPlacements.Add(new EnemyPlacement
                             {
                                 X = worldX,
@@ -704,7 +705,7 @@ namespace WolfensteinInfinite.GameMap
                             specialMap[worldY][worldX] = index;
                             if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
                             
-                            texture.Draw(worldX * 64, worldY * 64, value);
+                            texture?.Draw(worldX * 64, worldY * 64, value);
                             playerX = worldX;
                             playerY = worldY;
                         }
@@ -715,7 +716,7 @@ namespace WolfensteinInfinite.GameMap
                                 specialMap[worldY][worldX] = index;
                                 if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
                                 
-                                texture.Draw(worldX * 64, worldY * 64, value);
+                                texture?.Draw(worldX * 64, worldY * 64, value);
                             }
                         }
                         else if (key.Index == 2) // Experiment enemy
@@ -725,7 +726,7 @@ namespace WolfensteinInfinite.GameMap
                                 specialMap[worldY][worldX] = index;
                                 if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
                                 
-                                texture.Draw(worldX * 64, worldY * 64, value);
+                                texture?.Draw(worldX * 64, worldY * 64, value);
                             }
                         }
                         else if (key.Index == 3) // Exit
@@ -733,7 +734,7 @@ namespace WolfensteinInfinite.GameMap
                             specialMap[worldY][worldX] = index;
                             if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
                             
-                            texture.Draw(worldX * 64, worldY * 64, value);
+                            texture?.Draw(worldX * 64, worldY * 64, value);
                             Map.Exits.Add(new ExitWall() { X = worldX, Y = worldY });
                         }
                         else if (key.Index == 4) // Push North
@@ -741,7 +742,7 @@ namespace WolfensteinInfinite.GameMap
                             specialMap[worldY][worldX] = index;
                             if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
                             
-                            texture.Draw(worldX * 64, worldY * 64, value);
+                            texture?.Draw(worldX * 64, worldY * 64, value);
                             var pw = new PushWall
                             {
                                 X = worldX,
@@ -758,7 +759,7 @@ namespace WolfensteinInfinite.GameMap
                             specialMap[worldY][worldX] = index;
                             if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
                             
-                            texture.Draw(worldX * 64, worldY * 64, value);
+                            texture?.Draw(worldX * 64, worldY * 64, value);
                             var pw = new PushWall
                             {
                                 X = worldX,
@@ -775,7 +776,7 @@ namespace WolfensteinInfinite.GameMap
                             specialMap[worldY][worldX] = index;
                             if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
                             
-                            texture.Draw(worldX * 64, worldY * 64, value);
+                            texture?.Draw(worldX * 64, worldY * 64, value);
                             var pw = new PushWall
                             {
                                 X = worldX,
@@ -792,7 +793,7 @@ namespace WolfensteinInfinite.GameMap
                             specialMap[worldY][worldX] = index;
                             if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
                             
-                            texture.Draw(worldX * 64, worldY * 64, value);
+                            texture?.Draw(worldX * 64, worldY * 64, value);
                             var pw = new PushWall
                             {
                                 X = worldX,
@@ -809,8 +810,11 @@ namespace WolfensteinInfinite.GameMap
             }
 
             var file = FileHelpers.Shared.GetDataFilePath("GeneratedMap.png");
-            var image = new SFML.Graphics.Image((uint)texture.Width, (uint)texture.Height, texture.Pixels);
-            image.SaveToFile(file);
+            if (texture != null)
+            {
+                var image = new SFML.Graphics.Image((uint)texture.Width, (uint)texture.Height, texture.Pixels);
+                image.SaveToFile(file);
+            }
 
             if (playerX >= 0 && playerY >= 0)
             {
