@@ -756,9 +756,24 @@ namespace WolfensteinInfinite.States
             return true;
         }
 
+        private int _lastLifeScore = 0;
+        private const int LifeScoreThreshold = 40000;
+
+        public void AddToScore(int value)
+        {
+            Game.Player.Score += value;
+            var livesEarned = (Game.Player.Score - _lastLifeScore) / LifeScoreThreshold;
+            if (livesEarned > 0)
+            {
+                Game.Player.Lives += livesEarned;
+                _lastLifeScore += livesEarned * LifeScoreThreshold;
+                // optionally show a message
+                ShowHudMessage("1UP!");
+            }
+        }
         private bool ApplyPoints(PickupItem item)
         {
-            Game.Player.Score += item.Value;
+            AddToScore(item.Value);
             PickupTween.Reset();
             return true;
         }

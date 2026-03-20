@@ -377,7 +377,7 @@ namespace WolfensteinInfinite.GameObjects
                     if (CharacterSprite.HasAnimation(CharacterAnimationState.DEAD))
                         SetAnimation(CharacterAnimationState.DEAD);
                 }
-                state.Game.Player.Score += PointsReward;
+                state.AddToScore(PointsReward);
                 state.Game.Map.LevelScore += PointsReward;
                 PlaySound(Enemy.DeathSounds, state);
                 state.OnEnemyKilled();
