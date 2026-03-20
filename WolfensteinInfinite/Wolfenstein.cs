@@ -443,7 +443,7 @@ namespace WolfensteinInfinite
                 Directory.CreateDirectory(Path.GetDirectoryName(outputPath) ?? ".");
 
                 // Copy the resource to the output file
-                using FileStream fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write);
+                using FileStream fileStream = new(outputPath, FileMode.Create, FileAccess.Write);
                 resourceStream.CopyTo(fileStream);
 
             }
@@ -714,8 +714,8 @@ namespace WolfensteinInfinite
                 tex.Draw(i * -64, 0, composit);
                 animation.Add(tex);
             }
-            Animations.Add(CharacterAnimationState.STANDING, new GameGraphics.Animation([.. animation], 1, 4, 3.5f));
-            Animations.Add(CharacterAnimationState.WALKING, new GameGraphics.Animation([.. animation], 1, 4, 3.5f));
+            Animations.Add(CharacterAnimationState.STANDING, new Animation([.. animation], 1, 4, 3.5f));
+            Animations.Add(CharacterAnimationState.WALKING, new Animation([.. animation], 1, 4, 3.5f));
             animation.Clear();
             for (int i = 4; i < 7; i++)
             {
@@ -723,7 +723,7 @@ namespace WolfensteinInfinite
                 tex.Draw(i * -64, 0, composit);
                 animation.Add(tex);
             }
-            Animations.Add(CharacterAnimationState.ATTACKING, new GameGraphics.Animation([.. animation], 1, 3, 3.5f));
+            Animations.Add(CharacterAnimationState.ATTACKING, new Animation([.. animation], 1, 3, 3.5f));
             animation.Clear();
 
             for (int i = 7; i < 8; i++)
@@ -732,7 +732,7 @@ namespace WolfensteinInfinite
                 tex.Draw(i * -64, 0, composit);
                 animation.Add(tex);
             }
-            Animations.Add(CharacterAnimationState.DEAD, new GameGraphics.Animation([.. animation], 1, 1, 1));
+            Animations.Add(CharacterAnimationState.DEAD, new Animation([.. animation], 1, 1, 1));
             animation.Clear();
 
             for (int i = 8; i < 11; i++)
@@ -758,13 +758,14 @@ namespace WolfensteinInfinite
                     if (eTypes.Contains(enemy.EnemyType)) bosses.Add(enemy);
                 }
             }
-            experiment = new Enemy(-1, e.ExperimentalName, EnemyType.HANS_GROSS, 512 * 3, 5000,
+            var addPoint = level * 5;
+            experiment = new Enemy(-1, e.ExperimentalName, EnemyType.HANS_GROSS, 512 * 3, 5000 + Math.Min(level*2, 1000),
                 new Dictionary<Difficulties, int>()
                 {
-                    [Difficulties.CAN_I_PLAY_DADDY] = 850,
-                    [Difficulties.DONT_HURT_ME] = 950,
-                    [Difficulties.BRING_EM_ON] = 1050,
-                    [Difficulties.I_AM_DEATH_INCARNATE] = 1200
+                    [Difficulties.CAN_I_PLAY_DADDY] = 850 + addPoint,
+                    [Difficulties.DONT_HURT_ME] = 950 + addPoint,
+                    [Difficulties.BRING_EM_ON] = 1050 + addPoint,
+                    [Difficulties.I_AM_DEATH_INCARNATE] = 1200 + addPoint
                 }, [wr, wl],
                 []  //Drop was gold key but irrelevent now
                 , CharacterSpriteType.BOSS, e.SpritePath, 0,

@@ -236,7 +236,7 @@ namespace WolfensteinInfinite.GameMap
                 useDoors = (int)Math.Max(1, Math.Ceiling(globalMaxDoors * (distanceFromEdgePercent * 2)));
             }
 
-            foreach (var doorCount in GetDoorPriority(origin, sectionsByDoorCount, roomsLeftPercent, useDoors, minDoors))
+            foreach (var doorCount in GetDoorPriority(sectionsByDoorCount, roomsLeftPercent, useDoors, minDoors))
             {
                     prioritizedSections.AddRange(
                     sectionsByDoorCount[doorCount]);
@@ -290,12 +290,12 @@ namespace WolfensteinInfinite.GameMap
         }
 
         private int _lastPlacedDoorCount = 1;
-        private IEnumerable<int> GetDoorPriority(MapGeneratorSection origin,Dictionary<int, List<int>> sectionsByDoorCount,float roomsLeftPercent,int useDoors,int minDoors)
+        private IEnumerable<int> GetDoorPriority(Dictionary<int, List<int>> sectionsByDoorCount,float roomsLeftPercent,int useDoors,int minDoors)
         {
-            var priority = GetDoorPriorityBiased(origin,sectionsByDoorCount, roomsLeftPercent, useDoors, minDoors);
+            var priority = GetDoorPriorityBiased(sectionsByDoorCount, roomsLeftPercent);
             return priority.Where(k => k <= useDoors && k >= minDoors);
         }
-        private IEnumerable<int> GetDoorPriorityBiased(MapGeneratorSection origin, Dictionary<int, List<int>> sectionsByDoorCount, float roomsLeftPercent, int useDoors, int minDoors)
+        private IEnumerable<int> GetDoorPriorityBiased(Dictionary<int, List<int>> sectionsByDoorCount, float roomsLeftPercent)
         {
             if (roomsLeftPercent > 0.8f)
                 return sectionsByDoorCount.Keys.OrderBy(k => k);
@@ -569,17 +569,6 @@ namespace WolfensteinInfinite.GameMap
                         wallMap[worldY][worldX] = index;
                         wallSectionId[worldY][worldX] = layer.Section.Id;
                         texture?.Draw(worldX * 64, worldY * 64, Wolfenstein.Textures[key.Mod][key.Index]);
-                        /*
-                        if (walls[y][x] < 0) continue;
-                        var key = new ModKeyIndex(layer.Mod.Name, walls[y][x]);
-                        if (!wallKeyIndicies.TryGetValue(key, out int index))
-                        {
-                            index = wallKeyIndicies.Count;
-                            wallKeyIndicies.Add(key, index);
-                        }
-                        wallMap[worldY][worldX] = index;
-                        texture?.Draw(worldX * 64, worldY * 64, Wolfenstein.Textures[key.Mod][key.Index]);
-                        */
                     }
                 }
 
@@ -728,23 +717,14 @@ namespace WolfensteinInfinite.GameMap
                         }
                         else if (key.Index == 1) // Random enemy
                         {
-                            if (diff[y][x] >= (int)difficulty)
-                            {
-                                specialMap[worldY][worldX] = index;
-                                if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
-                                
-                                texture?.Draw(worldX * 64, worldY * 64, value);
-                            }
+                            //Need to implemnt
+
+
                         }
                         else if (key.Index == 2) // Experiment enemy
                         {
-                            if (diff[y][x] >= (int)difficulty)
-                            {
-                                specialMap[worldY][worldX] = index;
-                                if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
-                                
-                                texture?.Draw(worldX * 64, worldY * 64, value);
-                            }
+                            //need to implement
+                                                       
                         }
                         else if (key.Index == 3) // Exit
                         {

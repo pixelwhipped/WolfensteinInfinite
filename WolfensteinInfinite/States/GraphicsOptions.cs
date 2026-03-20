@@ -26,7 +26,8 @@ namespace WolfensteinInfinite.States
             Menu.MenuItems.Add(new MenuItemOptionSelector("Window Size", OnMenuAction, ["320x200", "640x400", "Fullscreen"], wolfenstein.Config.WindowSize, 180, wolfenstein.GameResources.TinyFont));
             Menu.MenuItems.Add(new MenuItemOptionSelector("Resolution", OnMenuAction, ["320x200", "640x400"], wolfenstein.Config.Resolution, 180, wolfenstein.GameResources.TinyFont));
             Menu.MenuItems.Add(new MenuItemOptionSelector("Quantization", OnMenuAction, 
-                ["64", "128", "256" ,"OFF"], wolfenstein.Config.Quantization, 180, wolfenstein.GameResources.TinyFont));
+                ["64", "128", "256"], wolfenstein.Config.Quantization, 180, wolfenstein.GameResources.TinyFont));
+            Menu.MenuItems.Add(new MenuItemOnOff("Weapon Bob", OnMenuAction, wolfenstein.Config.WeaponBob, 180, wolfenstein.GameResources.TinyFont));
             Menu.MenuItems.Add(new MenuItem("Apply", OnApply, wolfenstein.GameResources.TinyFont));
         }
 
@@ -37,26 +38,32 @@ namespace WolfensteinInfinite.States
 
         private void OnMenuAction(IMenuItem item)
         {
-            if (item is not MenuItemOptionSelector option) return;
-            switch (option.Text)
-            {
-                case "Window Size":
-                    {
-                        Wolfenstein.Config.WindowSize = option.Current;
-                        break;
-                    }
-                case "Resolution":
-                    {
-                        Wolfenstein.Config.Resolution = option.Current;
-                        break;
-                    }
-                case "Quantization":
-                    {
-                        Wolfenstein.Config.Quantization = option.Current;
-                        break;
-                    }
-            }
-            
+            if (item is MenuItemOnOff optionOnOff) switch (optionOnOff.Text)
+                {
+                    case "Weapon Bob":
+                        {
+                            Wolfenstein.Config.WeaponBob = ((MenuItemOnOff)item).State;
+                            break;
+                        }
+                }
+            if (item is MenuItemOptionSelector option) switch (option.Text)
+                {
+                    case "Window Size":
+                        {
+                            Wolfenstein.Config.WindowSize = option.Current;
+                            break;
+                        }
+                    case "Resolution":
+                        {
+                            Wolfenstein.Config.Resolution = option.Current;
+                            break;
+                        }
+                    case "Quantization":
+                        {
+                            Wolfenstein.Config.Quantization = option.Current;
+                            break;
+                        }
+                }
         }
         public override GameState? Update(Texture32 buffer, float frameTime)
         {

@@ -205,6 +205,7 @@ namespace WolfensteinInfinite.GameObjects
             var nx = dx / dist;
             var ny = dy / dist;
 
+            // Facing angle smoothing
             var targetAngle = MathF.Atan2(ny, nx) * (180f / MathF.PI);
             targetAngle = (targetAngle + 360f) % 360f;
             var angleDiff = MathF.Abs(targetAngle - _smoothedFacingAngle) % 360f;
@@ -220,15 +221,48 @@ namespace WolfensteinInfinite.GameObjects
             var curX = (int)X;
             var curY = (int)Y;
 
-            if (mapY >= 0 && mapY < state.Game.Map.WorldMap.Length &&
-                mapX >= 0 && mapX < state.Game.Map.WorldMap[0].Length &&
-                state.Game.Map.WorldMap[mapY][curX] == MapSection.ClosedSectionInterior)
-                Y = newY;
+            bool movedX = false, movedY = false;
 
             if (mapY >= 0 && mapY < state.Game.Map.WorldMap.Length &&
                 mapX >= 0 && mapX < state.Game.Map.WorldMap[0].Length &&
-                state.Game.Map.WorldMap[curY][mapX] == MapSection.ClosedSectionInterior)
+                IsPassable(state, mapX, curY))
+            {
                 X = newX;
+                movedX = true;
+            }
+
+            if (mapY >= 0 && mapY < state.Game.Map.WorldMap.Length &&
+                mapX >= 0 && mapX < state.Game.Map.WorldMap[0].Length &&
+                IsPassable(state, curX, mapY))
+            {
+                Y = newY;
+                movedY = true;
+            }
+
+            // Corner nudge — if completely blocked try sliding along either axis
+            if (!movedX && !movedY)
+            {
+                // Try pure X slide
+                if (MathF.Abs(nx) > MathF.Abs(ny) && IsPassable(state, mapX, curY))
+                    X = newX;
+                // Try pure Y slide
+                else if (IsPassable(state, curX, mapY))
+                    Y = newY;
+            }
+        }
+
+        private static bool IsPassable(InGameState state, int mapX, int mapY)
+        {
+            if (mapY < 0 || mapY >= state.Game.Map.WorldMap.Length) return false;
+            if (mapX < 0 || mapX >= state.Game.Map.WorldMap[0].Length) return false;
+            var tile = state.Game.Map.WorldMap[mapY][mapX];
+            if (tile == MapSection.ClosedSectionInterior) return true;
+            if (tile == InGameState.DOOR_TILE)
+            {
+                var door = state.Game.Map.Doors.FirstOrDefault(d => d.X == mapX && d.Y == mapY);
+                return door != null && door.OpenAmount >= 0.5f;
+            }
+            return false;
         }
 
         private ProjectileSprite? FindProjectileSprite(Projectile projectile, InGameState state)
@@ -339,15 +373,22 @@ namespace WolfensteinInfinite.GameObjects
             SetAnimation(CharacterAnimationState.STANDING);
             PlaySound(Enemy.AlertSounds, state);
 
-            foreach (var obj in state.DynamicObjects)
+            // Iterative flood — no recursion risk
+            var toAlert = new Queue<EnemyObject>();
+            toAlert.Enqueue(this);
+            while (toAlert.Count > 0)
             {
-                if (obj is EnemyObject other && other != this &&
-                    other.AIState == EnemyAIState.Idle)
+                var current = toAlert.Dequeue();
+                foreach (var obj in state.DynamicObjects)
                 {
-                    var dx = other.X - X;
-                    var dy = other.Y - Y;
-                    if (dx * dx + dy * dy <= AlertRadius * AlertRadius)
-                        other.Alert(state);
+                    if (obj is not EnemyObject other || other.AIState != EnemyAIState.Idle) continue;
+                    var dx = other.X - current.X;
+                    var dy = other.Y - current.Y;
+                    if (dx * dx + dy * dy > AlertRadius * AlertRadius) continue;
+                    other.AIState = EnemyAIState.Alert;
+                    other._alertTimer = AlertPauseDuration;
+                    other.SetAnimation(CharacterAnimationState.STANDING);
+                    toAlert.Enqueue(other);
                 }
             }
         }

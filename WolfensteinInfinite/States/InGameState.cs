@@ -73,7 +73,9 @@ namespace WolfensteinInfinite.States
         private int _enemiesTotal = 0;
         private int _itemsCollected = 0;
         private int _itemsTotal = 0;
-
+        private float _bobTime = 0f;
+        private float _lastPlayerX = 0f;
+        private float _lastPlayerY = 0f;
         public void OnEnemyKilled() => _enemiesKilled++;
         public void OnItemCollected() => _itemsCollected++;
         public InGameState(Wolfenstein wolfenstein, Game game) : base(wolfenstein)
@@ -472,7 +474,45 @@ namespace WolfensteinInfinite.States
             var texture = Wolfenstein.GetWeaponTexture(WeaponTransitionState.TransitioningOut ? WeaponTransitionState.CurrentWeapon.Name : WeaponTransitionState.TransitionWeapon.Name);
             var w = (int)(texture.Width * Wolfenstein.UIScale);
             var h = (int)(texture.Height * Wolfenstein.UIScale);
-            buffer.Blit((int)(((buffer.Width) / 2) - (w / 2)), (int)((buffer.Height) - (h + (int)(HudBuffer.Height * Wolfenstein.UIScale))) + (int)(WeaponTransitionState.CurrentHeightOffset * Wolfenstein.UIScale), w, h, texture);
+
+
+            //buffer.Blit((int)(((buffer.Width) / 2) - (w / 2)), (int)((buffer.Height) - (h + (int)(HudBuffer.Height * Wolfenstein.UIScale))) + (int)(WeaponTransitionState.CurrentHeightOffset * Wolfenstein.UIScale), w, h, texture);
+            // Calculate bob offset
+            int bobX = 0, bobY = 0;
+            if (Wolfenstein.Config.WeaponBob && !WeaponTransitionState.Transitioning)
+            {
+                var dx = Game.Player.PosX - _lastPlayerX;
+                var dy = Game.Player.PosY - _lastPlayerY;
+                var moving = MathF.Sqrt(dx * dx + dy * dy) > 0.001f;
+
+                if (moving)
+                {
+                    _bobTime += frameTime * 8f; // bob frequency
+                }
+                else
+                {
+                    // Smoothly return to centre when stopped
+                    _bobTime = MathF.Round(_bobTime / MathF.PI) * MathF.PI;
+                    if (MathF.Abs(_bobTime % (2 * MathF.PI)) > 0.05f)
+                        _bobTime += frameTime * 8f;
+                }
+
+                var bobAmt = 4f * Wolfenstein.UIScale; // bob amplitude in pixels
+                bobY = (int)(MathF.Abs(MathF.Sin(_bobTime)) * bobAmt);   // up-down (always positive — weapon bobs down)
+                bobX = (int)(MathF.Sin(_bobTime * 0.5f) * bobAmt * 0.5f); // gentle side sway
+            }
+
+            _lastPlayerX = Game.Player.PosX;
+            _lastPlayerY = Game.Player.PosY;
+
+            var baseX = (int)(((buffer.Width) / 2) - (w / 2)) + bobX;
+            var baseY = (int)((buffer.Height) - (h + (int)(HudBuffer.Height * Wolfenstein.UIScale)))
+                        + (int)(WeaponTransitionState.CurrentHeightOffset * Wolfenstein.UIScale)
+                        + bobY;
+
+            buffer.Blit(baseX, baseY, w, h, texture);
+
+
             if (WeaponTransitionState.Transitioning) return;
             Wolfenstein.WeaponAnimations[Game.Player.Weapon].InLoop = false;
             //need to check if as ammo
