@@ -208,10 +208,10 @@ namespace WolfensteinInfinite
             }
 
 
-            PlayerWeapons.Add("Knife", new PlayerWeapon("Knife", 0, WeaponType.KNIFE, AmmoType.MELEE, null, 9, 1, "GameData\\Base\\Pictures\\HudKnife.png", "GameData\\Base\\Sprites", 416, 5, 2, 1, 4));
-            PlayerWeapons.Add("Pistol", new PlayerWeapon("Pistol", 10, WeaponType.PISTOL, AmmoType.BULLET, "GameData\\Base\\Sounds\\Pistol.wav", 18, 1, "GameData\\Base\\Pictures\\HudPistol.png", "GameData\\Base\\Sprites", 421, 5, 2, 1, 4));
-            PlayerWeapons.Add("MachineGun", new PlayerWeapon("MachineGun", 20, WeaponType.MACHINE_GUN, AmmoType.BULLET, "GameData\\Base\\Sounds\\MachineGun.wav", 12, 1, "GameData\\Base\\Pictures\\HudMachineGun.png", "GameData\\Base\\Sprites", 426, 5, 2, 2, 3));
-            PlayerWeapons.Add("ChainGun", new PlayerWeapon("ChainGun", 30, WeaponType.CHAIN_GUN, AmmoType.BULLET, "GameData\\Base\\Sounds\\ChainGun.wav", 11, 2, "GameData\\Base\\Pictures\\HudChainGun.png", "GameData\\Base\\Sprites", 431, 5, 2, 2, 3));
+            PlayerWeapons.Add("Knife", new PlayerWeapon("Knife", 0, WeaponType.KNIFE, AmmoType.MELEE, null, 9, 1, 0, 0f, "GameData\\Base\\Pictures\\HudKnife.png", "GameData\\Base\\Sprites", 416, 5, 2, 1, 4));
+            PlayerWeapons.Add("Pistol", new PlayerWeapon("Pistol", 10, WeaponType.PISTOL, AmmoType.BULLET, "GameData\\Base\\Sounds\\Pistol.wav", 18, 1, 0, 0f, "GameData\\Base\\Pictures\\HudPistol.png", "GameData\\Base\\Sprites", 421, 5, 2, 1, 4));
+            PlayerWeapons.Add("MachineGun", new PlayerWeapon("MachineGun", 20, WeaponType.MACHINE_GUN, AmmoType.BULLET, "GameData\\Base\\Sounds\\MachineGun.wav", 12, 1, 1f, 4f, "GameData\\Base\\Pictures\\HudMachineGun.png", "GameData\\Base\\Sprites", 426, 5, 2, 2, 3));
+            PlayerWeapons.Add("ChainGun", new PlayerWeapon("ChainGun", 30, WeaponType.CHAIN_GUN, AmmoType.BULLET, "GameData\\Base\\Sounds\\ChainGun.wav", 11, 2, 1f, 3f, "GameData\\Base\\Pictures\\HudChainGun.png", "GameData\\Base\\Sprites", 431, 5, 2, 2, 3));
 
             WeaponAnimations.Add("Knife", AnimationHelpers.Create(PlayerWeapons["Knife"]));
             WeaponAnimations.Add("Pistol", AnimationHelpers.Create(PlayerWeapons["Pistol"]));

@@ -73,6 +73,10 @@ namespace WolfensteinInfinite.States
         private const string CheatIDKFA = "idkfa";
         private const string CheatIDDT = "iddt";
 
+        private float _weaponCooldown = 0f;
+        private float _sustainedFireTime = 0f;
+        private bool _overheated = false;
+
         private bool _mapVisible = false;
         private readonly bool[][] _visited;
 
@@ -295,6 +299,9 @@ namespace WolfensteinInfinite.States
             var t = weapon.AmmoType;
             if (Game.Player.Ammo.TryGetValue(t, out int value))
                 Game.Player.Ammo[t] = Math.Max(value - 1, 0);
+
+            // Set cooldown for next shot
+            _weaponCooldown = weapon.Cooldown;
             if (Wolfenstein.WeaponAudio.TryGetValue(weapon.Name, out CachedSound? audio))
                 AudioPlaybackEngine.Instance.PlaySound(audio);
 
@@ -493,6 +500,10 @@ namespace WolfensteinInfinite.States
         {
             WeaponTransitionState.Update(frameTime);
 
+            // Update weapon cooldown
+            if (_weaponCooldown > 0)
+                _weaponCooldown -= frameTime;
+
             var texture = Wolfenstein.GetWeaponTexture(WeaponTransitionState.TransitioningOut ? WeaponTransitionState.CurrentWeapon.Name : WeaponTransitionState.TransitionWeapon.Name);
             var w = (int)(texture.Width * Wolfenstein.UIScale);
             var h = (int)(texture.Height * Wolfenstein.UIScale);
@@ -537,15 +548,47 @@ namespace WolfensteinInfinite.States
 
             if (WeaponTransitionState.Transitioning) return;
             Wolfenstein.WeaponAnimations[Game.Player.Weapon].InLoop = false;
-            //need to check if as ammo
-            var t = WeaponTransitionState.TransitionWeapon.AmmoType;
+            var weapon = WeaponTransitionState.TransitionWeapon;
+            var t = weapon.AmmoType;
             if (!Game.Player.Ammo.TryGetValue(t, out int ammo)) ammo = 1;
-            if (Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyFire) && ammo > 0)
+
+            bool keyHeld = Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyFire);
+            bool isSustainedFire = weapon.MaxFireTime > 0;
+
+            // Update sustained fire timer
+            if (keyHeld && !_overheated && ammo > 0 && isSustainedFire)
+            {
+                _sustainedFireTime += frameTime;
+                if (_sustainedFireTime >= weapon.MaxFireTime)
+                {
+                    _overheated = true;
+                    _sustainedFireTime = 0f;
+                }
+            }
+
+            // Reset states when key is released
+            if (!keyHeld)
+            {
+                _overheated = false;
+                _sustainedFireTime = 0f;
+                _weaponCooldown = 0f;
+            }
+
+            bool isFiring = keyHeld && !_overheated;
+
+            // For sustained fire, fire continuously while key held (no cooldown between shots)
+            // For single fire, check cooldown before firing
+            bool canFire = isFiring && ammo > 0;
+            if (!isSustainedFire)
+                canFire = canFire && _weaponCooldown <= 0;
+            // Sustained fire: no cooldown check, animation.Update handles firing rate
+
+            if (canFire)
             {
                 Wolfenstein.WeaponAnimations[Game.Player.Weapon].InLoop = true;
                 Wolfenstein.WeaponAnimations[Game.Player.Weapon].Update(frameTime);
             }
-            else if (!Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyFire) && Wolfenstein.WeaponAnimations[Game.Player.Weapon].CurrentFrame != 0)
+            else if (!isFiring && Wolfenstein.WeaponAnimations[Game.Player.Weapon].CurrentFrame != 0)
             {
                 Wolfenstein.WeaponAnimations[Game.Player.Weapon].Update(frameTime);
             }
