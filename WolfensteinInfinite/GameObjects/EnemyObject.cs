@@ -166,8 +166,9 @@ namespace WolfensteinInfinite.GameObjects
             var py = state.Game.Player.PosY;
             var dx = px - X;
             var dy = py - Y;
-            var dist = MathF.Sqrt(dx * dx + dy * dy);
-            if (dist > LineOfSightDistance) return false;
+            var distSq = dx * dx + dy * dy;
+            var dist = MathF.Sqrt(distSq);
+            if (distSq > LineOfSightDistance * LineOfSightDistance) return false;
 
             var steps = Math.Max(1, (int)(dist * 4));
             var stepX = dx / steps;

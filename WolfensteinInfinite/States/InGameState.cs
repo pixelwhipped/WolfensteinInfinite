@@ -32,6 +32,10 @@ namespace WolfensteinInfinite.States
         private float[] SpriteDistance;
 
         public const int RenderDistance = 10;
+        private static readonly int[] NeighborDX = [-1, 1, 0, 0];
+        private static readonly int[] NeighborDY = [0, 0, -1, 1];
+        private static readonly int[] DoorCheckDX = [0, -1, 1, 0, 0];
+        private static readonly int[] DoorCheckDY = [0, 0, 0, -1, 1];
         private float PlaneX { get => Game.Player.PlaneX; set => Game.Player.PlaneX = value; }
         private float PlaneY { get => Game.Player.PlaneY; set => Game.Player.PlaneY = value; }
 
@@ -39,6 +43,10 @@ namespace WolfensteinInfinite.States
         private readonly Texture32 Ceiling;
 
         private float[,]? _lightMap;
+        private float[,]? _blurTemp;
+        private float[,]? _blurResult;
+        private int _lastBlurWidth;
+        private int _lastBlurHeight;
         private const float LightRadius = 2f;
         private const float LightIntensity = 0.5f; // increase for brighter, decrease for dimmer (0.0 - 1.0)
 
@@ -854,23 +862,20 @@ namespace WolfensteinInfinite.States
 
         public static void SortSprites(int[] order, float[] dist, int amount)
         {
-            // Create array of (distance, order) pairs
-            var sprites = new (float distance, int order)[amount];
-            for (int i = 0; i < amount; i++)
+            // Sort by distance (farthest to nearest) using insertion sort on indices
+            // Avoids allocating tuple array while maintaining correctness
+            for (int i = 1; i < amount; i++)
             {
-                sprites[i] = (dist[i], order[i]);
-            }
-
-            // Sort by distance
-            Array.Sort(sprites, (a, b) => a.distance.CompareTo(b.distance));
-
-            // Restore in reverse order (farthest to nearest)
-            for (int i = 0; i < amount; i++)
-            {
-                dist[i] = sprites[amount - i - 1].distance;
-                order[i] = sprites[amount - i - 1].order;
+                int j = i;
+                while (j > 0 && dist[j] > dist[j - 1])
+                {
+                    (dist[j], dist[j - 1]) = (dist[j - 1], dist[j]);
+                    (order[j], order[j - 1]) = (order[j - 1], order[j]);
+                    j--;
+                }
             }
         }
+
         private RGBA8[] GetTextureMapColors()
         {
             var colors = new List<RGBA8>
@@ -1147,9 +1152,16 @@ namespace WolfensteinInfinite.States
 
             if (Wolfenstein.Config.LightBlur)
             {
-                // Separable box blur — horizontal pass into temp, then vertical pass back
-                var temp = new float[h, w];
+                // Ensure pooled arrays are sized correctly
+                if (_blurTemp == null || _lastBlurWidth != w || _lastBlurHeight != h)
+                {
+                    _blurTemp = new float[h, w];
+                    _blurResult = new float[h, w];
+                    _lastBlurWidth = w;
+                    _lastBlurHeight = h;
+                }
 
+                // Separable box blur — horizontal pass into temp, then vertical pass back
                 // Horizontal pass
                 for (int y = 0; y < h; y++)
                 {
@@ -1164,12 +1176,11 @@ namespace WolfensteinInfinite.States
                             sum += _lightMap[y, nx];
                             count++;
                         }
-                        temp[y, x] = sum / count;
+                        _blurTemp[y, x] = sum / count;
                     }
                 }
 
                 // Vertical pass
-                var blurred = new float[h, w];
                 for (int y = 0; y < h; y++)
                 {
                     for (int x = 0; x < w; x++)
@@ -1180,13 +1191,13 @@ namespace WolfensteinInfinite.States
                         {
                             int ny = y + dy;
                             if (ny < 0 || ny >= h) continue;
-                            sum += temp[ny, x];
+                            sum += _blurTemp[ny, x];
                             count++;
                         }
-                        blurred[y, x] = sum / count;
+                        _blurResult[y, x] = sum / count;
                     }
                 }
-                _lightMap = blurred;
+                _lightMap = _blurResult;
             }
         }
 
@@ -1210,9 +1221,6 @@ namespace WolfensteinInfinite.States
             int playerMapX = (int)Game.Player.PosX;
             int playerMapY = (int)Game.Player.PosY;
 
-            int[] dx = [-1, 1, 0, 0];
-            int[] dy = [0, 0, -1, 1];
-
             // Static interactables
             IEnumerable<IInteractable> interactables =
                 Game.Map.Doors.Cast<IInteractable>()
@@ -1228,8 +1236,8 @@ namespace WolfensteinInfinite.States
 
             for (int i = 0; i < 4; i++)
             {
-                int checkX = playerMapX + dx[i];
-                int checkY = playerMapY + dy[i];
+                int checkX = playerMapX + NeighborDX[i];
+                int checkY = playerMapY + NeighborDY[i];
 
                 var target = interactables.FirstOrDefault(
                     d => d.X == checkX && d.Y == checkY && d.CanInteract(Game));
@@ -1305,21 +1313,21 @@ namespace WolfensteinInfinite.States
             int playerMapX = (int)Game.Player.PosX;
             int playerMapY = (int)Game.Player.PosY;
 
-            int[] dx = [0, -1, 1, 0, 0];
-            int[] dy = [0, 0, 0, -1, 1];
             for (int i = 0; i < 5; i++)
             {
-                int checkX = playerMapX + dx[i];
-                int checkY = playerMapY + dy[i];
+                int checkX = playerMapX + DoorCheckDX[i];
+                int checkY = playerMapY + DoorCheckDY[i];
                 if (door.X == checkX && door.Y == checkY) return false;
             }
 
-            foreach (var e in DynamicObjects.Where(d => d is EnemyObject))
+            foreach (var e in DynamicObjects.OfType<EnemyObject>())
             {
+                int ex = (int)e.X;
+                int ey = (int)e.Y;
                 for (int i = 0; i < 5; i++)
                 {
-                    int checkX = (int)e.X + dx[i];
-                    int checkY = (int)e.Y + dy[i];
+                    int checkX = ex + DoorCheckDX[i];
+                    int checkY = ey + DoorCheckDY[i];
                     if (door.X == checkX && door.Y == checkY) return false;
                 }
             }
@@ -1336,30 +1344,6 @@ namespace WolfensteinInfinite.States
                 buffer.Line(i, 180, i, 200, x, x, x);
             }
         }
-        public void DrawMapOld(Texture32 buffer)
-        {
-            //return;
-            var size = 1;
-            for (int y = 0; y < Game.Map.WorldMap.Length; y++)
-                for (int x = 0; x < Game.Map.WorldMap[y].Length; x++)
-                {
-
-                    {
-                        var i = Game.Map.WorldMap[y][x];
-                        var c = i >= 0 ? MapColors[i + 1] : i == MapSection.ClosedSectionInterior ? new RGBA8() { R = 128, G = 128, B = 128, A = 255 } : new RGBA8() { R = 0, G = 0, B = 0, A = 64 };
-
-                        buffer.RectFill(x * size, y * size, size, size, c.R, c.G, c.B, c.A);
-
-                    }
-                }
-            var px = (int)(Game.Player.PosX * size);
-            var py = (int)(Game.Player.PosY * size);
-
-            buffer.RectFill(px - 1, py - 1, 3, 3, 255, 255, 0);
-            buffer.Line(px, py, (int)(px + (Game.Player.DirX * 20)), (int)(py + (Game.Player.DirY * 20)), 255, 255, 0);
-
-        }
-
 
         public void DrawMap(Texture32 buffer)
         {
@@ -1417,10 +1401,17 @@ namespace WolfensteinInfinite.States
 
             buffer.RectFill(px - 1, py - 1, 3, 3, 255, 255, 0);
             buffer.Line(px, py,
-                (int)(px - (Game.Player.DirX * 20)),
-                (int)(py + (Game.Player.DirY * 20)),
-                255, 255, 0);
+            (int)(px - (Game.Player.DirX * 10)),
+            (int)(py + (Game.Player.DirY * 10)),
+            255, 255, 0);
         }
+        private void SetupRaycast(Texture32 buffer, int x, out float cameraX, out float rayDirX, out float rayDirY)
+        {
+            cameraX = 2f * x / buffer.Width - 1f;
+            rayDirX = Game.Player.DirX + PlaneX * cameraX;
+            rayDirY = Game.Player.DirY + PlaneY * cameraX;
+        }
+
         private void CastSprites(Texture32 buffer)
         {
             // Cull to only objects within render distance before sorting
@@ -1552,12 +1543,10 @@ namespace WolfensteinInfinite.States
 
         private void CastPushWalls(Texture32 buffer, int x)
         {
+            SetupRaycast(buffer, x, out float cameraX, out float rayDirX, out float rayDirY);
+
             foreach (var wall in Game.Map.PushWalls)
             {
-                float cameraX = 2 * x / (float)buffer.Width - 1;
-                float rayDirX = Game.Player.DirX + PlaneX * cameraX;
-                float rayDirY = Game.Player.DirY + PlaneY * cameraX;
-
                 // Treat the push wall as a full 1x1 AABB at its render position (tile corner)
                 float minX = wall.RenderX;
                 float maxX = wall.RenderX + 1.0f;
@@ -1663,16 +1652,14 @@ namespace WolfensteinInfinite.States
 
         private void CastDirectionalDecals(Texture32 buffer, int x)
         {
+            SetupRaycast(buffer, x, out float cameraX, out float rayDirX, out float rayDirY);
+
             foreach (var d in Game.Map.Decals)
             {
                 if (d.Direction == Direction.NONE) continue;
 
                 var texture = Game.Map.DecalTextures[d.TextureIndex];
                 if (texture == null) continue;
-
-                float cameraX = 2 * x / (float)buffer.Width - 1;
-                float rayDirX = Game.Player.DirX + PlaneX * cameraX;
-                float rayDirY = Game.Player.DirY + PlaneY * cameraX;
 
                 float perpWallDist;
                 float wallX;
@@ -1774,10 +1761,7 @@ namespace WolfensteinInfinite.States
         }
         private void CastWalls(Texture32 buffer, int x)
         {
-            //calculate ray position and direction
-            float cameraX = 2 * x / (float)buffer.Width - 1; //x-coordinate in camera space
-            float rayDirX = Game.Player.DirX + PlaneX * cameraX;
-            float rayDirY = Game.Player.DirY + PlaneY * cameraX;
+            SetupRaycast(buffer, x, out float cameraX, out float rayDirX, out float rayDirY);
             //which box of the map we're in
             int mapX = (int)Game.Player.PosX;
             int mapY = (int)Game.Player.PosY;
@@ -1949,10 +1933,7 @@ namespace WolfensteinInfinite.States
 
         private void CastDoors(Texture32 buffer, int x)
         {
-            //calculate ray position and direction
-            float cameraX = 2 * x / (float)buffer.Width - 1; //x-coordinate in camera space
-            float rayDirX = Game.Player.DirX + PlaneX * cameraX;
-            float rayDirY = Game.Player.DirY + PlaneY * cameraX;
+            SetupRaycast(buffer, x, out float cameraX, out float rayDirX, out float rayDirY);
             //which box of the map we're in
             int mapX = (int)Game.Player.PosX;
             int mapY = (int)Game.Player.PosY;
@@ -2115,6 +2096,11 @@ namespace WolfensteinInfinite.States
         {
             // Don't draw over a closer wall already rendered
             if (ZBuffer[x] < perpWallDist) return;
+
+            var doorTexture = Game.Map.DoorTextures[door.TextureIndex];
+            var texHeight = doorTexture.Height;
+            var texWidth = doorTexture.Width;
+
             //calculate value of wallX for the inset door position
             float wallX;
             if (side == 0) wallX = Game.Player.PosY + perpWallDist * rayDirY;
@@ -2123,7 +2109,6 @@ namespace WolfensteinInfinite.States
 
             // Calculate texture coordinates using door width and position
             int texX;
-            var texWidth = Game.Map.DoorTextures[door.TextureIndex].Width;
 
             if (door.IsVertical)
             {
@@ -2168,11 +2153,9 @@ namespace WolfensteinInfinite.States
             }
 
             // Clamp texture coordinates
-            texX = Math.Max(0, Math.Min(texX, Game.Map.DoorTextures[door.TextureIndex].Width - 1));
+            texX = Math.Max(0, Math.Min(texX, texWidth - 1));
 
-
-
-            float step = 1.0f * Game.Map.DoorTextures[door.TextureIndex].Height / lineHeight;
+            float step = 1.0f * texHeight / lineHeight;
             float texPos = (drawStart - buffer.Height / 2 + lineHeight / 2) * step;
 
             var dist = (float)Math.Min(GraphicsHelpers.GetDistance((int)Game.Player.PosX, (int)Game.Player.PosY, mapX, mapY), RenderDistance);
@@ -2185,10 +2168,10 @@ namespace WolfensteinInfinite.States
             bool anyOpaque = false;
             for (int y = drawStart; y <= drawEnd; y++)
             {
-                int texY = (int)texPos & (Game.Map.DoorTextures[door.TextureIndex].Height - 1);
+                int texY = (int)texPos & (texHeight - 1);
                 texPos += step;
                 var bl = Math.Min((side == 1 ? 0.5f * dist : 1f * dist) * doorDarkening + lightBoost * LightIntensity, 1f);
-                Game.Map.DoorTextures[door.TextureIndex].GetPixel(texX, texY, out byte r, out byte g, out byte b, out byte a);
+                doorTexture.GetPixel(texX, texY, out byte r, out byte g, out byte b, out byte a);
                 if (a == 0) continue;
                 if (a < 255)
                 {
@@ -2222,11 +2205,7 @@ namespace WolfensteinInfinite.States
 
         private void CastFloors(Texture32 buffer, int x)
         {
-
-            //calculate ray position and direction
-            float cameraX = 2 * x / (float)buffer.Width - 1; //x-coordinate in camera space
-            float rayDirX = Game.Player.DirX + PlaneX * cameraX;
-            float rayDirY = Game.Player.DirY + PlaneY * cameraX;
+            SetupRaycast(buffer, x, out float cameraX, out float rayDirX, out float rayDirY);
 
             //which box of the map we're in
             int mapX = (int)Game.Player.PosX;
