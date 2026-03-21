@@ -10,6 +10,7 @@ namespace WolfensteinInfinite.GameObjects
     {
         public Enemy Enemy { get; }
         public int HitPoints { get; set; }
+        public int MaxHitPoints { get; private set; }
         public EnemyAIState AIState { get; private set; } = EnemyAIState.Idle;
         public string Mod { get; }
 
@@ -19,6 +20,7 @@ namespace WolfensteinInfinite.GameObjects
         private bool IsHit => CharacterSprite.AnimationState == CharacterAnimationState.HIT;
         private bool _isAttacking = false;
         private float _alertTimer = 0f;
+        private float _fleeTimer = 0f;
         private EnemyAIState _lastAIState = EnemyAIState.Idle;
 
 
@@ -26,6 +28,8 @@ namespace WolfensteinInfinite.GameObjects
         private const float MeleeAttackRange = 1.5f;
         private const float AlertRadius = 5f;
         private const float LineOfSightDistance = 12f;
+        private const float FleeDuration = 1.5f;
+        private const float FleeHealthThreshold = 0.25f;
 
         private float WorldSpeed => Enemy.Speed / (512f * 4f);
 
@@ -53,11 +57,13 @@ namespace WolfensteinInfinite.GameObjects
         {
             Enemy = enemy;
             Mod = mod;
-            HitPoints = enemy.HitPoints.TryGetValue(difficulty, out int hp)
+            int baseHitPoints = enemy.HitPoints.TryGetValue(difficulty, out int hp)
                 ? hp : enemy.HitPoints.Values.First();
 
             var scale = 1f + level / (level + 10f);
-            HitPoints = (int)(HitPoints * scale);
+            baseHitPoints = (int)(baseHitPoints * scale);
+            HitPoints = baseHitPoints;
+            MaxHitPoints = baseHitPoints;
             PointsReward = (int)(enemy.Points * scale);
 
             _attackCooldown = AttackCooldownDuration;
@@ -290,6 +296,69 @@ namespace WolfensteinInfinite.GameObjects
             }*/
         }
 
+        private void TryMoveAwayFromPlayer(float frameTime, InGameState state)
+        {
+            var dx = X - state.Game.Player.PosX;
+            var dy = Y - state.Game.Player.PosY;
+            var dist = MathF.Sqrt(dx * dx + dy * dy);
+            if (dist < 0.001f) return;
+
+            var nx = dx / dist;
+            var ny = dy / dist;
+
+            // Facing angle smoothing (opposite direction)
+            var targetAngle = MathF.Atan2(ny, nx) * (180f / MathF.PI);
+            targetAngle = (targetAngle + 360f) % 360f;
+            var angleDiff = MathF.Abs(targetAngle - _smoothedFacingAngle) % 360f;
+            if (angleDiff > 180f) angleDiff = 360f - angleDiff;
+            if (angleDiff > 15f) _smoothedFacingAngle = targetAngle;
+            FacingAngle = _smoothedFacingAngle;
+
+            var speed = WorldSpeed * frameTime * 1.5f; // Move faster when fleeing
+            var newX = X + nx * speed;
+            var newY = Y + ny * speed;
+            var mapX = (int)newX;
+            var mapY = (int)newY;
+            var curX = (int)X;
+            var curY = (int)Y;
+
+            const float Radius = 0.3f;
+
+            bool CanMoveX(float tx, float ty) =>
+                IsPassable(state, (int)(tx - Radius), (int)ty) &&
+                IsPassable(state, (int)(tx + Radius), (int)ty);
+
+            bool CanMoveY(float tx, float ty) =>
+                IsPassable(state, (int)tx, (int)(ty - Radius)) &&
+                IsPassable(state, (int)tx, (int)(ty + Radius));
+
+            bool movedX = false, movedY = false;
+
+            if (mapY >= 0 && mapY < state.Game.Map.WorldMap.Length &&
+                mapX >= 0 && mapX < state.Game.Map.WorldMap[0].Length &&
+                CanMoveX(newX, curY))
+            {
+                X = newX;
+                movedX = true;
+            }
+            if (mapY >= 0 && mapY < state.Game.Map.WorldMap.Length &&
+                mapX >= 0 && mapX < state.Game.Map.WorldMap[0].Length &&
+                CanMoveY(curX, newY))
+            {
+                Y = newY;
+                movedY = true;
+            }
+
+            // Corner nudge — if completely blocked try sliding along either axis
+            if (!movedX && !movedY)
+            {
+                if (MathF.Abs(nx) > MathF.Abs(ny) && CanMoveX(newX, curY))
+                    X = newX;
+                else if (CanMoveY(curX, newY))
+                    Y = newY;
+            }
+        }
+
         private static bool IsPassable(InGameState state, int mapX, int mapY)
         {
             if (mapY < 0 || mapY >= state.Game.Map.WorldMap.Length) return false;
@@ -462,6 +531,15 @@ namespace WolfensteinInfinite.GameObjects
             }
             else
             {
+                // Start fleeing if below health threshold and not already fleeing
+                if (AIState == EnemyAIState.Chase && 
+                    (float)HitPoints / MaxHitPoints <= FleeHealthThreshold)
+                {
+                    AIState = EnemyAIState.Flee;
+                    _fleeTimer = FleeDuration;
+                    _lastAIState = EnemyAIState.Idle; // Force animation update
+                }
+
                 if (CharacterSprite.HasAnimation(CharacterAnimationState.HIT))
                     SetAnimation(CharacterAnimationState.HIT);
             }
@@ -553,6 +631,21 @@ namespace WolfensteinInfinite.GameObjects
                         }
                         else
                             TryAttack(frameTime, distToPlayer, state);
+                    }
+                    break;
+
+                case EnemyAIState.Flee:
+                    _fleeTimer -= frameTime;
+                    if (_fleeTimer <= 0)
+                    {
+                        // Return to chasing
+                        AIState = EnemyAIState.Chase;
+                    }
+                    else
+                    {
+                        // Move away from player
+                        SetAnimation(CharacterAnimationState.WALKING);
+                        TryMoveAwayFromPlayer(frameTime, state);
                     }
                     break;
             }

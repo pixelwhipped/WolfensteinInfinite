@@ -6,6 +6,7 @@
         Alert,      // Just spotted player, brief pause before chasing
         Chase,      // Moving toward player
         Attack,     // In range, attacking
+        Flee,       // Low health, retreating from player
         Dead        // Death animation playing
     }
 }
