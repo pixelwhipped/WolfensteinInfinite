@@ -11,6 +11,9 @@ namespace WolfensteinInfinite.GameGraphics
             (AnimationState == CharacterAnimationState.DYING_LEFT ||
              AnimationState == CharacterAnimationState.DYING_RIGHT) &&
              Animations[AnimationState].IsComplete);
+        public bool IsHitAnimationComplete =>
+            AnimationState == CharacterAnimationState.HIT &&
+            Animations[AnimationState].IsComplete;
         public bool IsAttackAnimationComplete =>
             AnimationState == CharacterAnimationState.ATTACKING &&
             Animations[AnimationState].IsComplete;

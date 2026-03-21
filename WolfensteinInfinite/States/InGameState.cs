@@ -68,6 +68,11 @@ namespace WolfensteinInfinite.States
         private const float SecondsPerTile = 1.5f;
         private const float MinCountdownSeconds = 30f;
 
+        private string _cheatBuffer = "";
+        private const string CheatIDDQD = "iddqd";
+        private const string CheatIDKFA = "idkfa";
+        private const string CheatIDDT = "iddt";
+
         private bool _mapVisible = false;
         private readonly bool[][] _visited;
 
@@ -840,12 +845,14 @@ namespace WolfensteinInfinite.States
         }
         public override void OnKeyPressed(KeyEventArgs k)
         {
-
             if (k.Code == Keyboard.Key.Escape || k.Code == Wolfenstein.Config.KeyPause)
             {
                 NextState = new PauseState(Wolfenstein, this);
                 return;
             }
+
+            if (HandleCheatCode(k.Code)) return;
+
             if (k.Code == Wolfenstein.Config.KeyWeaponUp)
             {
                 var wi = Game.Player.Weapons.IndexOf(WeaponTransitionState.TransitionWeapon.Name);
@@ -858,6 +865,82 @@ namespace WolfensteinInfinite.States
                 if (wi - 1 < 0) WeaponTransition(Game.Player.Weapons.Last());
                 else WeaponTransition(Game.Player.Weapons[wi - 1]);
             }
+        }
+
+        private bool HandleCheatCode(Keyboard.Key key)
+        {
+            var keyChar = KeyToChar(key);
+            if (keyChar == null) return false;
+
+            _cheatBuffer += keyChar.Value;
+            if (_cheatBuffer.Length > 10) _cheatBuffer = _cheatBuffer[^10..];
+
+            if (_cheatBuffer.EndsWith(CheatIDDQD))
+            {
+                ActivateCheatGodMode();
+                return true;
+            }
+            if (_cheatBuffer.EndsWith(CheatIDKFA))
+            {
+                ActivateCheatAllWeapons();
+                return true;
+            }
+            if (_cheatBuffer.EndsWith(CheatIDDT))
+            {
+                ActivateCheatRevealMap();
+                return true;
+            }
+            return false;
+        }
+
+        private static char? KeyToChar(Keyboard.Key key)
+        {
+            return key switch
+            {
+                Keyboard.Key.A => 'a', Keyboard.Key.B => 'b', Keyboard.Key.C => 'c', Keyboard.Key.D => 'd',
+                Keyboard.Key.E => 'e', Keyboard.Key.F => 'f', Keyboard.Key.G => 'g', Keyboard.Key.H => 'h',
+                Keyboard.Key.I => 'i', Keyboard.Key.J => 'j', Keyboard.Key.K => 'k', Keyboard.Key.L => 'l',
+                Keyboard.Key.M => 'm', Keyboard.Key.N => 'n', Keyboard.Key.O => 'o', Keyboard.Key.P => 'p',
+                Keyboard.Key.Q => 'q', Keyboard.Key.R => 'r', Keyboard.Key.S => 's', Keyboard.Key.T => 't',
+                Keyboard.Key.U => 'u', Keyboard.Key.V => 'v', Keyboard.Key.W => 'w', Keyboard.Key.X => 'x',
+                Keyboard.Key.Y => 'y', Keyboard.Key.Z => 'z',
+                Keyboard.Key.Num0 => '0', Keyboard.Key.Num1 => '1', Keyboard.Key.Num2 => '2',
+                Keyboard.Key.Num3 => '3', Keyboard.Key.Num4 => '4', Keyboard.Key.Num5 => '5',
+                Keyboard.Key.Num6 => '6', Keyboard.Key.Num7 => '7', Keyboard.Key.Num8 => '8',
+                Keyboard.Key.Num9 => '9',
+                _ => null
+            };
+        }
+
+        private void ActivateCheatGodMode()
+        {
+            Game.Player.GodMode = true;
+            Game.Player.Health = 100;
+            ShowHudMessage("GOD MODE ACTIVATED");
+        }
+
+        private void ActivateCheatAllWeapons()
+        {
+            Game.Player.Weapons = [.. Wolfenstein.PlayerWeapons.Keys];
+            Game.Player.Weapons.Sort((a, b) =>
+                Wolfenstein.PlayerWeapons[a].PreferedOrder.CompareTo(Wolfenstein.PlayerWeapons[b].PreferedOrder));
+
+            foreach (var flag in Enum.GetValues<MapFlags>())
+                Game.Map.ObjectivesComplete[flag] = true;
+
+            foreach (var ammoType in Enum.GetValues<AmmoType>())
+                Game.Player.Ammo[ammoType] = 999;
+
+            WeaponTransition("Knife");
+            ShowHudMessage("ALL WEAPONS & MAX AMMO");
+        }
+
+        private void ActivateCheatRevealMap()
+        {
+            for (int y = 0; y < _visited.Length; y++)
+                for (int x = 0; x < _visited[y].Length; x++)
+                    _visited[y][x] = true;
+            ShowHudMessage("MAP REVEALED");
         }
 
         public static void SortSprites(int[] order, float[] dist, int amount)

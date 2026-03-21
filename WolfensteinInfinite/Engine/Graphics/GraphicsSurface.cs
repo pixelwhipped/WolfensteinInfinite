@@ -34,25 +34,45 @@ namespace WolfensteinInfinite.Engine.Graphics
         public void Circle(int cx, int cy, int r, byte index)
         {
             if (r <= 0) return;
-            if (r == 1) PutPixel(cx, cy, index);
+            if (r == 1) { PutPixel(cx, cy, index); return; }
+            
+            var w = Width;
+            var h = Height;
+            // Early exit if circle is entirely outside buffer
+            if (cx + r < 0 || cx - r >= w || cy + r < 0 || cy - r >= h) return;
+            
             int d = (5 - r * 4) / 4;
             int x = 0;
             int y = r;
-            var w = Width;
-            var h = Height;
             do
             {
-                // ensure index is in range before setting (depends on your image implementation)
-                // in this case we check if the pixel location is within the bounds of the image before setting the pixel
-
-                if (cx + x >= 0 && cx + x <= w - 1 && cy + y >= 0 && cy + y <= h - 1) Pixels[(cx + x) + ((cy + y) * w)] = index;
-                if (cx + x >= 0 && cx + x <= w - 1 && cy - y >= 0 && cy - y <= h - 1) Pixels[(cx + x) + ((cy - y) * w)] = index;
-                if (cx - x >= 0 && cx - x <= w - 1 && cy + y >= 0 && cy + y <= h - 1) Pixels[(cx - x) + ((cy + y) * w)] = index;
-                if (cx - x >= 0 && cx - x <= w - 1 && cy - y >= 0 && cy - y <= h - 1) Pixels[(cx - x) + ((cy - y) * w)] = index;
-                if (cx + y >= 0 && cx + y <= w - 1 && cy + x >= 0 && cy + x <= h - 1) Pixels[(cx + y) + ((cy + x) * w)] = index;
-                if (cx + y >= 0 && cx + y <= w - 1 && cy - x >= 0 && cy - x <= h - 1) Pixels[(cx + y) + ((cy - x) * w)] = index;
-                if (cx - y >= 0 && cx - y <= w - 1 && cy + x >= 0 && cy + x <= h - 1) Pixels[(cx - y) + ((cy + x) * w)] = index;
-                if (cx - y >= 0 && cx - y <= w - 1 && cy - x >= 0 && cy - x <= h - 1) Pixels[(cx - y) + ((cy - x) * w)] = index;
+                int cxX = cx + x, cxY = cx - x;
+                int cyY = cy + y, cyY2 = cy - y;
+                int cyX = cy + x, cyX2 = cy - x;
+                
+                // Group 4 x-major positions
+                if (cyY >= 0 && cyY < h)
+                {
+                    if (cxX >= 0 && cxX < w) Pixels[cxX + cyY * w] = index;
+                    if (cxY >= 0 && cxY < w) Pixels[cxY + cyY * w] = index;
+                }
+                if (cyY2 >= 0 && cyY2 < h)
+                {
+                    if (cxX >= 0 && cxX < w) Pixels[cxX + cyY2 * w] = index;
+                    if (cxY >= 0 && cxY < w) Pixels[cxY + cyY2 * w] = index;
+                }
+                // Group 4 y-major positions  
+                if (cyX >= 0 && cyX < h)
+                {
+                    if (cxX >= 0 && cxX < w) Pixels[cxX + cyX * w] = index;
+                    if (cxY >= 0 && cxY < w) Pixels[cxY + cyX * w] = index;
+                }
+                if (cyX2 >= 0 && cyX2 < h)
+                {
+                    if (cxX >= 0 && cxX < w) Pixels[cxX + cyX2 * w] = index;
+                    if (cxY >= 0 && cxY < w) Pixels[cxY + cyX2 * w] = index;
+                }
+                
                 if (d < 0)
                 {
                     d += 2 * x + 1;

@@ -749,8 +749,14 @@ namespace WolfensteinInfinite
                 tex.Draw(i * -64, 0, composit);
                 animation.Add(tex);
             }
-            Animations.Add(CharacterAnimationState.DYING_LEFT, new GameGraphics.Animation([.. animation], 1, 3, 3.5f));
-            Animations.Add(CharacterAnimationState.DYING_RIGHT, new GameGraphics.Animation([.. animation], 1, 3, 3.5f));
+            Animations.Add(CharacterAnimationState.DYING_LEFT, new GameGraphics.Animation([.. animation], 1, 3, 3.5f, loop: false));
+            Animations.Add(CharacterAnimationState.DYING_RIGHT, new GameGraphics.Animation([.. animation], 1, 3, 3.5f, loop: false));
+
+            animation.Clear();
+            var hitTex = new Texture32(64, 64);
+            hitTex.Draw(8 * -64, 0, composit);
+            animation.Add(hitTex);
+            Animations.Add(CharacterAnimationState.HIT, new GameGraphics.Animation([.. animation], 1, 2, 8f, loop: false));
 
             experimentSprite = new CharacterSprite(Animations);
 

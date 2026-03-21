@@ -16,6 +16,7 @@ namespace WolfensteinInfinite.GameObjects
         private bool IsDying =>  CharacterSprite.AnimationState == CharacterAnimationState.DYING_LEFT || CharacterSprite.AnimationState == CharacterAnimationState.DYING_RIGHT;
 
         private bool IsCorpse => CharacterSprite.AnimationState == CharacterAnimationState.DEAD;
+        private bool IsHit => CharacterSprite.AnimationState == CharacterAnimationState.HIT;
         private bool _isAttacking = false;
         private float _alertTimer = 0f;
         private EnemyAIState _lastAIState = EnemyAIState.Idle;
@@ -441,8 +442,6 @@ namespace WolfensteinInfinite.GameObjects
                 HitPoints = 0;
                 AIState = EnemyAIState.Dead;
                 SpawnDrops(state);
-                // Pick a dying animation that actually exists
-                // Pick whichever dying animations actually exist, randomise only between valid ones
                 var dyingOptions = new List<CharacterAnimationState>();
                 if (CharacterSprite.HasAnimation(CharacterAnimationState.DYING_LEFT))
                     dyingOptions.Add(CharacterAnimationState.DYING_LEFT);
@@ -460,6 +459,11 @@ namespace WolfensteinInfinite.GameObjects
                 state.Game.Map.LevelScore += PointsReward;
                 PlaySound(Enemy.DeathSounds, state);
                 state.OnEnemyKilled();
+            }
+            else
+            {
+                if (CharacterSprite.HasAnimation(CharacterAnimationState.HIT))
+                    SetAnimation(CharacterAnimationState.HIT);
             }
         }
 
@@ -479,7 +483,16 @@ namespace WolfensteinInfinite.GameObjects
             }
 
             if (IsCorpse) return;
-            
+
+            if (IsHit && CharacterSprite.IsHitAnimationComplete)
+            {
+                AIState = EnemyAIState.Chase;
+                _lastAIState = EnemyAIState.Idle; // Force animation update
+                SetAnimationForState(AIState);
+            }
+
+            if (IsHit) return;
+
             var dx = state.Game.Player.PosX - X;
             var dy = state.Game.Player.PosY - Y;
             var distToPlayer = MathF.Sqrt(dx * dx + dy * dy);

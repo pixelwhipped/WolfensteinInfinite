@@ -6,6 +6,7 @@ namespace WolfensteinInfinite.GameGraphics
         STANDING,
         WALKING,
         ATTACKING,
+        HIT,
         DYING_LEFT,
         DYING_RIGHT,
         DEAD,
