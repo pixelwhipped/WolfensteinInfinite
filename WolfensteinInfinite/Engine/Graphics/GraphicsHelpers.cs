@@ -6,6 +6,24 @@ namespace WolfensteinInfinite.Engine.Graphics
 {
     public static class GraphicsHelpers
     {
+        public static Texture32 TintRed(Texture32 source, float intensity)
+        {
+            var ret = new Texture32(source.Width, source.Height);
+            for (int y = 0; y < source.Height; y++)
+            {
+                for (int x = 0; x < source.Width; x++)
+                {
+                    source.GetPixel(x, y, out byte r, out byte g, out byte b, out byte a);
+                    // Add red based on intensity (0-1)
+                    byte newR = (byte)Math.Min(255, r + (int)(intensity * 128));
+                    byte newG = (byte)Math.Max(0, g - (int)(intensity * g * 0.5f)); // Slightly desaturate green
+                    byte newB = (byte)Math.Max(0, b - (int)(intensity * b * 0.5f)); // Slightly desaturate blue
+                    ret.PutPixel(x, y, newR, newG, newB, a);
+                }
+            }
+            return ret;
+        }
+
         public static Texture32 Colorize(float v, Texture32 t)
         {
             var ret = new Texture32(t.Width, t.Height);

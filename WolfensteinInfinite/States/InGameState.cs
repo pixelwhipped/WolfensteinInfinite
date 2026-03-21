@@ -75,6 +75,8 @@ namespace WolfensteinInfinite.States
 
         private float _weaponCooldown = 0f;
         private float _sustainedFireTime = 0f;
+        private float _overheatLevel = 0f; // 0 = cool, 1 = max heat
+        private readonly Dictionary<string, Texture32> _tintedWeaponCache = [];
 
         private bool _mapVisible = false;
         private readonly bool[][] _visited;
@@ -545,7 +547,6 @@ namespace WolfensteinInfinite.States
 
             buffer.Blit(baseX, baseY, w, h, texture);
 
-
             if (WeaponTransitionState.Transitioning) return;
             Wolfenstein.WeaponAnimations[Game.Player.Weapon].InLoop = false;
             var weapon = WeaponTransitionState.TransitionWeapon;
@@ -554,6 +555,25 @@ namespace WolfensteinInfinite.States
 
             bool keyHeld = Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyFire);
             bool isSustainedFire = weapon.MaxFireTime > 0;
+
+            // Update overheat level (0 = cool, 1 = max heat)
+            if (isSustainedFire)
+            {
+                if (keyHeld && ammo > 0 && _weaponCooldown <= 0)
+                {
+                    // Heat up while firing
+                    _overheatLevel = Math.Min(1f, _overheatLevel + frameTime / weapon.MaxFireTime);
+                }
+                else
+                {
+                    // Cool down when not firing
+                    _overheatLevel = Math.Max(0f, _overheatLevel - frameTime * 2f);
+                }
+            }
+            else
+            {
+                _overheatLevel = 0f;
+            }
 
             // Update sustained fire timer
             if (keyHeld && ammo > 0 && isSustainedFire && _weaponCooldown <= 0)
@@ -689,7 +709,21 @@ namespace WolfensteinInfinite.States
             // Current weapon HUD sprite — drawn at x=255, y=4
             if (Wolfenstein.WeaponHudTextures.TryGetValue(WeaponTransitionState.TransitionWeapon.Name, out Texture32? value))
             {
-                HudBuffer.Draw(264, 4, value);
+                if (_overheatLevel > 0)
+                {
+                    // Get or create tinted version
+                    var cacheKey = $"{WeaponTransitionState.TransitionWeapon.Name}_{_overheatLevel:F2}";
+                    if (!_tintedWeaponCache.TryGetValue(cacheKey, out var tinted))
+                    {
+                        tinted = GraphicsHelpers.TintRed(value, _overheatLevel);
+                        _tintedWeaponCache[cacheKey] = tinted;
+                    }
+                    HudBuffer.Draw(264, 4, tinted);
+                }
+                else
+                {
+                    HudBuffer.Draw(264, 4, value);
+                }
             }
 
 
