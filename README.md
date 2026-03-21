@@ -144,7 +144,7 @@ The game supports the following command line arguments:
 |----------|-------------|
 | `-r` | Start a new game immediately (skip title screen) |
 | `-ri` | Start a new game with full ammo, all weapons, and all objectives (testing mode) |
-| `-g <seed>` | Start a new game with a specific map seed (for reproducible level generation) |
+| `-g` | Generate map Image |
 | `-t` | Load `maptestlevel.json` instead of generating a map |
 | `-e` | Enable the built-in map editor |
 
