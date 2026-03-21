@@ -1,6 +1,6 @@
 # Wolfenstein Infinite
 
-> ⚠️ **VERY EARLY BETA — WORK IN PROGRESS**
+> **WORK IN PROGRESS**
 > This project is in active development. Expect bugs, missing features, incomplete systems, and frequent breaking changes. Contributions, feedback, and patience are all very welcome.
 
 ---
