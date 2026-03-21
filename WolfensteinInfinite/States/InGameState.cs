@@ -75,7 +75,6 @@ namespace WolfensteinInfinite.States
 
         private float _weaponCooldown = 0f;
         private float _sustainedFireTime = 0f;
-        private bool _overheated = false;
 
         private bool _mapVisible = false;
         private readonly bool[][] _visited;
@@ -300,8 +299,9 @@ namespace WolfensteinInfinite.States
             if (Game.Player.Ammo.TryGetValue(t, out int value))
                 Game.Player.Ammo[t] = Math.Max(value - 1, 0);
 
-            // Set cooldown for next shot
-            _weaponCooldown = weapon.Cooldown;
+            // Set cooldown for next shot (only for non-sustained fire weapons)
+            if (weapon.MaxFireTime <= 0)
+                _weaponCooldown = weapon.Cooldown;
             if (Wolfenstein.WeaponAudio.TryGetValue(weapon.Name, out CachedSound? audio))
                 AudioPlaybackEngine.Instance.PlaySound(audio);
 
@@ -556,40 +556,42 @@ namespace WolfensteinInfinite.States
             bool isSustainedFire = weapon.MaxFireTime > 0;
 
             // Update sustained fire timer
-            if (keyHeld && !_overheated && ammo > 0 && isSustainedFire)
+            if (keyHeld && ammo > 0 && isSustainedFire && _weaponCooldown <= 0)
             {
                 _sustainedFireTime += frameTime;
                 if (_sustainedFireTime >= weapon.MaxFireTime)
                 {
-                    _overheated = true;
                     _sustainedFireTime = 0f;
+                    _weaponCooldown = weapon.Cooldown; // Start cooldown after max fire time
                 }
             }
 
-            // Reset states when key is released
+            // Reset sustained fire timer when key is released
             if (!keyHeld)
             {
-                _overheated = false;
                 _sustainedFireTime = 0f;
-                _weaponCooldown = 0f;
             }
 
-            bool isFiring = keyHeld && !_overheated;
-
-            // For sustained fire, fire continuously while key held (no cooldown between shots)
-            // For single fire, check cooldown before firing
-            bool canFire = isFiring && ammo > 0;
-            if (!isSustainedFire)
-                canFire = canFire && _weaponCooldown <= 0;
-            // Sustained fire: no cooldown check, animation.Update handles firing rate
+            // For sustained fire: fire if key held, not overheated, and not in cooldown
+            // For single fire: fire if key held, ammo available, and cooldown ready
+            bool canFire = keyHeld && ammo > 0 && _weaponCooldown <= 0;
+            if (isSustainedFire)
+                canFire = canFire && _sustainedFireTime < weapon.MaxFireTime;
 
             if (canFire)
             {
                 Wolfenstein.WeaponAnimations[Game.Player.Weapon].InLoop = true;
                 Wolfenstein.WeaponAnimations[Game.Player.Weapon].Update(frameTime);
             }
-            else if (!isFiring && Wolfenstein.WeaponAnimations[Game.Player.Weapon].CurrentFrame != 0)
+            else if (keyHeld && !isSustainedFire)
             {
+                // Key held but can't fire yet (cooldown) - keep animation running but not in loop
+                Wolfenstein.WeaponAnimations[Game.Player.Weapon].InLoop = false;
+                Wolfenstein.WeaponAnimations[Game.Player.Weapon].Update(frameTime);
+            }
+            else if (keyHeld && Wolfenstein.WeaponAnimations[Game.Player.Weapon].CurrentFrame != 0)
+            {
+                // Key held but in cooldown - continue animation
                 Wolfenstein.WeaponAnimations[Game.Player.Weapon].Update(frameTime);
             }
             else
