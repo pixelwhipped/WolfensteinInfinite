@@ -143,7 +143,7 @@ The game supports the following command line arguments:
 | Argument | Description |
 |----------|-------------|
 | `-r` | Rebild gamedata from provided original game file |
-| `-ri` | same as -r but generate mape images |
+| `-ri` | same as -r but generate map images |
 | `-g` | Generate map Image |
 | `-t` | Load `maptestlevel.json` instead of generating a map |
 | `-e` | Enable the built-in map editor |
