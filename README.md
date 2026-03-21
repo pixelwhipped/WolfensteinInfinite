@@ -1,6 +1,6 @@
 # Wolfenstein Infinite
 
-> **WORK IN PROGRESS**
+> ⚠️ **WORK IN PROGRESS**
 > This project is in active development. Expect bugs, missing features, incomplete systems, and frequent breaking changes. Contributions, feedback, and patience are all very welcome.
 
 ---
@@ -23,16 +23,15 @@ The game is built on a modular architecture — nearly everything from enemies a
 
 ## Status
 
-This is a very early public release. Core systems are in place but many things are incomplete, unbalanced, or actively being worked on. The list includes but is not limited to:
+This is a beta release. Core systems are in place but some things are still being tuned. The list includes but is not limited to:
 
-- Enemy AI is functional but basic
-- Map generation works but needs balance tuning
-- Some animations are not fully wired
-- Music transitions are scaffolded but incomplete
-- Map editor exists but is slow on large section sets
-- Save/load system is in place but not battle tested
-- Many polish items are outstanding
+- Enemy AI with alert chains and flee behavior
+- Map generation with modular section-based system
 - Experimental boss generation
+- Cheat codes for testing
+- Map editor for custom section authoring
+- Save/load system
+- Music and sound effects
 ![Experimental](https://github.com/pixelwhipped/WolfensteinInfinite/blob/master/WolfensteinInfinite/ScreenShots/Capture001.PNG)
 
 If you find bugs — and you will — please open an issue. If you want to contribute, read the modding section below.
@@ -125,6 +124,39 @@ Launch with `-t` to load `maptestlevel.json` directly instead of generating a ma
 ### Enabling the Map Editor
 
 Launch with `-e` to enable the built-in map editor. The editor allows authoring and saving map sections directly. Note: the editor is currently WPF-based and can be slow when loading large section sets — this is a known issue being worked on.
+
+### Cheat Codes
+
+While playing, type these codes to activate cheats:
+
+| Code | Effect |
+|------|--------|
+| `iddqd` | God mode — invincibility and full health |
+| `idkfa` | All weapons, max ammo, all objectives complete |
+| `iddt` | Reveal entire map |
+
+---
+
+## Command Line Arguments
+
+The game supports the following command line arguments:
+
+| Argument | Description |
+|----------|-------------|
+| `-r` | Start a new game immediately (skip title screen) |
+| `-ri` | Start a new game with full ammo, all weapons, and all objectives (testing mode) |
+| `-g <seed>` | Start a new game with a specific map seed (for reproducible level generation) |
+| `-t` | Load `maptestlevel.json` instead of generating a map |
+| `-e` | Enable the built-in map editor |
+
+Examples:
+```
+WolfensteinInfinite.exe -r
+WolfensteinInfinite.exe -ri
+WolfensteinInfinite.exe -g 12345
+WolfensteinInfinite.exe -t
+WolfensteinInfinite.exe -e
+```
 
 ---
 
