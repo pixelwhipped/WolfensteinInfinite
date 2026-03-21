@@ -142,8 +142,8 @@ The game supports the following command line arguments:
 
 | Argument | Description |
 |----------|-------------|
-| `-r` | Start a new game immediately (skip title screen) |
-| `-ri` | Start a new game with full ammo, all weapons, and all objectives (testing mode) |
+| `-r` | Rebild gamedata from provided original game file |
+| `-ri` | same as -r but generate mape images |
 | `-g` | Generate map Image |
 | `-t` | Load `maptestlevel.json` instead of generating a map |
 | `-e` | Enable the built-in map editor |
@@ -152,7 +152,7 @@ Examples:
 ```
 WolfensteinInfinite.exe -r
 WolfensteinInfinite.exe -ri
-WolfensteinInfinite.exe -g 12345
+WolfensteinInfinite.exe -g
 WolfensteinInfinite.exe -t
 WolfensteinInfinite.exe -e
 ```
