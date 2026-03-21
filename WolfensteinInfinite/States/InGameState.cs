@@ -1153,10 +1153,10 @@ namespace WolfensteinInfinite.States
             if (Wolfenstein.Config.LightBlur)
             {
                 // Ensure pooled arrays are sized correctly
+                _blurResult ??= new float[h, w];
                 if (_blurTemp == null || _lastBlurWidth != w || _lastBlurHeight != h)
                 {
-                    _blurTemp = new float[h, w];
-                    _blurResult = new float[h, w];
+                    _blurTemp = new float[h, w];                    
                     _lastBlurWidth = w;
                     _lastBlurHeight = h;
                 }
@@ -1405,9 +1405,9 @@ namespace WolfensteinInfinite.States
             (int)(py + (Game.Player.DirY * 10)),
             255, 255, 0);
         }
-        private void SetupRaycast(Texture32 buffer, int x, out float cameraX, out float rayDirX, out float rayDirY)
+        private void SetupRaycast(Texture32 buffer, int x, out float rayDirX, out float rayDirY)
         {
-            cameraX = 2f * x / buffer.Width - 1f;
+            float cameraX = 2f * x / buffer.Width - 1f;
             rayDirX = Game.Player.DirX + PlaneX * cameraX;
             rayDirY = Game.Player.DirY + PlaneY * cameraX;
         }
@@ -1543,7 +1543,7 @@ namespace WolfensteinInfinite.States
 
         private void CastPushWalls(Texture32 buffer, int x)
         {
-            SetupRaycast(buffer, x, out float cameraX, out float rayDirX, out float rayDirY);
+            SetupRaycast(buffer, x, out float rayDirX, out float rayDirY);
 
             foreach (var wall in Game.Map.PushWalls)
             {
@@ -1652,7 +1652,7 @@ namespace WolfensteinInfinite.States
 
         private void CastDirectionalDecals(Texture32 buffer, int x)
         {
-            SetupRaycast(buffer, x, out float cameraX, out float rayDirX, out float rayDirY);
+            SetupRaycast(buffer, x, out float rayDirX, out float rayDirY);
 
             foreach (var d in Game.Map.Decals)
             {
@@ -1761,7 +1761,7 @@ namespace WolfensteinInfinite.States
         }
         private void CastWalls(Texture32 buffer, int x)
         {
-            SetupRaycast(buffer, x, out float cameraX, out float rayDirX, out float rayDirY);
+            SetupRaycast(buffer, x, out float rayDirX, out float rayDirY);
             //which box of the map we're in
             int mapX = (int)Game.Player.PosX;
             int mapY = (int)Game.Player.PosY;
@@ -1933,7 +1933,7 @@ namespace WolfensteinInfinite.States
 
         private void CastDoors(Texture32 buffer, int x)
         {
-            SetupRaycast(buffer, x, out float cameraX, out float rayDirX, out float rayDirY);
+            SetupRaycast(buffer, x, out float rayDirX, out float rayDirY);
             //which box of the map we're in
             int mapX = (int)Game.Player.PosX;
             int mapY = (int)Game.Player.PosY;
@@ -2205,7 +2205,7 @@ namespace WolfensteinInfinite.States
 
         private void CastFloors(Texture32 buffer, int x)
         {
-            SetupRaycast(buffer, x, out float cameraX, out float rayDirX, out float rayDirY);
+            SetupRaycast(buffer, x, out float rayDirX, out float rayDirY);
 
             //which box of the map we're in
             int mapX = (int)Game.Player.PosX;
