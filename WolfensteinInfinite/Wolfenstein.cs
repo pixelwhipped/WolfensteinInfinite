@@ -22,6 +22,7 @@ namespace WolfensteinInfinite
     {
         public App? Application;
         public Graphics Graphics;
+        public static bool FirstRunRebuild = false;
         public bool IsRunning => Graphics.IsOpen && CurrentState != null;
         public Random Random = new();
         public GameResources GameResources { get; init; }
@@ -358,6 +359,8 @@ namespace WolfensteinInfinite
             if (!File.Exists(file))
             {
                 FileHelpers.Shared.Serialize(Config.GetDefault(), file);
+                if (!(Args.RebuildWithMapImage || Args.Rebuild))
+                    FirstRunRebuild = true;
             }
             return FileHelpers.Shared.Deserialize<Config>(file) ?? Config.GetDefault();
         }
@@ -468,7 +471,7 @@ namespace WolfensteinInfinite
             var mods = new Dictionary<string, Mod>();
             //Check original versions and export mod files
             //foreach (var version in new Extractor(Debugger.IsAttached).GameVersions)
-            foreach (var version in new Extractor(Args.Rebuild || Args.RebuildWithMapImage).GameVersions)
+            foreach (var version in new Extractor(FirstRunRebuild || Args.Rebuild || Args.RebuildWithMapImage).GameVersions)
             {
                 var map = $"WolfensteinInfinite.GameData.{version.Name}.Demo.map.json";
                 var special = $"WolfensteinInfinite.GameData.{version.Name}.Demo.specialmap.json";
