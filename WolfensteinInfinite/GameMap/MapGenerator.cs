@@ -499,7 +499,7 @@ namespace WolfensteinInfinite.GameMap
             floor.Clear(128, 128, 128);
             Texture32? texture = Args.GenerateMapImage ? new Texture32(Width * 64, Height * 64) : null ;
             texture?.Clear(0, 0, 0);
-            var doorList = new List<(int x, int y, int t)>();
+            var doorList = new List<(int x, int y, ModKeyIndex key, int textureIndex)>();
             var decalList = new List<Decal>();
             var itemList = new List<Item>();
             var Map = new Map()
@@ -594,7 +594,7 @@ namespace WolfensteinInfinite.GameMap
                         doorMap[worldY][worldX] = index;
                         wallMap[worldY][worldX] = InGameState.DOOR_TILE;
                         texture?.Draw(worldX * 64, worldY * 64, value.DoorTexture);
-                        doorList.Add((worldX, worldY, index));
+                        doorList.Add((worldX, worldY, key, index));
                     }
                 }
 
@@ -873,15 +873,16 @@ namespace WolfensteinInfinite.GameMap
             Map.Decals = [.. decalList];
             Map.Items = [.. itemList];
             Map.Enemies = [.. enemyPlacements];
-            foreach (var (x, y, t) in doorList)
+            foreach (var (x, y, key, textureIndex) in doorList)
             {
+                if (!Wolfenstein.Doors.TryGetValue(key.Index, out DoorType? doorType)) continue;
                 Map.Doors.Add(new Door
                 {
                     X = x,
                     Y = y,
                     OpenAmount = 0.0f,
-                    TextureIndex = t,
-                    IsLocked = t == 2,
+                    TextureIndex = textureIndex,
+                    IsLocked = doorType.Type == DoorTypes.LOCKED,
                     IsVertical = DetermineDoorOrientation(x, y, wallMap)
                 });
             }

@@ -23,14 +23,14 @@ namespace WolfensteinInfinite.GameObjects
             _placedSprite = placedSprite;
         }
 
-        public bool CanInteract(Game game) =>
+        public bool CanInteract(InGameState state) =>
             !IsPlaced &&
-            game.Map.Objectives.GetValueOrDefault(MapFlags.HAS_BOOM) &&
-            !game.Map.ObjectivesComplete.GetValueOrDefault(MapFlags.HAS_BOOM);
+            state.Game.Map.Objectives.GetValueOrDefault(MapFlags.HAS_BOOM) &&
+            !state.Game.Map.ObjectivesComplete.GetValueOrDefault(MapFlags.HAS_BOOM);
 
-        public InteractResult Interact(Game game, Wolfenstein wolfenstein)
+        public InteractResult Interact(InGameState state)
         {
-            if (!CanInteract(game)) return InteractResult.None;
+            if (!CanInteract(state)) return InteractResult.None;
             IsPlaced = true;
             return InteractResult.None;
         }

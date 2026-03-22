@@ -99,15 +99,19 @@ namespace WolfensteinInfinite.GameObjects
             if (mapY >= 0 && mapY < state.Game.Map.WorldMap.Length &&
                 mapX >= 0 && mapX < state.Game.Map.WorldMap[0].Length)
             {
+                // Pushwalls always block
+                bool pushwallBlocksX = state.Game.Map.PushWalls.Any(w => (int)w.X == mapX && (int)w.Y == curY);
+                bool pushwallBlocksY = state.Game.Map.PushWalls.Any(w => (int)w.X == curX && (int)w.Y == mapY);
+
                 var tileX = state.Game.Map.WorldMap[curY][mapX];
                 var tileY = state.Game.Map.WorldMap[mapY][curX];
 
-                if (tileX == MapSection.ClosedSectionInterior ||
-                    tileX == InGameState.DOOR_TILE)
+                if ((tileX == MapSection.ClosedSectionInterior && !pushwallBlocksX ||
+                    tileX == InGameState.DOOR_TILE) && !pushwallBlocksX)
                     base.X = newX;
 
-                if (tileY == MapSection.ClosedSectionInterior ||
-                    tileY == InGameState.DOOR_TILE)
+                if ((tileY == MapSection.ClosedSectionInterior && !pushwallBlocksY ||
+                    tileY == InGameState.DOOR_TILE) && !pushwallBlocksY)
                     base.Y = newY;
             }
 

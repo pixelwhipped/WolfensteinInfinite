@@ -1,4 +1,5 @@
 //WIP Work in progress
+using Newtonsoft.Json.Bson;
 using SFML.Window;
 using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
@@ -32,10 +33,8 @@ namespace WolfensteinInfinite.States
         private float[] SpriteDistance;
 
         public const int RenderDistance = 10;
-        private static readonly int[] NeighborDX = [-1, 1, 0, 0];
-        private static readonly int[] NeighborDY = [0, 0, -1, 1];
-        private static readonly int[] DoorCheckDX = [0, -1, 1, 0, 0];
-        private static readonly int[] DoorCheckDY = [0, 0, 0, -1, 1];
+        private static readonly int[] NeighborDX = [0, -1, 1, 0, 0];
+        private static readonly int[] NeighborDY = [0, 0, 0, -1, 1];
         private float PlaneX { get => Game.Player.PlaneX; set => Game.Player.PlaneX = value; }
         private float PlaneY { get => Game.Player.PlaneY; set => Game.Player.PlaneY = value; }
 
@@ -283,10 +282,7 @@ namespace WolfensteinInfinite.States
                 ApplyDamage(999); // boom — triggers reset or game over
             }
         }
-        public void AutoSave()
-        {
-            SaveGame.FromGame(Game).Save();
-        }
+        public void AutoSave() => SaveGame.FromGame(Game).Save();
 
         private void WeaponChanged()
         {
@@ -402,6 +398,8 @@ namespace WolfensteinInfinite.States
             if (_pendingExit)
             {
                 _pendingExit = false;
+                buffer.RectFill(0, 0, buffer.Width, buffer.Height,
+                   0, 0, 0, 255);
                 return HandleExit();
             }
 
@@ -495,7 +493,7 @@ namespace WolfensteinInfinite.States
                     Wolfenstein, Game.Player, Game.Map.Difficulty, Game.Map.Level);
             }
 
-            return new LevelCompleteState(Wolfenstein, Game.Player, Game.Map, BuildLevelStats(), nextLevel);
+            return new LevelCompleteState(Wolfenstein, Game.Map, BuildLevelStats(), nextLevel);
         }
 
         public void UpdateWeapon(Texture32 buffer, float frameTime)
@@ -1139,7 +1137,7 @@ namespace WolfensteinInfinite.States
             float moveSpeed = frameTime * 5.0f;
             float rotSpeed = frameTime * 2.0f;
 
-            if (Wolfenstein.Graphics.IsKeyDown(SFML.Window.Keyboard.Key.Up))
+            if (Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Up))
             {
                 var nextX = (int)(Game.Player.PosX + Game.Player.DirX * moveSpeed);
                 var nextY = (int)(Game.Player.PosY + Game.Player.DirY * moveSpeed);
@@ -1157,7 +1155,7 @@ namespace WolfensteinInfinite.States
                     Game.Player.PosY += Game.Player.DirY * moveSpeed;
             }
 
-            if (Wolfenstein.Graphics.IsKeyDown(SFML.Window.Keyboard.Key.Down))
+            if (Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Down))
             {
                 var nextX = (int)(Game.Player.PosX - Game.Player.DirX * moveSpeed);
                 var nextY = (int)(Game.Player.PosY - Game.Player.DirY * moveSpeed);
@@ -1176,7 +1174,7 @@ namespace WolfensteinInfinite.States
             }
 
             //rotate to the right
-            if (Wolfenstein.Graphics.IsKeyDown(SFML.Window.Keyboard.Key.Right))
+            if (Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Right))
             {
                 float oldDirX = Game.Player.DirX;
                 Game.Player.DirX = Game.Player.DirX * MathF.Cos(-rotSpeed) - Game.Player.DirY * MathF.Sin(-rotSpeed);
@@ -1186,7 +1184,7 @@ namespace WolfensteinInfinite.States
                 PlaneY = oldPlaneX * MathF.Sin(-rotSpeed) + PlaneY * MathF.Cos(-rotSpeed);
             }
             //rotate to the left
-            if (Wolfenstein.Graphics.IsKeyDown(SFML.Window.Keyboard.Key.Left))
+            if (Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Left))
             {
                 float oldDirX = Game.Player.DirX;
                 Game.Player.DirX = Game.Player.DirX * MathF.Cos(rotSpeed) - Game.Player.DirY * MathF.Sin(rotSpeed);
@@ -1196,56 +1194,17 @@ namespace WolfensteinInfinite.States
                 PlaneY = oldPlaneX * MathF.Sin(rotSpeed) + PlaneY * MathF.Cos(rotSpeed);
             }
 
-            if (Wolfenstein.Graphics.IsKeyDown(SFML.Window.Keyboard.Key.Space))
+            if (Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Space))
             {
-                var result = TryInteract();
-                if (result == InteractResult.Exited)
-                    _pendingExit = true;
-                else if (result == InteractResult.Activated)
-                {
-                    var exitTextureIdx = Array.FindIndex(
-                        Game.Map.WallSourceIndicies, k => k.Index == 1003);
-                    if (exitTextureIdx >= 0)
-                        Game.Map.WallTextures[exitTextureIdx] =
-                            Wolfenstein.GameResources.ElevatorSwitchDown;
-
-                    _exitActivated = true;
-                    _exitDelay = ExitDelayDuration;
-                    _exitFadeTween.Reset();
-                }
-                else if (result == InteractResult.Locked)
-                {
-                    var nearLockedDoor = Game.Map.Doors.Any(d =>
-                    {
-                        var dx2 = (int)Game.Player.PosX - d.X;
-                        var dy2 = (int)Game.Player.PosY - d.Y;
-                        return d.IsLocked && Math.Abs(dx2) <= 1 && Math.Abs(dy2) <= 1;
-                    });
-
-                    if (nearLockedDoor)
-                    {
-                        ShowHudMessage("KEY REQUIRED");
-                    }
-                    else if (Game.Map.Objectives.GetValueOrDefault(MapFlags.HAS_BOSS) &&
-                             !Game.Map.ObjectivesComplete.GetValueOrDefault(MapFlags.HAS_BOSS))
-                    {
-                        ShowHudMessage("MUST DEFEAT THE BOSS!");
-                    }
-                    else
-                    {
-                        ShowHudMessage("COMPLETE OBJECTIVES FIRST");
-                    }
-                }
-
-            }
-
-            if (Wolfenstein.Graphics.IsKeyDown(SFML.Window.Keyboard.Key.Escape))
-            {
-
+                _ = TryInteract(); //Result shouldn't matter
             }
             _mapVisible = Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyMap);
-            var mapKeyDown = Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyMap);
-
+        }
+        public void ExitLevel()
+        {
+            _exitActivated = true;
+            _exitDelay = ExitDelayDuration;
+            _exitFadeTween.Reset();
         }
         private void UpdateExitDelay(float frameTime)
         {
@@ -1259,6 +1218,9 @@ namespace WolfensteinInfinite.States
         }
         private bool IsDecalPassable(int x, int y)
         {
+            // Pushwalls always block
+            if (Game.Map.PushWalls.Any(w => (int)w.X == x && (int)w.Y == y)) return false;
+
             var decal = Game.Map.Decals.FirstOrDefault(d => d.X == x && d.Y == y);
             return decal == null || decal.Passable;
         }
@@ -1396,13 +1358,13 @@ namespace WolfensteinInfinite.States
 
             interactables = interactables.Concat(dynamicInteractables);
 
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 5; i++)
             {
                 int checkX = playerMapX + NeighborDX[i];
                 int checkY = playerMapY + NeighborDY[i];
 
                 var target = interactables.FirstOrDefault(
-                    d => d.X == checkX && d.Y == checkY && d.CanInteract(Game));
+                    d => d.X == checkX && d.Y == checkY && d.CanInteract(this));
 
                 if (target == null) continue;
 
@@ -1412,8 +1374,9 @@ namespace WolfensteinInfinite.States
                 var dot = Game.Player.DirX * toTargetX + Game.Player.DirY * toTargetY;
                 if (dot <= 0) continue; // target is behind player
 
-                var result = target.Interact(Game, Wolfenstein);
-
+                var result = target.Interact(this);
+                break;
+                /*
                 // Show feedback for radio transmission
                 if (target is RadioObject &&
                     Game.Map.ObjectivesComplete.GetValueOrDefault(MapFlags.HAS_SECRET_MESSAGE))
@@ -1428,7 +1391,7 @@ namespace WolfensteinInfinite.States
                         return d.IsLocked && Math.Abs(dx2) <= 1 && Math.Abs(dy2) <= 1;
                     });
                     ShowHudMessage(nearLockedDoor ? "KEY REQUIRED" : "COMPLETE OBJECTIVES FIRST");
-                }
+                }*/
                 if (result != InteractResult.None)
                     return result;
             }
@@ -1477,8 +1440,8 @@ namespace WolfensteinInfinite.States
 
             for (int i = 0; i < 5; i++)
             {
-                int checkX = playerMapX + DoorCheckDX[i];
-                int checkY = playerMapY + DoorCheckDY[i];
+                int checkX = playerMapX + NeighborDX[i];
+                int checkY = playerMapY + NeighborDY[i];
                 if (door.X == checkX && door.Y == checkY) return false;
             }
 
@@ -1488,8 +1451,8 @@ namespace WolfensteinInfinite.States
                 int ey = (int)e.Y;
                 for (int i = 0; i < 5; i++)
                 {
-                    int checkX = ex + DoorCheckDX[i];
-                    int checkY = ey + DoorCheckDY[i];
+                    int checkX = ex + NeighborDX[i];
+                    int checkY = ey + NeighborDY[i];
                     if (door.X == checkX && door.Y == checkY) return false;
                 }
             }

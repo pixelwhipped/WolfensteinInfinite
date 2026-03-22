@@ -11,9 +11,7 @@ namespace WolfensteinInfinite.States
 {
     public class LevelCompleteState : GameState
     {
-        private readonly Player _player;
         private readonly int _completedLevel;
-        private readonly int _nextLevel;
         private readonly GameState _nextLevelState;
         private bool _ready = false;
         private float _readyTimer = 0f;
@@ -22,12 +20,10 @@ namespace WolfensteinInfinite.States
         //Score, Enemy, Items, Secrets
         private Tween[] Tweens = [new(0.75f, null), new(0.75f, null), new(0.75f, null), new(0.75f, null)];
         private Tween FireSound = new Tween(0.05f,null);
-        public LevelCompleteState(Wolfenstein wolfenstein, Player player, Map map,
+        public LevelCompleteState(Wolfenstein wolfenstein, Map map,
             LevelStats stats, GameState nextLevelState) : base(wolfenstein)
-        {
-            _player = player;
+        {           
             _completedLevel = map.Level - 1;
-            _nextLevel = map.Level;
             _stats = stats;
             _nextLevelState = nextLevelState;
             ReturnState = this;
@@ -109,8 +105,7 @@ namespace WolfensteinInfinite.States
 
             return NextState;
         }
-        private static int Pct(int val, int total) =>
-    total == 0 ? 100 : (int)(val / (float)total * 100f);
+        private static int Pct(int val, int total) => total == 0 ? 100 : (int)(val / (float)total * 100f);
         public override void OnKeyPressed(KeyEventArgs k)
         {
             if (_readyTimer >= MinDisplayTime)

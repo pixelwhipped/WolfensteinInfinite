@@ -11,14 +11,14 @@ namespace WolfensteinInfinite.GameObjects
     public class RadioObject(int x, int y, ISprite sprite) : DynamicObject(x + 0.5f, y + 0.5f, DynamicObjectType.PickupItem, sprite), IInteractable
     {
 
-        public bool CanInteract(Game game) =>
-            game.Map.Objectives.GetValueOrDefault(MapFlags.HAS_SECRET_MESSAGE) &&
-            !game.Map.ObjectivesComplete.GetValueOrDefault(MapFlags.HAS_SECRET_MESSAGE);
+        public bool CanInteract(InGameState state) =>
+            state.Game.Map.Objectives.GetValueOrDefault(MapFlags.HAS_SECRET_MESSAGE) &&
+            !state.Game.Map.ObjectivesComplete.GetValueOrDefault(MapFlags.HAS_SECRET_MESSAGE);
 
-        public InteractResult Interact(Game game, Wolfenstein wolfenstein)
+        public InteractResult Interact(InGameState state)
         {
-            if (!CanInteract(game)) return InteractResult.None;
-            game.Map.ObjectivesComplete[MapFlags.HAS_SECRET_MESSAGE] = true;
+            if (!CanInteract(state)) return InteractResult.None;
+            state.Game.Map.ObjectivesComplete[MapFlags.HAS_SECRET_MESSAGE] = true;
             return InteractResult.None;
         }
 

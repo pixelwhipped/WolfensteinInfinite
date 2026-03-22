@@ -1,5 +1,7 @@
 using WolfensteinInfinite.GameBible;
+using WolfensteinInfinite.States;
 using WolfensteinInfinite.WolfMod;
+using static System.Windows.Forms.AxHost;
 
 namespace WolfensteinInfinite.GameObjects
 {
@@ -31,9 +33,9 @@ namespace WolfensteinInfinite.GameObjects
             _ => 0f
         };
         public void InitRenderPos() { RenderX = X; RenderY = Y; }
-        public bool CanInteract(Game game) => !IsMoving && !IsComplete;
+        public bool CanInteract(InGameState state) => !IsMoving && !IsComplete;
 
-        public InteractResult Interact(Game game, Wolfenstein wolfenstein)
+        public InteractResult Interact(InGameState state)
         {
             if (IsMoving || IsComplete) return InteractResult.None;
             TilesMoved = 0;
@@ -112,7 +114,7 @@ namespace WolfensteinInfinite.GameObjects
                     RenderX = X;
                     RenderY = Y;
                     IsMoving = false;
-                    IsComplete = true;
+                    IsComplete = true;                    
                     return;
                 }
             }

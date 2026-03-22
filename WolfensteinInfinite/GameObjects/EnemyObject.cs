@@ -363,6 +363,10 @@ namespace WolfensteinInfinite.GameObjects
         {
             if (mapY < 0 || mapY >= state.Game.Map.WorldMap.Length) return false;
             if (mapX < 0 || mapX >= state.Game.Map.WorldMap[0].Length) return false;
+
+            // Pushwalls always block
+            if (state.Game.Map.PushWalls.Any(w => (int)w.X == mapX && (int)w.Y == mapY)) return false;
+
             var tile = state.Game.Map.WorldMap[mapY][mapX];
             if (tile == MapSection.ClosedSectionInterior) return true;
             if (tile == InGameState.DOOR_TILE)

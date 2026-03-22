@@ -1,5 +1,6 @@
 ﻿using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.GameMap;
+using WolfensteinInfinite.States;
 
 namespace WolfensteinInfinite.GameObjects
 {
@@ -18,18 +19,21 @@ namespace WolfensteinInfinite.GameObjects
         public bool IsLocked { get; set; }
         public bool IsFake { get; set; }
 
-        public bool CanInteract(Game game) => OpenAmount == 0f;
+        public bool CanInteract(InGameState state) => OpenAmount == 0f;
 
-        public InteractResult Interact(Game game, Wolfenstein wolfenstein)
+        public InteractResult Interact(InGameState state)
         {
             if (IsFake) return InteractResult.Opened;
             if (IsLocked)
             {
-                    if (!game.Map.ObjectivesComplete.GetValueOrDefault(MapFlags.HAS_LOCKED_DOOR))
+                if (!state.Game.Map.ObjectivesComplete.GetValueOrDefault(MapFlags.HAS_LOCKED_DOOR))
+                {
+                    state.ShowHudMessage("KEY REQUIRED");
                     return InteractResult.Locked;
+                }
             }
             IsOpening = true;
-            AudioPlaybackEngine.Instance.PlaySound(wolfenstein.GameResources.Effects["Door"]);
+            AudioPlaybackEngine.Instance.PlaySound(state.GameResources.Effects["Door"]);
             return InteractResult.Opened;
         }
     }
