@@ -25,6 +25,7 @@ namespace WolfensteinInfinite.States
             Level = level;
             ReturnState = this;
             NextState = this;
+            AudioPlaybackEngine.Instance.PlayMusic(Wolfenstein.LevelCompleteMusic);
         }
 
         public override GameState? Update(Texture32 buffer, float frameTime)

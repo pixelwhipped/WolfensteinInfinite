@@ -27,7 +27,7 @@ namespace WolfensteinInfinite.GameObjects
             {
                 var dx = pow.X - X;
                 var dy = pow.Y - Y;
-                if (dx * dx + dy * dy > 4f) // within 2 tiles
+                if (dx * dx + dy * dy > 6f) // within 2 tiles
                 {
                     state.ShowHudMessage("WAIT FOR THE PRISONER!");
                     return InteractResult.Locked;

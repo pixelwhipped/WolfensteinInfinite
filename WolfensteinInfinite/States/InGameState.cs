@@ -472,46 +472,7 @@ namespace WolfensteinInfinite.States
             AutoSave();
             Game.Map.Level++;
 
-            GameState nextLevel;
-
-            if (Wolfenstein.TestMapSections != null && Wolfenstein.TestMapSections.Length >= Game.Map.Level)
-            {
-                nextLevel = new SpecialLevelState(
-                            Wolfenstein,
-                            Game.Player,
-                            Difficulties.CAN_I_PLAY_DADDY,
-                            Game.Map.Level,
-                            Wolfenstein.TestMapSections[Game.Map.Level - 1].mod,
-                            Wolfenstein.TestMapSections[Game.Map.Level - 1].section);
-            }
-            else if (Game.Map.Level % 10 == 0)
-            {
-                var specials = Game.Mods
-                    .Where(m => Wolfenstein.SpecialMaps.ContainsKey(m))
-                    .SelectMany(m => Wolfenstein.SpecialMaps[m].MapSections
-                        .Select(s => (Mod: m, Section: s)))
-                    .ToArray();
-
-                if (specials.Length > 0)
-                {
-                    var chosen = specials[Random.Shared.Next(specials.Length)];
-                    nextLevel = new SpecialLevelState(
-                    Wolfenstein, Game.Player, Game.Map.Difficulty,
-                    Game.Map.Level, chosen.Mod, chosen.Section);
-                }
-                else
-                {
-                    nextLevel = new GameGenerationState(
-                        Wolfenstein, Game.Player, Game.Map.Difficulty, Game.Map.Level);
-                }
-            }
-            else
-            {
-                nextLevel = new GameGenerationState(
-                    Wolfenstein, Game.Player, Game.Map.Difficulty, Game.Map.Level);
-            }
-
-            return new LevelCompleteState(Wolfenstein, Game.Map, BuildLevelStats(), nextLevel);
+            return new LevelCompleteState(Wolfenstein, Game, BuildLevelStats());
         }
 
         public void UpdateWeapon(Texture32 buffer, float frameTime)
@@ -863,6 +824,7 @@ namespace WolfensteinInfinite.States
                     if (powKvp.Value != null &&
                         Wolfenstein.PickupItems.TryGetValue(powKvp.Key, out var powTex))
                     {
+                        ShowHudMessage("GET ME OUTTA HERE");
                         DynamicObjects.Add(new POWCompanionObject(
                             Game.Player.PosX, Game.Player.PosY,
                             Wolfenstein.POWAnimation));

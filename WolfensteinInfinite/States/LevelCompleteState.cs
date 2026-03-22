@@ -3,6 +3,7 @@ using SFML.Window;
 using System.Windows.Controls.Primitives;
 using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
+using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.Utilities;
@@ -12,23 +13,23 @@ namespace WolfensteinInfinite.States
     public class LevelCompleteState : GameState
     {
         private readonly int _completedLevel;
-        private readonly GameState _nextLevelState;
         private bool _ready = false;
         private float _readyTimer = 0f;
         private const float MinDisplayTime = 2.0f;
         private readonly LevelStats _stats;
+        private readonly Game Game;
         //Score, Enemy, Items, Secrets
         private readonly Tween[] Tweens = [new(0.75f, null), new(0.75f, null), new(0.75f, null), new(0.75f, null)];
         private readonly Tween FireSound = new(0.05f,null);
-        public LevelCompleteState(Wolfenstein wolfenstein, Map map,
-            LevelStats stats, GameState nextLevelState) : base(wolfenstein)
-        {           
-            _completedLevel = map.Level - 1;
+        public LevelCompleteState(Wolfenstein wolfenstein, Game game,
+            LevelStats stats) : base(wolfenstein)
+        {
+            Game = game;
+            _completedLevel = game.Map.Level - 1;
             _stats = stats;
-            _nextLevelState = nextLevelState;
             ReturnState = this;
             NextState = this;
-           // AudioPlaybackEngine.Instance.PlayMusic(Wolfenstein.LevelCompleteMusic); 
+            Wolfenstein.PlayMusic(Wolfenstein.LevelCompleteMusic); 
             if(stats.LevelScore == 0) Tweens[0].End();
             if (stats.EnemiesKilled == 0) Tweens[1].End();
             if (stats.ItemsCollected == 0) Tweens[2].End();
@@ -38,7 +39,48 @@ namespace WolfensteinInfinite.States
         public override GameState? Update(Texture32 buffer, float frameTime)
         {
             if (_ready)
-                return _nextLevelState;
+            {
+                GameState nextLevel;
+
+                if (Wolfenstein.TestMapSections != null && Wolfenstein.TestMapSections.Length >= Game.Map.Level)
+                {
+                    nextLevel = new SpecialLevelState(
+                                Wolfenstein,
+                                Game.Player,
+                                Difficulties.CAN_I_PLAY_DADDY,
+                                Game.Map.Level,
+                                Wolfenstein.TestMapSections[Game.Map.Level - 1].mod,
+                                Wolfenstein.TestMapSections[Game.Map.Level - 1].section);
+                }
+                else if (Game.Map.Level % 10 == 0)
+                {
+                    var specials = Game.Mods
+                        .Where(m => Wolfenstein.SpecialMaps.ContainsKey(m))
+                        .SelectMany(m => Wolfenstein.SpecialMaps[m].MapSections
+                            .Select(s => (Mod: m, Section: s)))
+                        .ToArray();
+
+                    if (specials.Length > 0)
+                    {
+                        var chosen = specials[Random.Shared.Next(specials.Length)];
+                        nextLevel = new SpecialLevelState(
+                        Wolfenstein, Game.Player, Game.Map.Difficulty,
+                        Game.Map.Level, chosen.Mod, chosen.Section);
+                    }
+                    else
+                    {
+                        nextLevel = new GameGenerationState(
+                            Wolfenstein, Game.Player, Game.Map.Difficulty, Game.Map.Level);
+                    }
+                }
+                else
+                {
+                    nextLevel = new GameGenerationState(
+                        Wolfenstein, Game.Player, Game.Map.Difficulty, Game.Map.Level);
+                }
+                return nextLevel;
+            }
+                
 
             _readyTimer += frameTime;
 
