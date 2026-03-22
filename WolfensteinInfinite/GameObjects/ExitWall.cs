@@ -1,4 +1,5 @@
-﻿using WolfensteinInfinite.Engine.Audio;
+﻿using System.Drawing;
+using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.States;
 
 namespace WolfensteinInfinite.GameObjects
@@ -20,6 +21,18 @@ namespace WolfensteinInfinite.GameObjects
                     state.ShowHudMessage("COMPLETE OBJECTIVES FIRST");
                     return InteractResult.Locked;
                 }
+            // If there is a POW companion, they must have made it to the exit too
+            var pow = state.DynamicObjects.OfType<POWCompanionObject>().FirstOrDefault();
+            if (pow != null)
+            {
+                var dx = pow.X - X;
+                var dy = pow.Y - Y;
+                if (dx * dx + dy * dy > 4f) // within 2 tiles
+                {
+                    state.ShowHudMessage("WAIT FOR THE PRISONER!");
+                    return InteractResult.Locked;
+                }
+            }
             var exitTextureIdx = Array.FindIndex(
                        state.Game.Map.WallSourceIndicies, k => k.Index == 1003);
             if (exitTextureIdx >= 0)

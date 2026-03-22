@@ -218,6 +218,14 @@ namespace WolfensteinInfinite
             WeaponAnimations.Add("MachineGun", AnimationHelpers.Create(PlayerWeapons["MachineGun"]));
             WeaponAnimations.Add("ChainGun", AnimationHelpers.Create(PlayerWeapons["ChainGun"]));
 
+            POWAnimation = new Animation(new Texture32[]
+            {
+                FileHelpers.Shared.LoadSurface32("GameData\\Base\\Sprites\\0.png"),
+                FileHelpers.Shared.LoadSurface32("GameData\\Base\\Sprites\\1.png"),
+                FileHelpers.Shared.LoadSurface32("GameData\\Base\\Sprites\\2.png"),
+                FileHelpers.Shared.LoadSurface32("GameData\\Base\\Sprites\\4.png"),
+            }, 1, 4, 4);
+
             foreach (var w in PlayerWeapons.Values)
             {
                 if (w.Sound != null)
@@ -636,6 +644,8 @@ namespace WolfensteinInfinite
             }
         }
         public RGBA8[]? PreserveColors { get; set; }
+        public Animation POWAnimation { get; private set; }
+
         private void RenderQuantize(int colors)
         {
             var originalPallet = Graphics.Pallet;

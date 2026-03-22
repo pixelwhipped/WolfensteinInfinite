@@ -856,6 +856,7 @@ namespace WolfensteinInfinite.States
 
                 case "POW":
                     Game.Map.Objectives[MapFlags.HAS_POW] = true;
+                    Game.Map.ObjectivesComplete.TryAdd(MapFlags.HAS_POW, true);
                     // Spawn companion at pickup location
                     var powKvp = Wolfenstein.PickupItemTypes
                         .FirstOrDefault(p => p.Value.Name == "POW");
@@ -864,7 +865,7 @@ namespace WolfensteinInfinite.States
                     {
                         DynamicObjects.Add(new POWCompanionObject(
                             Game.Player.PosX, Game.Player.PosY,
-                            new StaticSprite(powTex)));
+                            Wolfenstein.POWAnimation));
                     }
                     break;
             }
@@ -2264,15 +2265,17 @@ namespace WolfensteinInfinite.States
             float doorDarkening = 0.85f;
 
             bool anyOpaque = false;
+            bool anyTransparent = false;  
             for (int y = drawStart; y <= drawEnd; y++)
             {
                 int texY = (int)texPos & (texHeight - 1);
                 texPos += step;
                 var bl = Math.Min((side == 1 ? 0.5f * dist : 1f * dist) * doorDarkening + lightBoost * LightIntensity, 1f);
                 doorTexture.GetPixel(texX, texY, out byte r, out byte g, out byte b, out byte a);
-                if (a == 0) continue;
+                if (a == 0) { anyTransparent = true; continue; }
                 if (a < 255)
                 {
+                    anyTransparent = true;  
                     buffer.GetPixel(x, y, out byte br, out byte bg, out byte bb, out _);
                     float fa = a / 255f;
                     r = (byte)(r * fa * bl + br * (1f - fa));
@@ -2286,8 +2289,10 @@ namespace WolfensteinInfinite.States
                     anyOpaque = true;
                 }
             }
-            // Only set ZBuffer if door had opaque pixels — lets sprites show through transparent areas
-            if (anyOpaque)
+            // Only block sprites if the column was entirely opaque.
+            // A mixed column must leave ZBuffer at the wall distance so sprites
+            // behind transparent regions can still render and alpha-blend correctly.
+            if (anyOpaque && !anyTransparent)
                 ZBuffer[x] = perpWallDist;
         }
 
