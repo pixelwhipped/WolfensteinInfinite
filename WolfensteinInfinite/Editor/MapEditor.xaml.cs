@@ -1216,7 +1216,6 @@ namespace WolfensteinInfinite.Editor
             foreach (var s in builder.MapSections)
                 s.Layers = MapSection.Trim(s);
 
-
             var target = SaveTargetSelection.SelectedItem as string ?? "map.json";
             if (target != "maptestlevel.json")
                 if (!builder.Validate(out errors)) return false;
@@ -1227,7 +1226,10 @@ namespace WolfensteinInfinite.Editor
                 if (!FileHelpers.Shared.Serialize(builder, file)) throw new Exception();
                 ChangeStates[mod] = false;
                 if (ActiveSection != null) ActiveSection.Layers = MapSection.Expand(ActiveSection);
-                Wolfenstein.ReloadMod(mod.Name);
+
+                // Always reload the base mod (map pool, textures, etc.)
+                Wolfenstein.ReloadMod(mod.Name);                
+
                 return true;
             }
             catch
@@ -1316,28 +1318,33 @@ namespace WolfensteinInfinite.Editor
             LevelLabel.Content = $"Level {ActiveSection.IntendedMinLevel}";
         }
 
-        /*private void DuplicateBtn_Click(object sender, RoutedEventArgs e)
-        {
-            if (ActiveMod == null || ActiveSection == null) return;
-            MapSectionSelection.SelectionChanged -= MapSectionSelection_SelectionChanged;
-            var builder = Wolfenstein.BuilderMods[ActiveMod.Name];
-            var section = ActiveSection.Clone();
-            section.Id = builder.MapSections.Length;
-            MapSectionSelection.Items.Insert(MapSectionSelection.Items.IndexOf("New"), section.Id.ToString());
-            MapSectionSelection.SelectedIndex = MapSectionSelection.Items.IndexOf(section.Id.ToString());
-            MapSectionSelection.SelectionChanged += MapSectionSelection_SelectionChanged;
-            builder.MapSections = [.. builder.MapSections, section];
-            SetMapSectionSelections(section.Id);
-        }*/
         private void DuplicateBtn_Click(object sender, RoutedEventArgs e)
         {
             if (ActiveMod == null || ActiveSection == null) return;
             var builder = Wolfenstein.BuilderMods[ActiveMod.Name];
+            var target = SaveTargetSelection.SelectedItem as string ?? "map.json";
+
+            // Always derive the canonical section list from the correct file,
+            // not from whatever BuilderMods.MapSections currently holds —
+            // that gets swapped out when SaveTargetSelection changes.
+            var currentSections = LoadSectionsForTarget(ActiveMod.Name, target);
+
+            // Guard: ActiveSection must actually belong to the current target.
+            // If the user switched targets without saving, ActiveSection is stale.
+            if (!currentSections.Any(s => s.Id == ActiveSection.Id))
+            {
+                MessageBox.Show(
+                    "Switch to the section's file before duplicating.",
+                    "Wrong target", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             var section = ActiveSection.Clone();
-            section.Id = builder.MapSections.Length > 0
-                ? builder.MapSections.Max(s => s.Id) + 1
+            section.Id = currentSections.Length > 0
+                ? currentSections.Max(s => s.Id) + 1
                 : 0;
-            builder.MapSections = [.. builder.MapSections, section];
+
+            builder.MapSections = [.. currentSections, section];
             ChangeStates[ActiveMod] = true;
             RefreshSectionDropdown(section.Id);
         }

@@ -353,7 +353,13 @@ namespace WolfensteinInfinite.States
                     if (my < 0 || my >= Game.Map.WorldMap.Length ||
                         mx < 0 || mx >= Game.Map.WorldMap[0].Length) break;
                     if (Game.Map.WorldMap[my][mx] >= 0) break;
-
+                    // Stop at closed doors unless it's a prison door (TextureIndex == 3)
+                    if (Game.Map.WorldMap[my][mx] == DOOR_TILE)
+                    {
+                        var door = GetDoorAt(mx, my);
+                        if (door != null && door.OpenAmount < 0.5f && door.TextureIndex != 3)
+                            break;
+                    }
                     var hit = DynamicObjects.OfType<EnemyObject>()
                         .FirstOrDefault(e => e.IsAlive &&
                             (int)e.X == mx && (int)e.Y == my);

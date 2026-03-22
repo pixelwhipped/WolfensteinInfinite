@@ -249,12 +249,20 @@ namespace WolfensteinInfinite.GameObjects
                 X = newX;
                 movedX = true;
             }
+            else
+            {
+                TryOpenDoorToward(mapX, curY, state); // ← blocked on X, try opening door
+            }
             if (mapY >= 0 && mapY < state.Game.Map.WorldMap.Length &&
                 mapX >= 0 && mapX < state.Game.Map.WorldMap[0].Length &&
                 CanMoveY(curX, newY))
             {
                 Y = newY;
                 movedY = true;
+            }
+            else
+            {
+                TryOpenDoorToward(mapX, curY, state); // ← blocked on X, try opening door
             }
 
             // Corner nudge — if completely blocked try sliding along either axis
@@ -264,36 +272,24 @@ namespace WolfensteinInfinite.GameObjects
                     X = newX;
                 else if (CanMoveY(curX, newY))
                     Y = newY;
-            }
-            /*
-            bool movedX = false, movedY = false;
+            }           
+        }
+        private void TryOpenDoorToward(int targetMapX, int targetMapY, InGameState state)
+        {
+            // Check the tile the enemy is trying to enter
+            if (targetMapY < 0 || targetMapY >= state.Game.Map.WorldMap.Length ||
+                targetMapX < 0 || targetMapX >= state.Game.Map.WorldMap[0].Length) return;
 
-            if (mapY >= 0 && mapY < state.Game.Map.WorldMap.Length &&
-                mapX >= 0 && mapX < state.Game.Map.WorldMap[0].Length &&
-                IsPassable(state, mapX, curY))
-            {
-                X = newX;
-                movedX = true;
-            }
+            if (state.Game.Map.WorldMap[targetMapY][targetMapX] != InGameState.DOOR_TILE) return;
 
-            if (mapY >= 0 && mapY < state.Game.Map.WorldMap.Length &&
-                mapX >= 0 && mapX < state.Game.Map.WorldMap[0].Length &&
-                IsPassable(state, curX, mapY))
-            {
-                Y = newY;
-                movedY = true;
-            }
+            var door = state.Game.Map.Doors.FirstOrDefault(d => d.X == targetMapX && d.Y == targetMapY);
+            if (door == null) return;
+            if (door.IsFake) return;
+            if (door.TextureIndex == 3) return; // prison doors stay shut for enemies
+            if (door.IsLocked) return;          // locked doors need the key
+            if (door.IsOpening || door.OpenAmount > 0f) return; // already opening/open
 
-            // Corner nudge — if completely blocked try sliding along either axis
-            if (!movedX && !movedY)
-            {
-                // Try pure X slide
-                if (MathF.Abs(nx) > MathF.Abs(ny) && IsPassable(state, mapX, curY))
-                    X = newX;
-                // Try pure Y slide
-                else if (IsPassable(state, curX, mapY))
-                    Y = newY;
-            }*/
+            door.IsOpening = true;
         }
 
         private void TryMoveAwayFromPlayer(float frameTime, InGameState state)
@@ -394,7 +390,7 @@ namespace WolfensteinInfinite.GameObjects
             var weapon = _activeWeapon.Value.weapon;
 
             // On cooldown — wait it out
-            if (_attackCooldown > 0)
+            if (_attackCooldown > 0)    
             {
                 _attackCooldown -= frameTime;
                 if (_isAttacking && CharacterSprite.IsAttackAnimationComplete)
@@ -422,7 +418,8 @@ namespace WolfensteinInfinite.GameObjects
             if (_fireShotTimer <= 0f)
             {
                 _fireShotTimer = ShotInterval;
-                FireShot(projectile, weapon, distToPlayer, state);
+                if (CharacterSprite.AnimationState == CharacterAnimationState.ATTACKING)
+                    FireShot(projectile, weapon, distToPlayer, state);
             }
 
             // Check if we need to go on cooldown
