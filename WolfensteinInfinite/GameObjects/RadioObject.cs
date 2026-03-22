@@ -8,7 +8,7 @@ namespace WolfensteinInfinite.GameObjects
     // -------------------------------------------------------------------------
     // RadioObject — stays on map, becomes interactable when player has secret
     // -------------------------------------------------------------------------
-    public class RadioObject(int x, int y, ISprite sprite) : DynamicObject(x + 0.5f, y + 0.5f, DynamicObjectType.PickupItem, sprite), IInteractable
+    public class RadioObject(float x, float y, ISprite sprite) : DynamicObject(x, y, DynamicObjectType.PickupItem, sprite), IInteractable
     {
 
         public bool CanInteract(InGameState state) =>

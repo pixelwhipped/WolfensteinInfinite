@@ -9,6 +9,7 @@ using WolfensteinInfinite.GameMap;
 using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
+using static System.Windows.Forms.AxHost;
 
 namespace WolfensteinInfinite.States
 {
@@ -177,7 +178,7 @@ namespace WolfensteinInfinite.States
         private void RebuildDynamicObjects()
         {
 
-            DynamicObjects.Clear();
+        DynamicObjects.Clear();
 
             foreach (var d in Game.Map.Decals)
             {
@@ -193,7 +194,7 @@ namespace WolfensteinInfinite.States
                 if (itemType.Name == "Radio")
                 {
                     // Radio stays on map as interactable — never gets picked up
-                    DynamicObjects.Add(new RadioObject(d.X, d.Y, sprite));
+                    DynamicObjects.Add(new RadioObject(d.X + 0.5f, d.Y + 0.5f, sprite));
                 }
                 else if (itemType.Name == "DynamiteToPlace")
                 {
@@ -204,7 +205,7 @@ namespace WolfensteinInfinite.States
                         Wolfenstein.PickupItems.TryGetValue(placedKvp.Key, out var pt)
                         ? new StaticSprite(pt)
                         : sprite;
-                    DynamicObjects.Add(new DynamitePlacementObject(d.X, d.Y, sprite, placedSprite));
+                     DynamicObjects.Add(new DynamitePlacementObject(d.X + 0.5f, d.Y + 0.5f, sprite, placedSprite));
                 }
                 else
                 {
@@ -287,7 +288,7 @@ namespace WolfensteinInfinite.States
             if (_dynamiteCountdown <= 0)
             {
                 _dynamiteCountdownActive = false;
-                Game.Map.ObjectivesComplete[MapFlags.HAS_BOOM] = false;
+                //Game.Map.ObjectivesComplete[MapFlags.HAS_BOOM] = false;
                 ApplyDamage(999); // boom — triggers reset or game over
             }
         }
@@ -440,6 +441,14 @@ namespace WolfensteinInfinite.States
                     0, 0, 0, (byte)(255 * _exitFadeTween.Value));
             DamageTween.Update(frameTime);
             PickupTween.Update(frameTime);
+            if (_dynamiteCountdownActive)
+            {
+                var countStr = ((int)_dynamiteCountdown).ToString();
+                var (cw, _) = Wolfenstein.GameResources.LargeFont.MeasureString(countStr);
+                buffer.DrawString((buffer.Width/2) - (cw / 2), 14, countStr,
+                    Wolfenstein.GameResources.LargeFont,
+                    _dynamiteCountdown < 10f ? RGBA8.RED : RGBA8.YELLOW);
+            }
             buffer.RectFill(0, 0, buffer.Width, buffer.Height, 255, 0, 0,
                 (byte)(255 * DamageTween.Value));
             return NextState;
@@ -637,6 +646,9 @@ namespace WolfensteinInfinite.States
         }
         public void ResetGame()
         {
+            _dynamiteCountdown = 0f;
+            _dynamiteCountdownActive = false;
+            Game.Map.ObjectivesComplete.Clear();
             // Reset player state — keep score, lives, objectives
             Game.Player.Health = 100;
             Game.Player.Weapon = "Pistol";
@@ -751,15 +763,7 @@ namespace WolfensteinInfinite.States
                 HudBuffer.Draw(251, objY, DoneObj(MapFlags.HAS_BOOM)
                     ? Wolfenstein.GameResources.DynamiteOn
                     : Wolfenstein.GameResources.DynamiteOff);
-                objY += 20;
-                if (_dynamiteCountdownActive)
-                {
-                    var countStr = ((int)_dynamiteCountdown).ToString();
-                    var (cw, _) = Wolfenstein.GameResources.TinyFont.MeasureString(countStr);
-                    HudBuffer.DrawString(241 - cw / 2, 14, countStr,
-                        Wolfenstein.GameResources.TinyFont,
-                        _dynamiteCountdown < 10f ? RGBA8.RED : RGBA8.YELLOW);
-                }
+                objY += 20;                
             }
             if (HasObj(MapFlags.HAS_SECRET_MESSAGE))
             {
@@ -836,12 +840,15 @@ namespace WolfensteinInfinite.States
                     break;
 
                 case "Secret":
-                    Game.Map.Objectives[MapFlags.HAS_SECRET_MESSAGE] = true;
+                    Game.Map.ObjectivesComplete[MapFlags.HAS_SECRET_MESSAGE] = true;
                     // Radio stays on map — player must interact with it to complete
                     break;
 
                 case "Dynamite":
-                    Game.Map.Objectives[MapFlags.HAS_BOOM] = true;
+                    Game.Map.ObjectivesComplete[MapFlags.HAS_BOOM] = true;
+                    Game.Map.Objectives.TryAdd(MapFlags.HAS_EXPLOSIVE_SET, true);
+                    Game.Map.ObjectivesComplete.TryAdd(MapFlags.HAS_EXPLOSIVE_SET, false);
+                    
                     // Placement spots already in scene — player uses Space to place
                     break;
 
@@ -1397,7 +1404,7 @@ namespace WolfensteinInfinite.States
                 int checkY = playerMapY + NeighborDY[i];
 
                 var target = interactables.FirstOrDefault(
-                    d => d.X == checkX && d.Y == checkY && d.CanInteract(this));
+                    d => (int)d.X == checkX && (int)d.Y == checkY && d.CanInteract(this));
 
                 if (target == null) continue;
 

@@ -594,7 +594,8 @@ namespace WolfensteinInfinite.GameMap
                         doorMap[worldY][worldX] = index;
                         wallMap[worldY][worldX] = InGameState.DOOR_TILE;
                         texture?.Draw(worldX * 64, worldY * 64, value.DoorTexture);
-                        doorList.Add((worldX, worldY, key, index));
+                        if (!doorList.Any(d=>d.x==worldX&&d.y==worldY))
+                            doorList.Add((worldX, worldY, key, index));
                     }
                 }
 

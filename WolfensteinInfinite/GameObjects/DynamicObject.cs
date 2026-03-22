@@ -10,7 +10,7 @@ namespace WolfensteinInfinite.GameObjects
         public float YOffset { get; set; } = 0f;
         public bool IsAlive { get; set; } = true;
         public DynamicObjectType ObjectType { get; } = type;
-        public ISprite Sprite { get; } = sprite;
+        public ISprite Sprite { get;  set; } = sprite;
 
         public abstract void Update(float frameTime, InGameState state);
     }
