@@ -1407,7 +1407,11 @@ namespace WolfensteinInfinite.States
                 }
                 else if (door.IsClosing)
                 {
-                    if (!DoorCanClose(door)) continue;
+                    if (!DoorCanClose(door))
+                    {
+                        door.IsOpening = true;
+                        continue;
+                    }
                     door.OpenAmount -= door.OpenSpeed * deltaTime;
                     if (door.OpenAmount <= 0.0f)
                     {
