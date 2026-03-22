@@ -456,7 +456,7 @@ namespace WolfensteinInfinite.States
 
             GameState nextLevel;
 
-            if (Wolfenstein.TestMapSections != null && Wolfenstein.TestMapSections.Length < Game.Map.Level - 1)
+            if (Wolfenstein.TestMapSections != null && Wolfenstein.TestMapSections.Length >= Game.Map.Level)
             {
                 nextLevel = new SpecialLevelState(
                             Wolfenstein,
@@ -974,16 +974,41 @@ namespace WolfensteinInfinite.States
         {
             return key switch
             {
-                Keyboard.Key.A => 'a', Keyboard.Key.B => 'b', Keyboard.Key.C => 'c', Keyboard.Key.D => 'd',
-                Keyboard.Key.E => 'e', Keyboard.Key.F => 'f', Keyboard.Key.G => 'g', Keyboard.Key.H => 'h',
-                Keyboard.Key.I => 'i', Keyboard.Key.J => 'j', Keyboard.Key.K => 'k', Keyboard.Key.L => 'l',
-                Keyboard.Key.M => 'm', Keyboard.Key.N => 'n', Keyboard.Key.O => 'o', Keyboard.Key.P => 'p',
-                Keyboard.Key.Q => 'q', Keyboard.Key.R => 'r', Keyboard.Key.S => 's', Keyboard.Key.T => 't',
-                Keyboard.Key.U => 'u', Keyboard.Key.V => 'v', Keyboard.Key.W => 'w', Keyboard.Key.X => 'x',
-                Keyboard.Key.Y => 'y', Keyboard.Key.Z => 'z',
-                Keyboard.Key.Num0 => '0', Keyboard.Key.Num1 => '1', Keyboard.Key.Num2 => '2',
-                Keyboard.Key.Num3 => '3', Keyboard.Key.Num4 => '4', Keyboard.Key.Num5 => '5',
-                Keyboard.Key.Num6 => '6', Keyboard.Key.Num7 => '7', Keyboard.Key.Num8 => '8',
+                Keyboard.Key.A => 'a',
+                Keyboard.Key.B => 'b',
+                Keyboard.Key.C => 'c',
+                Keyboard.Key.D => 'd',
+                Keyboard.Key.E => 'e',
+                Keyboard.Key.F => 'f',
+                Keyboard.Key.G => 'g',
+                Keyboard.Key.H => 'h',
+                Keyboard.Key.I => 'i',
+                Keyboard.Key.J => 'j',
+                Keyboard.Key.K => 'k',
+                Keyboard.Key.L => 'l',
+                Keyboard.Key.M => 'm',
+                Keyboard.Key.N => 'n',
+                Keyboard.Key.O => 'o',
+                Keyboard.Key.P => 'p',
+                Keyboard.Key.Q => 'q',
+                Keyboard.Key.R => 'r',
+                Keyboard.Key.S => 's',
+                Keyboard.Key.T => 't',
+                Keyboard.Key.U => 'u',
+                Keyboard.Key.V => 'v',
+                Keyboard.Key.W => 'w',
+                Keyboard.Key.X => 'x',
+                Keyboard.Key.Y => 'y',
+                Keyboard.Key.Z => 'z',
+                Keyboard.Key.Num0 => '0',
+                Keyboard.Key.Num1 => '1',
+                Keyboard.Key.Num2 => '2',
+                Keyboard.Key.Num3 => '3',
+                Keyboard.Key.Num4 => '4',
+                Keyboard.Key.Num5 => '5',
+                Keyboard.Key.Num6 => '6',
+                Keyboard.Key.Num7 => '7',
+                Keyboard.Key.Num8 => '8',
                 Keyboard.Key.Num9 => '9',
                 _ => null
             };
@@ -1280,7 +1305,7 @@ namespace WolfensteinInfinite.States
                 _blurResult ??= new float[h, w];
                 if (_blurTemp == null || _lastBlurWidth != w || _lastBlurHeight != h)
                 {
-                    _blurTemp = new float[h, w];                    
+                    _blurTemp = new float[h, w];
                     _lastBlurWidth = w;
                     _lastBlurHeight = h;
                 }
@@ -1544,6 +1569,7 @@ namespace WolfensteinInfinite.States
                 .Where(o => o.IsAlive)
                 .Where(o =>
                 {
+                    if (o is DecalObject { Decal.Direction: not Direction.NONE }) return false;
                     var dx = Game.Player.PosX - o.X;
                     var dy = Game.Player.PosY - o.Y;
                     return (dx * dx + dy * dy) <= RenderDistance * RenderDistance;
@@ -1570,24 +1596,6 @@ namespace WolfensteinInfinite.States
             for (int i = 0; i < living.Length; i++)
             {
                 var obj = living[SpriteOrder[i]];
-
-                // Directional decals are rendered as wall-planes (not as sprites).
-                if (obj is DecalObject { Decal.Direction: not Direction.NONE })
-                    continue;
-
-                // For directional decals, cull if player is on the wrong side
-                if (obj is DecalObject decalObj && decalObj.Decal.Direction != Direction.NONE)
-                {
-                    bool visible = decalObj.Decal.Direction switch
-                    {
-                        Direction.NORTH => Game.Player.PosY < decalObj.Decal.Y,
-                        Direction.SOUTH => Game.Player.PosY > decalObj.Decal.Y,
-                        Direction.EAST => Game.Player.PosX > decalObj.Decal.X,
-                        Direction.WEST => Game.Player.PosX < decalObj.Decal.X,
-                        _ => true
-                    };
-                    if (!visible) continue;
-                }
 
                 // Replace the current angle block and texture fetch:
                 float angleToPlayer = 0f;
@@ -2059,103 +2067,80 @@ namespace WolfensteinInfinite.States
         private void CastDoors(Texture32 buffer, int x)
         {
             SetupRaycast(buffer, x, out float rayDirX, out float rayDirY);
-            //which box of the map we're in
+
             int mapX = (int)Game.Player.PosX;
             int mapY = (int)Game.Player.PosY;
-            //length of ray from current position to next x or y-side
-            float sideDistX;
-            float sideDistY;
-            //length of ray from one x or y-side to next x or y-side
+
+            float sideDistX, sideDistY;
             float deltaDistX = (rayDirX == 0) ? float.MaxValue : MathF.Abs(1f / rayDirX);
             float deltaDistY = (rayDirY == 0) ? float.MaxValue : MathF.Abs(1f / rayDirY);
-            float perpWallDist;
-            //what direction to step in x or y-direction (either +1 or -1)
-            int stepX;
-            int stepY;
-            int hit = 0; //was there a wall hit?
-            int side = 0; //was a NS or a EW wall hit?
-            Door? door = null;
-            //calculate step and initial sideDist
-            if (rayDirX < 0)
+
+            int stepX, stepY, side = 0;
+
+            if (rayDirX < 0) { stepX = -1; sideDistX = (Game.Player.PosX - mapX) * deltaDistX; }
+            else { stepX = 1; sideDistX = (mapX + 1.0f - Game.Player.PosX) * deltaDistX; }
+            if (rayDirY < 0) { stepY = -1; sideDistY = (Game.Player.PosY - mapY) * deltaDistY; }
+            else { stepY = 1; sideDistY = (mapY + 1.0f - Game.Player.PosY) * deltaDistY; }
+
+            // Collect every door this ray passes through, in front-to-back order.
+            // We do NOT mutate sideDistX/Y here — adjustedDist carries each door's own perpWallDist.
+            List<(Door door, float perpWallDist, int side, int mapX, int mapY)>? hits = null;
+
+            while (true)
             {
-                stepX = -1;
-                sideDistX = (Game.Player.PosX - mapX) * deltaDistX;
-            }
-            else
-            {
-                stepX = 1;
-                sideDistX = (mapX + 1.0f - Game.Player.PosX) * deltaDistX;
-            }
-            if (rayDirY < 0)
-            {
-                stepY = -1;
-                sideDistY = (Game.Player.PosY - mapY) * deltaDistY;
-            }
-            else
-            {
-                stepY = 1;
-                sideDistY = (mapY + 1.0f - Game.Player.PosY) * deltaDistY;
-            }
-            //perform DDA
-            while (hit == 0)
-            {
-                //jump to next map square, either in x-direction, or in y-direction
-                if (sideDistX < sideDistY)
-                {
-                    sideDistX += deltaDistX;
-                    mapX += stepX;
-                    side = 0;
-                }
-                else
-                {
-                    sideDistY += deltaDistY;
-                    mapY += stepY;
-                    side = 1;
-                }
+                if (sideDistX < sideDistY) { sideDistX += deltaDistX; mapX += stepX; side = 0; }
+                else { sideDistY += deltaDistY; mapY += stepY; side = 1; }
+
                 var currentDist = side == 0 ? sideDistX - deltaDistX : sideDistY - deltaDistY;
-                if (currentDist > RenderDistance) return;
+                if (currentDist > RenderDistance) break;
 
                 if (mapX < 0 || mapX > Game.Map.WorldMap[0].Length - 1 ||
-                    mapY < 0 || mapY > Game.Map.WorldMap.Length - 1) return;
+                    mapY < 0 || mapY > Game.Map.WorldMap.Length - 1) break;
 
-                if (Game.Map.WorldMap[mapY][mapX] == DOOR_TILE)
+                int cell = Game.Map.WorldMap[mapY][mapX];
+
+                // Solid wall — nothing further can be visible.
+                if (cell >= 0 && cell != DOOR_TILE) break;
+
+                if (cell == DOOR_TILE)
                 {
-                    door = GetDoorAt(mapX, mapY);
+                    var door = GetDoorAt(mapX, mapY);
                     if (door != null)
                     {
                         float doorHitPoint = CalculateDoorIntersection(mapX, mapY, rayDirX, rayDirY,
                             side, stepX, stepY, door, out float adjustedDist);
+
                         if (doorHitPoint >= 0.0f)
                         {
-                            hit = 1;
-                            if (side == 0) sideDistX = adjustedDist + deltaDistX;
-                            else sideDistY = adjustedDist + deltaDistY;
+                            // adjustedDist == perpWallDist for this door (the inset hit distance)
+                            hits ??= new List<(Door, float, int, int, int)>();
+                            hits.Add((door, adjustedDist, side, mapX, mapY));
+                            // Do NOT break — continue marching to find any doors behind this one.
+                            // The loop will stop naturally at a solid wall or render distance.
                         }
+                        // Ray passes through the open gap — DDA simply continues.
                     }
                 }
             }
-            if (door != null)
+
+            if (hits == null) return;
+
+            // Render back-to-front (farthest first) so transparent doors
+            // composite correctly over whatever is already in the buffer.
+            for (int i = hits.Count - 1; i >= 0; i--)
             {
-                //Calculate distance of perpendicular ray (Euclidean distance would give fisheye effect!)
-                if (side == 0) perpWallDist = (sideDistX - deltaDistX);
-                else perpWallDist = (sideDistY - deltaDistY);
+                var (door, perpWallDist, s, mx, my) = hits[i];
 
-                //Calculate height of line to draw on screen
                 int lineHeight = (int)(buffer.Height / perpWallDist);
+                int drawStart = Math.Max(0, -lineHeight / 2 + buffer.Height / 2);
+                int drawEnd = Math.Min(buffer.Height - 1, lineHeight / 2 + buffer.Height / 2);
 
-                //calculate lowest and highest pixel to fill in current stripe
-                int drawStart = -lineHeight / 2 + buffer.Height / 2;
-                if (drawStart < 0) drawStart = 0;
-                int drawEnd = lineHeight / 2 + buffer.Height / 2;
-                if (drawEnd >= buffer.Height) drawEnd = buffer.Height - 1;
-
-                // If you have the camera FOV and screen width
                 float rayAngleStep = PlaneX / buffer.Width;
                 float hitWallRenderedWidthFOV = (float)buffer.Height / (perpWallDist * MathF.Cos(rayAngleStep));
 
-                RenderDoor(buffer, x, drawStart, drawEnd, lineHeight, perpWallDist, rayDirX, rayDirY, side, door, mapX, mapY, hitWallRenderedWidthFOV);
+                RenderDoor(buffer, x, drawStart, drawEnd, lineHeight, perpWallDist,
+                           rayDirX, rayDirY, s, door, mx, my, hitWallRenderedWidthFOV);
             }
-
         }
         private Door? GetDoorAt(int mapX, int mapY) => Game.Map.Doors.FirstOrDefault(d => d.X == mapX && d.Y == mapY);
 

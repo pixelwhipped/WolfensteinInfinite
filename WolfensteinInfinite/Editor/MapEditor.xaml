@@ -17,8 +17,8 @@
                 <ComboBox x:Name="ModSelection" Width="150" SelectionChanged="ModSelection_SelectionChanged"/>
                 <ComboBox x:Name="SaveTargetSelection" Width="80" SelectionChanged="ModSelection_SelectionChanged"/>
                 <ComboBox x:Name="MapSectionSelection" Width="60" SelectionChanged="MapSectionSelection_SelectionChanged"/>
-                <Label Content="Min Level"/>
-                <Slider x:Name="MinLevelSld" Minimum="1" Maximum="100" Width="200" ValueChanged="MinLevelSld_ValueChanged"/>
+                <Label x:Name="LevelLabel" Content="Level" Foreground="White"/>
+                <Slider x:Name="MinLevelSld" Minimum="1" Maximum="100" Width="200" ValueChanged="MinLevelSld_ValueChanged"  Foreground="White" />
                 <CheckBox x:Name="IsRotatableChk" Content="Rotatable" 
           VerticalAlignment="Center" Foreground="White" Margin="5,0,0,0"
           Checked="IsRotatableChk_Changed" Unchecked="IsRotatableChk_Changed"/>

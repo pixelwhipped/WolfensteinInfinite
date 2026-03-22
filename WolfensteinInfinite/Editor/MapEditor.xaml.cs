@@ -540,6 +540,7 @@ namespace WolfensteinInfinite.Editor
             Wolfenstein = wolfenstein;
             InitializeComponent();
             InitializeOptions();
+            
         }
 
         // Colour per difficulty: 0=green, 1=yellow, 2=orange, 3=red
@@ -761,6 +762,7 @@ namespace WolfensteinInfinite.Editor
             {   
                 var section = new MapSection()
                 { Id = builder.MapSections.Length > 0 ? builder.MapSections.Max(s => s.Id) + 1 : 0 };
+                section.IntendedMinLevel = Math.Clamp((int)MinLevelSld.Value, 1, 100);
                 builder.MapSections = [.. builder.MapSections, section];
                 ChangeStates[ActiveMod] = true;
                 RefreshSectionDropdown(section.Id);
@@ -1311,6 +1313,7 @@ namespace WolfensteinInfinite.Editor
         {
             if (ActiveSection == null) return;
             ActiveSection.IntendedMinLevel = Math.Clamp((int)MinLevelSld.Value, 1, 100);
+            LevelLabel.Content = $"Level {ActiveSection.IntendedMinLevel}";
         }
 
         /*private void DuplicateBtn_Click(object sender, RoutedEventArgs e)
