@@ -841,6 +841,8 @@ namespace WolfensteinInfinite.States
 
                 case "Secret":
                     Game.Map.ObjectivesComplete[MapFlags.HAS_SECRET_MESSAGE] = true;
+                    Game.Map.Objectives.TryAdd(MapFlags.HAS_SENT_SECRET, true);
+                    Game.Map.ObjectivesComplete.TryAdd(MapFlags.HAS_SENT_SECRET, false);
                     // Radio stays on map — player must interact with it to complete
                     break;
 

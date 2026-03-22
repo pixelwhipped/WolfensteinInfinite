@@ -13,12 +13,17 @@ namespace WolfensteinInfinite.GameObjects
 
         public bool CanInteract(InGameState state) =>
             state.Game.Map.Objectives.GetValueOrDefault(MapFlags.HAS_SECRET_MESSAGE) &&
-            !state.Game.Map.ObjectivesComplete.GetValueOrDefault(MapFlags.HAS_SECRET_MESSAGE);
+            state.Game.Map.ObjectivesComplete.GetValueOrDefault(MapFlags.HAS_SECRET_MESSAGE);
 
         public InteractResult Interact(InGameState state)
         {
             if (!CanInteract(state)) return InteractResult.None;
             state.Game.Map.ObjectivesComplete[MapFlags.HAS_SECRET_MESSAGE] = true;
+            if (!state.Game.Map.ObjectivesComplete.TryAdd(MapFlags.HAS_SENT_SECRET, true))
+            {
+                state.Game.Map.ObjectivesComplete[MapFlags.HAS_SENT_SECRET] = true;
+            }
+            state.ShowHudMessage("CHARLIE BRAVO ECHO");
             return InteractResult.None;
         }
 

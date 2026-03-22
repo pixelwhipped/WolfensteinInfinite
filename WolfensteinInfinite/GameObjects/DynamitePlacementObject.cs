@@ -54,6 +54,7 @@ namespace WolfensteinInfinite.GameObjects
                     state.StartDynamiteCountdown();
                 }
             }
+
         }
     }
 }
