@@ -2338,7 +2338,7 @@ namespace WolfensteinInfinite.States
                     side = 1;
                 }
                 //Check if ray has hit a wall
-                //if (mapY < 0 || mapX < 0 || mapY >= Game.Map.WorldMap.Length || mapX >= Game.Map.WorldMap[0].Length) return;
+                if (mapY < 0 || mapX < 0 || mapY >= Game.Map.WorldMap.Length || mapX >= Game.Map.WorldMap[0].Length) return;
                 if (Game.Map.WorldMap[mapY][mapX] >= 0 && Game.Map.WorldMap[mapY][mapX] != DOOR_TILE) hit = 1;
             }
 
