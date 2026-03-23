@@ -19,6 +19,14 @@ namespace WolfensteinInfinite.GameGraphics
             Animations[AnimationState].IsComplete;
 
         public bool HasAnimation(CharacterAnimationState state) => Animations.ContainsKey(state);
+
+        // True when the attack animation is on its last two frames — the wind-up is
+        // done and the weapon is visually at full extension. Shots fire here so the
+        // animation and damage land together, and the cycle can loop naturally.
+        public bool IsInAttackFireWindow =>
+            AnimationState == CharacterAnimationState.ATTACKING &&
+            Animations.TryGetValue(CharacterAnimationState.ATTACKING, out var anim) &&
+            anim.CurrentFrame >= anim.Frames - 2;
         public void Update(float frameTimeSeconds)
         {
             if (Animations.TryGetValue(AnimationState, out var anim))

@@ -2,6 +2,7 @@
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.States;
+using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.GameObjects
@@ -44,8 +45,25 @@ namespace WolfensteinInfinite.GameObjects
         private float _attackCooldown;
         private float _fireTimer = 0f;        // time since current firing started
         private float _fireShotTimer = 0f;    // time until next shot within a burst
+        private float _reactionTimer = 0f;
+        // How long the enemy pauses the first time it spots the player before firing.
+        // Guards hesitate longer; SS soldiers react faster.
+        private float ReactionDelay => Enemy.EnemyType switch
+        {
+            EnemyType.SS_SOLDIER => 0.2f,
+            EnemyType.DOG => 0.1f,
+            _ => 0.4f   // Guard, Officer, etc.
+        };
 
-        private float AttackCooldownDuration => _activeWeapon?.weapon.Cooldown / 60f ?? 1.5f;
+        // Whether this enemy type is allowed to flee when badly hurt.
+        private bool CanFlee => Enemy.EnemyType switch
+        {
+            EnemyType.DOG => false,  // dogs always attack
+            EnemyType.SS_SOLDIER => false,  // fanatical — never flee
+            _ => true
+        };
+
+        private float AttackCooldownDuration => _activeWeapon?.weapon.Cooldown ?? 1.5f;
         private float ShotInterval => _activeWeapon.HasValue && _activeWeapon.Value.weapon.FireRate > 0
             ? 1f / _activeWeapon.Value.weapon.FireRate
             : 0.5f;
@@ -393,15 +411,14 @@ namespace WolfensteinInfinite.GameObjects
             if (_attackCooldown > 0)    
             {
                 _attackCooldown -= frameTime;
-                if (_isAttacking && CharacterSprite.IsAttackAnimationComplete)
-                {
-                    _isAttacking = false;
-                    _lastAIState = EnemyAIState.Chase;
-                    SetAnimation(CharacterAnimationState.WALKING);
-                }
                 return;
             }
-
+            // Reaction delay — enemy hesitates briefly before opening fire
+            if (_reactionTimer > 0)
+            {
+                _reactionTimer -= frameTime;
+                return;
+            }   
             // Start or continue firing
             _fireTimer += frameTime;
             _fireShotTimer -= frameTime;
@@ -414,16 +431,23 @@ namespace WolfensteinInfinite.GameObjects
                 SetAnimationForState(EnemyAIState.Attack);
             }
 
-            // Fire a shot when fire timer expires
-            if (_fireShotTimer <= 0f)
+            // Fire a shot when in the visual fire window (last two frames of attack anim)
+            // so damage lands when the weapon is visually extended, not during wind-up.
+            if (_fireShotTimer <= 0f && CharacterSprite.IsInAttackFireWindow && IsFacingPlayer(state))
             {
                 _fireShotTimer = ShotInterval;
-                if (CharacterSprite.AnimationState == CharacterAnimationState.ATTACKING)
-                    FireShot(projectile, weapon, distToPlayer, state);
+                FireShot(projectile, weapon, distToPlayer, state);
             }
-
+            else if (_fireShotTimer <= 0f)
+            {
+                // Not yet in fire window — keep ticking so we fire as soon as we reach it
+                // without adding extra delay on top of the animation timing.
+                _fireShotTimer = 0f;
+            }
+            
+           
             // Check if we need to go on cooldown
-            bool shouldCooldown = IsSustainedFire
+                        bool shouldCooldown = IsSustainedFire
                 ? _fireTimer >= MaxFireTime          // sustained — cooldown after MaxFireTime
                 : _fireTimer >= ShotInterval;        // instant — cooldown after one shot
 
@@ -432,9 +456,33 @@ namespace WolfensteinInfinite.GameObjects
                 _fireTimer = 0f;
                 _fireShotTimer = 0f;
                 _attackCooldown = AttackCooldownDuration;
+                _reactionTimer = ReactionDelay;
+
+                // Immediately return to walking animation — don't wait for
+                // IsAttackAnimationComplete which never fires on looping animations.
+                _isAttacking = false;
+                _lastAIState = EnemyAIState.Chase;
+                SetAnimation(CharacterAnimationState.WALKING);
             }
         }
+        private float CalculateHitChance(float dist, float rangeMod)
+        {
+            float t = Math.Clamp(dist / Math.Max(rangeMod, 1f), 0f, 1f);
+            return MathHelpers      .Lerp(0.85f, 0.20f, t);
+        }
+        private bool IsFacingPlayer(InGameState state)
+        {
+            var dx = state.Game.Player.PosX - X;
+            var dy = state.Game.Player.PosY - Y;
+            var angleToPlayer = MathF.Atan2(dy, dx) * (180f / MathF.PI);
+            angleToPlayer = (angleToPlayer + 360f) % 360f;
 
+            var diff = MathF.Abs(angleToPlayer - FacingAngle) % 360f;
+            if (diff > 180f) diff = 360f - diff;
+
+            // Within 45 degrees is close enough to "facing"
+            return diff <= 45f;
+        }
         private void FireShot(Projectile projectile, Weapon weapon, float distToPlayer, InGameState state)
         {
             if (!string.IsNullOrEmpty(weapon.Sound))
@@ -453,6 +501,9 @@ namespace WolfensteinInfinite.GameObjects
                 state.ApplyDamage(damage);
                 return;
             }
+            // Miss chance — longer shots miss more often
+            float hitChance = CalculateHitChance(distToPlayer, projectile.RangeMod);
+            if (Random.Shared.NextSingle() > hitChance) return;
 
             var dx = state.Game.Player.PosX - X;
             var dy = state.Game.Player.PosY - Y;
@@ -479,6 +530,7 @@ namespace WolfensteinInfinite.GameObjects
             if (AIState != EnemyAIState.Idle) return;
             AIState = EnemyAIState.Alert;
             _alertTimer = AlertPauseDuration;
+            _reactionTimer = ReactionDelay;
             SetAnimation(CharacterAnimationState.STANDING);
             PlaySound(Enemy.AlertSounds, state);
 
@@ -496,6 +548,7 @@ namespace WolfensteinInfinite.GameObjects
                     if (dx * dx + dy * dy > AlertRadius * AlertRadius) continue;
                     other.AIState = EnemyAIState.Alert;
                     other._alertTimer = AlertPauseDuration;
+                    other._reactionTimer = other.ReactionDelay;
                     other.SetAnimation(CharacterAnimationState.STANDING);
                     toAlert.Enqueue(other);
                 }
@@ -533,7 +586,7 @@ namespace WolfensteinInfinite.GameObjects
             else
             {
                 // Start fleeing if below health threshold and not already fleeing
-                if (AIState == EnemyAIState.Chase && 
+                if (AIState == EnemyAIState.Chase && CanFlee &&
                     (float)HitPoints / MaxHitPoints <= FleeHealthThreshold)
                 {
                     AIState = EnemyAIState.Flee;

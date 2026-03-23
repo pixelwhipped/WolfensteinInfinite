@@ -1112,7 +1112,7 @@ namespace WolfensteinInfinite.States
                 CastDoors(buffer, x, rayDirX, rayDirY);
                 CastDirectionalDecals(buffer, x, rayDirX, rayDirY);
             }
-            //CastSprites(buffer);
+            CastSprites(buffer);
             DrawMap(buffer);
             DrawZBuffer(buffer);
             UpdateInput(frameTime);
