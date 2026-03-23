@@ -48,11 +48,14 @@ namespace WolfensteinInfinite.States
             {
                 { mod, [section] }
             };
+            const int Border = 1;
+            int genWidth = section.Width + Border * 2;
+            int genHeight = section.Height + Border * 2;
 
             var builder = new MapGenerator(
                 Wolfenstein,
-                Wolfenstein.Config.MaxMapSize,
-                Wolfenstein.Config.MaxMapSize,
+                genWidth,
+                genHeight,
                 mod, section, sections,
                 Level, 1, [], out _);
 

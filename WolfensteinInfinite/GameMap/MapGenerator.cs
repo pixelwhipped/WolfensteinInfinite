@@ -1,5 +1,6 @@
 ﻿using SFML.Graphics;
 using System.Diagnostics;
+using System.Windows.Controls;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
@@ -39,8 +40,11 @@ namespace WolfensteinInfinite.GameMap
             Level = level;
             AttemptObjectives = attemptObjectives;
             HasPlaced = new();
-            var x = Width / 2;
-            var y = Height / 2;
+            //var x = Width / 2;
+            //var y = Height / 2;
+            const int Border = 1;
+            var x = TargetRoomCount == 1 ? Border : Width / 2;
+            var y = TargetRoomCount == 1 ? Border : Height / 2;
             var (map, keys) = MapGeneratorSection.ToMap(x, y, rootNode);
             var section = new MapGeneratorSection(x, y, rootNodeMod, map, keys);
             var allSection = new List<MapGeneratorSection>();

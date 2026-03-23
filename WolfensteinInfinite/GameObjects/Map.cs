@@ -45,13 +45,20 @@ namespace WolfensteinInfinite.GameObjects
             var doorSides = new List<ISurface>();
             foreach (var v in WallSourceIndicies)
             {
-                walls.Add(wolfenstein.Textures[v.Mod][v.Index]);
+                ISurface wallTex = v.Index switch
+                {
+                    1001 => wolfenstein.GameResources.ElevatorDoor,
+                    1002 => wolfenstein.GameResources.ElevatorSide,
+                    1003 => wolfenstein.GameResources.ElevatorSwitchUp,
+                    _ => wolfenstein.Textures[v.Mod][v.Index]
+                };
+                walls.Add(wallTex);
             }
             foreach (var v in DecalSourceIndicies)
             {
                 decals.Add(wolfenstein.Decals[v.Mod][v.Index]);
             }
-            foreach (var v in DoorSourceIndicies)
+            foreach (var v in DoorSourceIndicies)   
             {
                 doors.Add(wolfenstein.Doors[v.Index].DoorTexture);
                 doorSides.Add(wolfenstein.Doors[v.Index].SideTexture);

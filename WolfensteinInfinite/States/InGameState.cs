@@ -32,7 +32,7 @@ namespace WolfensteinInfinite.States
         private int[] SpriteOrder;
         private float[] SpriteDistance;
 
-        public const int RenderDistance = 10;
+        public const int RenderDistance = 14;
         private static readonly int[] NeighborDX = [0, -1, 1, 0, 0];
         private static readonly int[] NeighborDY = [0, 0, 0, -1, 1];
         private float PlaneX { get => Game.Player.PlaneX; set => Game.Player.PlaneX = value; }
@@ -1112,9 +1112,9 @@ namespace WolfensteinInfinite.States
                 CastDoors(buffer, x, rayDirX, rayDirY);
                 CastDirectionalDecals(buffer, x, rayDirX, rayDirY);
             }
-            CastSprites(buffer);
+            //CastSprites(buffer);
             DrawMap(buffer);
-            //DrawZBuffer(buffer);
+            DrawZBuffer(buffer);
             UpdateInput(frameTime);
             UpdateDoors(frameTime);
             UpdatePushWalls(frameTime);
@@ -1159,11 +1159,12 @@ namespace WolfensteinInfinite.States
                 var curX = (int)Game.Player.PosX;
                 var curY = (int)Game.Player.PosY;
 
+                if (curY < 0 || nextX < 0 || curY >= Game.Map.WorldMap.Length || nextX >= Game.Map.WorldMap[0].Length) return;
                 var tileX = Game.Map.WorldMap[curY][nextX];
                 if ((tileX == MapSection.ClosedSectionInterior && IsDecalPassable(nextX, curY)) ||
                     (tileX == DOOR_TILE && CanPassThroughDoor(nextX, curY)))
                     Game.Player.PosX += Game.Player.DirX * moveSpeed;
-
+                if (nextY < 0 || curX < 0 || nextY >= Game.Map.WorldMap.Length || curX >= Game.Map.WorldMap[0].Length) return;
                 var tileY = Game.Map.WorldMap[nextY][curX];
                 if ((tileY == MapSection.ClosedSectionInterior && IsDecalPassable(curX, nextY)) ||
                     (tileY == DOOR_TILE && CanPassThroughDoor(curX, nextY)))
@@ -1906,11 +1907,7 @@ namespace WolfensteinInfinite.States
                     mapY += stepY;
                     side = 1;
                 }
-                /*
-                //Check if ray has hit a wall
-                //if (mapY < 0 || mapX < 0 || mapY >= Game.Map.WorldMap.Length || mapX >= Game.Map.WorldMap[0].Length) return;
-                if (Game.Map.WorldMap[mapY][mapX] >= 0 && Game.Map.WorldMap[mapY][mapX] != DOOR_TILE) hit = 1;
-                */
+
                 // Cull — stop tracing beyond render distance
                 var currentDist = side == 0 ? sideDistX - deltaDistX : sideDistY - deltaDistY;
                 if (currentDist > RenderDistance) return;
@@ -1936,6 +1933,7 @@ namespace WolfensteinInfinite.States
             int drawEnd = lineHeight / 2 + buffer.Height / 2;
             if (drawEnd >= buffer.Height) drawEnd = buffer.Height - 1;
 
+                
             //Modified
             //texturing calculations
             int texNum = Game.Map.WorldMap[mapY][mapX];// - 1; //1 subtracted from it so that texture 0 can be used!
