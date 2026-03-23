@@ -8,7 +8,7 @@
 ---
 # Wolfenstein Infinite
 > *Get Psyched. Again. And Again.*
-[https://www.youtube.com/watch?v=BspJY3UB354&t=37s]
+https://www.youtube.com/watch?v=BspJY3UB354&t=37s](https://youtu.be/toizV3Pz9-4)]
 [https://youtu.be/1GnoW3z4KBI]
 ## What Is This?
 
