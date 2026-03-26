@@ -1114,7 +1114,7 @@ namespace WolfensteinInfinite.States
             }
             CastSprites(buffer);
             DrawMap(buffer);
-            DrawZBuffer(buffer);
+            //DrawZBuffer(buffer);
             UpdateInput(frameTime);
             UpdateDoors(frameTime);
             UpdatePushWalls(frameTime);

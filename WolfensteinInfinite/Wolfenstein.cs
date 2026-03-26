@@ -22,7 +22,6 @@ namespace WolfensteinInfinite
     {
         public App? Application;
         public Graphics Graphics;
-        public static bool FirstRunRebuild = false;
         public bool IsRunning => Graphics.IsOpen && CurrentState != null;
         public Random Random = new();
         public GameResources GameResources { get; init; }
@@ -32,7 +31,7 @@ namespace WolfensteinInfinite
         private float FrameTime;
         public float UIScale { get; set; } = 1f;
         private Action DoRender;
-        public Dictionary<string, Mod> Mods { get; init; }
+        public Dictionary<string, Mod> Mods { get; private set; }
         public Dictionary<string, MapBuilder> BuilderMods { get; init; }
         public Dictionary<string, MapBuilder> SpecialMaps { get; init; }
         public Dictionary<string, MapBuilder> TestMaps { get; init; }
@@ -67,7 +66,7 @@ namespace WolfensteinInfinite
             Config = LoadConfig();
             Log("Remebering who I am");
             LoadBaseModItems();
-            Mods = LoadMods();
+            Mods = LoadMods(false);
             BuilderMods = LoadBuilderMods();
             SpecialMaps = LoadSpecialMaps();
             TestMaps = LoadTestMaps();
@@ -359,8 +358,6 @@ namespace WolfensteinInfinite
             if (!File.Exists(file))
             {
                 FileHelpers.Shared.Serialize(Config.GetDefault(), file);
-                if (!(Args.RebuildWithMapImage || Args.Rebuild))
-                    FirstRunRebuild = true;
             }
             return FileHelpers.Shared.Deserialize<Config>(file) ?? Config.GetDefault();
         }
@@ -463,7 +460,7 @@ namespace WolfensteinInfinite
                 //Lets not fuss for now
             }
         }
-        private Dictionary<string, Mod> LoadMods()
+        private Dictionary<string, Mod> LoadMods(bool forceRebuild)
         {
             var res = Assembly.GetExecutingAssembly().GetManifestResourceNames();
 
@@ -471,7 +468,7 @@ namespace WolfensteinInfinite
             var mods = new Dictionary<string, Mod>();
             //Check original versions and export mod files
             //foreach (var version in new Extractor(Debugger.IsAttached).GameVersions)
-            foreach (var version in new Extractor(FirstRunRebuild || Args.Rebuild || Args.RebuildWithMapImage).GameVersions)
+            foreach (var version in new Extractor(forceRebuild || Args.Rebuild || Args.RebuildWithMapImage).GameVersions)
             {
                 var map = $"WolfensteinInfinite.GameData.{version.Name}.Demo.map.json";
                 var special = $"WolfensteinInfinite.GameData.{version.Name}.Demo.specialmap.json";
@@ -798,13 +795,20 @@ namespace WolfensteinInfinite
                 , CharacterSpriteType.BOSS, e.SpritePath, 0,
                 bosses[Random.Shared.Next(0, bosses.Count)].AlertSounds,
                 bosses[Random.Shared.Next(0, bosses.Count)].DeathSounds,
-                bosses[Random.Shared.Next(0, bosses.Count)].TauntSounds);
+                bosses[Random.Shared.Next(0, bosses.Count)].TauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
 
         }
 
-
-        public void ReloadMod(string modName)
+        public void RebuildMods()
         {
+            Mods = LoadMods(true);
+            foreach (var mod in Mods)
+            {
+                ReloadMod(mod.Key);
+            }
+        }
+        public void ReloadMod(string modName)
+        {           
             var modPath = FileHelpers.Shared.GetDataFilePath($@"Mods\{modName}\map.json");
             if (File.Exists(modPath))
             {

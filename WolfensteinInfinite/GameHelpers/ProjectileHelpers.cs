@@ -6,7 +6,7 @@ namespace WolfensteinInfinite.GameHelpers
 {
     public static class ProjectileHelpers
     {
-        public static Projectile CreateBullet(string name, string? hitsound, string? trailAnimation, string? impactAnimation) => new(name, 6, 4, AmmoType.BULLET, ProjectileSpriteType.BULLET, null, -1, hitsound, trailAnimation, impactAnimation);
+        public static Projectile CreateBullet(string name, string? hitsound, string? trailAnimation, string? impactAnimation) => new(name, 6, 6, AmmoType.BULLET, ProjectileSpriteType.BULLET, null, -1, hitsound, trailAnimation, impactAnimation);
         public static Projectile CreateBite(string name, string? hitsound, string? trailAnimation, string? impactAnimation) => new(name, 16, 1, AmmoType.MELEE, ProjectileSpriteType.NONE, null, -1, hitsound, trailAnimation, impactAnimation);
         public static Projectile CreateDrain(string name, string? hitsound, string? trailAnimation, string? impactAnimation) => new(name, 24, 1, AmmoType.MELEE, ProjectileSpriteType.NONE, null, -1, hitsound, trailAnimation, impactAnimation);
         public static Projectile CreateKnife(string name, string? hitsound, string? trailAnimation, string? impactAnimation) => new(name, 16, 1, AmmoType.MELEE, ProjectileSpriteType.NONE, null, -1, hitsound, trailAnimation, impactAnimation);

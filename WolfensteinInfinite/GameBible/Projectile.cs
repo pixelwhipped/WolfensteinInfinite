@@ -12,13 +12,14 @@
         public string? HitSound { get; init; } = hitSound;
         public string? TrailAnimation { get; init; } = trailAnimation;
         public string? ImpactAnimation { get; init; } = impactAnimation;
+        //Todo Impove
         public int GetDamage(int tileDist)
         {
             switch (AmmoType)
             {
                 case AmmoType.MELEE:
                     if (tileDist > (RangeMod - 1)) return 0;
-                    if (tileDist > RangeMod || Random.Shared.Next(0, 255) < 180) return 0;
+                    //if (tileDist > RangeMod || Random.Shared.Next(0, 255) < 60) return 0;
                     return Random.Shared.Next(0, 255) / DamageMod;                    
                 case AmmoType.BULLET:
                     if(tileDist >= RangeMod && (Random.Shared.Next(0, 255)/12)<tileDist) return Random.Shared.Next(0, 255) / (DamageMod*3);

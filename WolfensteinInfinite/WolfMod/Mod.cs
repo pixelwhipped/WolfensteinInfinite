@@ -134,6 +134,7 @@ namespace WolfensteinInfinite.WolfMod
             Log("Checking Enemies");
             foreach (var asset in Enemies)
             {
+                if(asset.FireFrames == null || asset.FireFrames.Length==0) return LogFail($"Enemy {asset.Name} missing fire frames");
                 foreach (var w in asset.Weapons)
                     if (!Weapons.Any(p => p.Name == w)) return LogFail($"Enemy {asset.Name} missing {w}");
                 switch (asset.AnimationType)

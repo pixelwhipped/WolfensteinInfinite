@@ -33,7 +33,9 @@ namespace WolfensteinInfinite.States
             "I'm thinkin' that\nyou might wanna press N\nto play more. You do it.",
             "Sure. Fine. Quit.\nSee if we care.\nGet it over with.\nPress Y."
         ];
+        public const string WarningString = RebuildState.WarningString;
         public bool ConfirmExit = false;
+        public bool ConfirmRebuild = false;
         public string ExitString = ExitStrings[Random.Shared.Next(ExitStrings.Length)];
 
         private float MenuFade = 1f;
@@ -64,8 +66,10 @@ namespace WolfensteinInfinite.States
             EditorItem = new MenuItem("Editor", OnMenuAction, wolfenstein.GameResources.SmallFont);
             if (Args.EditorEnabled)
                 Menu.MenuItems.Add(EditorItem);
-            //if (Wolfenstein.CurrentMusic != null)
-            //     AudioPlaybackEngine.Instance.PlayMusic(Wolfenstein.CurrentMusic);
+            if (Wolfenstein.Mods.Count <= 1)
+            {
+                ConfirmRebuild = true;
+            }
         }
 
         private void OnMenuAction(IMenuItem item)
@@ -164,8 +168,24 @@ namespace WolfensteinInfinite.States
                     buffer.DrawString(x, y, _statusMessage, Wolfenstein.GameResources.TinyFont, RGBA8.YELLOW);
                 }
             }
+            if (ConfirmRebuild)
+            {
+                var (Width, Height) = Wolfenstein.GameResources.TinyFont.MeasureString(WarningString);
+                var uw = Wolfenstein.GameResources.TinyFont.MeasureString("_").Width;
 
-            if (ConfirmExit)
+                var rWidth = Width + uw + 10;
+                var rHeight = Height + 10;
+                var xOff = (buffer.Width - rWidth) / 2;
+                var yOff = (buffer.Height - rHeight) / 2; ;
+                buffer.RectFill(xOff, yOff, rWidth, rHeight, 20, 20, 20);
+                buffer.Line(xOff, yOff, xOff + rWidth, yOff, 52, 52, 52);
+                buffer.Line(xOff, yOff, xOff, yOff + rHeight, 52, 52, 52);
+                buffer.Line(xOff, yOff + rHeight, xOff + rWidth, yOff + rHeight, 16, 16, 16);
+                buffer.Line(xOff + rWidth, yOff, xOff + rWidth, yOff + rHeight, 16, 16, 16);
+                buffer.DrawString(xOff + 5, yOff + 5,
+                    $"{WarningString}{((((int)Wolfenstein.Clock.ElapsedTime.AsSeconds()) % 2 == 1) ? "_" : "")}", Wolfenstein.GameResources.TinyFont, RGBA8.WHITE);
+            }
+            else if (ConfirmExit)
             {
                 var (Width, Height) = Wolfenstein.GameResources.TinyFont.MeasureString(ExitString);
                 var uw = Wolfenstein.GameResources.TinyFont.MeasureString("_").Width;
@@ -186,6 +206,15 @@ namespace WolfensteinInfinite.States
         }
         public override void OnKeyPressed(KeyEventArgs k)
         {
+            if (ConfirmRebuild)
+            {
+                ConfirmRebuild = false;
+                if (k.Code == Keyboard.Key.Y)
+                {
+                    NextState = new RebuildState(Wolfenstein, this);
+                    return;
+                }
+            }
             if (k.Code == Keyboard.Key.Escape)
             {
                 if (ReturnState == this)

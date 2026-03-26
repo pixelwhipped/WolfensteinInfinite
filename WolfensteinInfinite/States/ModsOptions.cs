@@ -21,6 +21,7 @@ namespace WolfensteinInfinite.States
                 );
             var hasMods = Wolfenstein.Mods.Keys.Count != 0;
             Menu.MenuItems.Add(new MenuItem("Wiki", OnMenuAction, Wolfenstein.GameResources.SmallFont,hasMods, hasMods?null:RGBA8.STEEL_BLUE));
+            Menu.MenuItems.Add(new MenuItem("Rebuild", OnMenuAction, Wolfenstein.GameResources.SmallFont, true));
             foreach (var mod in Wolfenstein.Config.Mods)
             {
                 Menu.MenuItems.Add(new MenuItemOnOff(mod.Name, OnMenuAction, mod.Enabled, 180, Wolfenstein.GameResources.TinyFont));
@@ -33,6 +34,9 @@ namespace WolfensteinInfinite.States
             {
                 NextState = new WikiState(Wolfenstein, this);
                 return;
+            }else if (item.Text == "Rebuild")
+            {
+                NextState = new RebuildState(Wolfenstein, this);
             }
             if (item is not MenuItemOnOff mItem) return;
             foreach (var mod in Wolfenstein.Config.Mods)

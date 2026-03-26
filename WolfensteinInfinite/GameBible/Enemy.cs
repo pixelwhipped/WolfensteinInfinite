@@ -1,6 +1,6 @@
 ﻿namespace WolfensteinInfinite.GameBible
 {
-    public class Enemy(int id, string name, EnemyType enemyType, int speed, int points, Dictionary<Difficulties, int> hitPoints, string[] weapons, Dictionary<string, int> dropItemProbability, CharacterSpriteType animationType, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
+    public class Enemy(int id, string name, EnemyType enemyType, int speed, int points, Dictionary<Difficulties, int> hitPoints, string[] weapons, Dictionary<string, int> dropItemProbability, CharacterSpriteType animationType, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds, int[] fireFrames , float reactionDelay, float alertPauseDuration, float meleeAttackRange, float alertRadius, float lineOfSightDistance, bool canFlee, float fleeDuration, float fleeHealthThreshold)
     {
         public int MapID { get; init; } = id;
         public CharacterSpriteType AnimationType { get; init; } = animationType;
@@ -16,6 +16,18 @@
         public string[] AlertSounds { get; init; } = alertSounds;
         public string[] DeathSounds { get; init; } = deathSounds;
         public string[] TauntSounds { get; init; } = tauntSounds;
+        public int[] FireFrames { get; init; } = fireFrames;
 
+        // How long the enemy pauses the first time it spots the player before firing.        
+        public float ReactionDelay { get; init; } = reactionDelay; //1f
+
+        public float AlertPauseDuration { get; init; } = alertPauseDuration; // 0.5f;
+
+        public float MeleeAttackRange { get; init; } = meleeAttackRange; // 1.5f;
+        public float AlertRadius { get; init; } = alertRadius; // 5f;
+        public float LineOfSightDistance { get; init; } = lineOfSightDistance; // 12f;
+        public bool CanFlee { get; init; } = canFlee;
+        public float FleeDuration { get; init; } = fleeDuration;// 1.5f;
+        public float FleeHealthThreshold { get; init; } = fleeHealthThreshold; //0.25f;
     }
 }
