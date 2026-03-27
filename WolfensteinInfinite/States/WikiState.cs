@@ -14,7 +14,7 @@ namespace WolfensteinInfinite.States
     {
         private Menu Menu { get; init; }
         private MenuItemOptionSelector ModSelector { get; init; }
-        private PickupItem[] PickupItems { get; init; }
+        private (int,PickupItem)[] PickupItems { get; init; }
         private PlayerWeapon[] Attacks { get; init; }
         public Mod CurrentMod;
         private int MusicIndex = 0;
@@ -45,7 +45,14 @@ namespace WolfensteinInfinite.States
             {
                 FixedXPosition = 0
             };
-            PickupItems = [.. wolfenstein.PickupItemTypes.Values.Where(p => p.ItemType != PickupItemType.SPAWNER && p.ItemType != PickupItemType.MISSION_OBJECTIVE)];
+            var l = new List<(int, PickupItem)>();
+            foreach (var item in wolfenstein.PickupItemTypes)
+            {
+                if (item.Value.ItemType == PickupItemType.SPAWNER || item.Value.ItemType == PickupItemType.MISSION_OBJECTIVE) continue;
+                l.Add((item.Key, item.Value));
+            }
+            PickupItems = l.ToArray();
+            // PickupItems = [.. wolfenstein.PickupItemTypes.Values.Where(p => p.ItemType != PickupItemType.SPAWNER && p.ItemType != PickupItemType.MISSION_OBJECTIVE)];
             Attacks = [.. wolfenstein.PlayerWeapons.Values.OrderBy(p => p.PreferedOrder)];
             var modOptions = Wolfenstein.Mods.Keys.ToArray();
             ModSelector = new MenuItemOptionSelector("Mod", OnMenuAction, modOptions, 0, 140, wolfenstein.GameResources.TinyFont);
@@ -124,10 +131,10 @@ namespace WolfensteinInfinite.States
                     x += 140;
                     var y = (buffer.Height / 2) - 32;
 
-                    buffer.Draw(x, y, Wolfenstein.PickupItems[PickupIndex]);
+                    buffer.Draw(x, y, Wolfenstein.PickupItems[PickupItems[PickupIndex].Item1]);
                     y += 64;
                     y += Wolfenstein.GameResources.TinyFont.Height;
-                    buffer.DrawString(x, y, PickupItems[PickupIndex].Name, Wolfenstein.GameResources.TinyFont, null);
+                    buffer.DrawString(x, y, PickupItems[PickupIndex].Item2.Name, Wolfenstein.GameResources.TinyFont, null);
                 }
                 else if (sel.Text.StartsWith("Attacks"))
                 {

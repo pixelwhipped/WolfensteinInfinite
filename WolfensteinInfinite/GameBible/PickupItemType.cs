@@ -8,6 +8,7 @@
         WEAPON,
         LIFE,
         MISSION_OBJECTIVE,
-        SPAWNER
+        SPAWNER,
+        GODMODE
     }
 }

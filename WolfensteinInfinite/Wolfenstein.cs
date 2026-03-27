@@ -199,6 +199,7 @@ namespace WolfensteinInfinite
             PickupItemTypes.Add(20, new PickupItem("DynamitePlaced", PickupItemType.SPAWNER, 0, 0, "GameData\\Base\\Sprites\\DynamitePlaced.png", null));
             PickupItemTypes.Add(21, new PickupItem("Key", PickupItemType.MISSION_OBJECTIVE, 0, 0, "GameData\\Base\\Sprites\\Key.png", null));
             PickupItemTypes.Add(22, new PickupItem("AdolfHitler", PickupItemType.SPAWNER, 0, 0, null, null));
+            PickupItemTypes.Add(23, new PickupItem("GodMode", PickupItemType.GODMODE, 1, 0, "GameData\\Base\\Sprites\\God.png", null));
 
 
             foreach (var i in PickupItemTypes)

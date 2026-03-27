@@ -336,51 +336,6 @@ namespace WolfensteinInfinite.Editor
             BlitTile(_mapBitmap, tile, x * TileSize, y * TileSize);
             BlitDifficultyOverlay(_mapBitmap, ActiveSection.Difficulty[y][x], x * TileSize, y * TileSize);
         }
-        private void RedrawTileOld(int x, int y)
-        {
-            if (_mapBitmap == null || ActiveSection == null || ActiveMod == null) return;
-
-            WriteableBitmap? tile = null;
-            var sp = ActiveSection.Special[y][x];
-
-            if (sp >= 0)
-            {
-                if (sp >= 9 && sp <= 12)
-                {
-                    if (ActiveSection.Decals[y][x] >= 0)
-                        tile = GetSpecialBitmapDecal(ActiveMod.Name, sp, ActiveSection.Decals[y][x]);
-                    else if (ActiveSection.Items[y][x] >= 0)
-                        tile = GetSpecialBitmapItem(ActiveMod.Name, sp, ActiveSection.Items[y][x]);
-                    else if (ActiveSection.Enemy[y][x] >= 0)
-                    {
-                        tile = GetEnemyBitmap(ActiveMod.Name, ActiveSection.Enemy[y][x]);
-                        BlitTile(_mapBitmap, tile, x * TileSize, y * TileSize);
-                        // Overlay difficulty indicator
-                        var diff = ActiveSection.Difficulty[y][x];
-                        BlitDifficultyOverlay(_mapBitmap, diff, x * TileSize, y * TileSize);
-                        return; // already blit, skip final BlitTile call
-
-                    }
-                    /*else if (ActiveSection.Enemy[y][x] >= 0)
-                        tile = GetSpecialBitmapEnemy(ActiveMod.Name, sp, ActiveSection.Enemy[y][x]);*/
-                }
-                else
-                    tile = GetSpecialBitmap(ActiveMod.Name, sp, ActiveSection.Walls[y][x]);
-            }
-            else if (ActiveSection.Decals[y][x] >= 0)
-                tile = GetDecalBitmap(ActiveMod.Name, ActiveSection.Decals[y][x]);
-            else if (ActiveSection.Items[y][x] >= 0)
-                tile = GetItemBitmap(ActiveSection.Items[y][x]);
-            else if (ActiveSection.Enemy[y][x] >= 0)
-                tile = GetEnemyBitmap(ActiveMod.Name, ActiveSection.Enemy[y][x]);
-            else if (ActiveSection.Doors[y][x] >= 0)
-                tile = GetDoorBitmap(ActiveSection.Doors[y][x], IsDoorBetweenWalls(x, y));
-            else if (ActiveSection.Walls[y][x] >= 0)
-                tile = GetTextureBitmap(ActiveMod.Name, ActiveSection.Walls[y][x]);
-
-            BlitTile(_mapBitmap, tile, x * TileSize, y * TileSize);
-        }
-
         private void DrawGridOverlay()
         {
             GridCanvas.Children.Clear();
@@ -419,57 +374,6 @@ namespace WolfensteinInfinite.Editor
                 };
                 GridCanvas.Children.Add(line);
             }
-        }
-        private void DrawGridOverlayOld()
-        {
-            GridCanvas.Children.Clear();
-            int w = _mapTilesW;
-            int h = _mapTilesH;
-            for (int tx = 0; tx <= w; tx++)
-            {
-                bool major = tx % 5 == 0;
-                var line = new System.Windows.Shapes.Line
-                {
-                    X1 = tx * TileSize,
-                    Y1 = 0,
-                    X2 = tx * TileSize,
-                    Y2 = h * TileSize,
-                    Stroke = major ? Brushes.Gray : Brushes.DimGray,
-                    StrokeThickness = major ? 1.5 : 0.5,
-                    IsHitTestVisible = false
-                };
-                GridCanvas.Children.Add(line);
-            }
-            for (int ty = 0; ty <= h; ty++)
-            {
-                bool major = ty % 5 == 0;
-                var line = new System.Windows.Shapes.Line
-                {
-                    X1 = 0,
-                    Y1 = ty * TileSize,
-                    X2 = w * TileSize,
-                    Y2 = ty * TileSize,
-                    Stroke = major ? Brushes.Gray : Brushes.DimGray,
-                    StrokeThickness = major ? 1.5 : 0.5,
-                    IsHitTestVisible = false
-                };
-                GridCanvas.Children.Add(line);
-            }
-        }
-        private void BlitEnemyTileold(int x, int y, int specialChance)
-        {
-            if (_mapBitmap == null || ActiveSection == null || ActiveMod == null) return;
-
-            // Get base enemy bitmap — use special blend if chance is active
-            WriteableBitmap? tile = specialChance >= 9 && specialChance <= 12
-                ? GetSpecialBitmapEnemy(ActiveMod.Name, specialChance, ActiveSection.Enemy[y][x])
-                : GetEnemyBitmap(ActiveMod.Name, ActiveSection.Enemy[y][x]);
-
-            BlitTile(_mapBitmap, tile, x * TileSize, y * TileSize);
-
-            // Difficulty overlay — coloured dot
-            var diff = ActiveSection.Difficulty[y][x];
-            BlitDifficultyOverlay(_mapBitmap, diff, x * TileSize, y * TileSize);
         }
         private static unsafe void BlitDifficultyOverlay(WriteableBitmap dest, int difficulty, int px, int py)
         {
@@ -906,7 +810,7 @@ namespace WolfensteinInfinite.Editor
             if (ActiveMod == null) return;
             ItemTextureImageGrid.Children.Clear();
             if (SelectedItemIndex == -1 && Wolfenstein.PickupItems.Count > 0) SelectedItemIndex = 0;
-            for (int i = 0; i < Wolfenstein.PickupItems.Count; i++)
+            for (int i = 0; i < Wolfenstein.PickupItemTypes.Count; i++)
             {
                 var j = i;
                 if (Wolfenstein.PickupItemTypes[i].ItemType == PickupItemType.SPAWNER) continue;

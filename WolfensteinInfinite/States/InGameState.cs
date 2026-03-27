@@ -765,6 +765,7 @@ namespace WolfensteinInfinite.States
                 PickupItemType.POINTS => ApplyPoints(item),
                 PickupItemType.WEAPON => ApplyWeapon(item),
                 PickupItemType.LIFE => ApplyLife(item),
+                PickupItemType.GODMODE => ActivateCheatGodMode(),
                 PickupItemType.MISSION_OBJECTIVE => ApplyObjective(item),
                 PickupItemType.SPAWNER => false,
                 _ => false,
@@ -966,11 +967,12 @@ namespace WolfensteinInfinite.States
         {
             NextState = new LevelSelectState(Wolfenstein, this);
         }
-        private void ActivateCheatGodMode()
+        private bool ActivateCheatGodMode()
         {
             Game.Player.GodMode = true;
             Game.Player.Health = 100;
             ShowHudMessage("GOD MODE ACTIVATED");
+            return true;
         }
 
         private void ActivateCheatAllWeapons()
