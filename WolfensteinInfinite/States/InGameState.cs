@@ -1514,35 +1514,6 @@ namespace WolfensteinInfinite.States
             (int)(py + (Game.Player.DirY * 10)),
             255, 255, 0);
         }
-
-        public void DrawMaplast(Texture32 buffer)
-        {
-            var size = 1;
-            var mapWidth = Game.Map.WorldMap[0].Length;
-
-            for (int y = 0; y < Game.Map.WorldMap.Length; y++)
-                for (int x = 0; x < Game.Map.WorldMap[y].Length; x++)
-                {
-                    if (!_mapVisible) return;
-                    var i = Game.Map.WorldMap[y][x];
-                    var c = i >= 0 ? MapColors[i + 1]
-                        : i == MapSection.ClosedSectionInterior
-                            ? new RGBA8 { R = 128, G = 128, B = 128, A = 255 }
-                            : new RGBA8 { R = 0, G = 0, B = 0, A = 64 };
-
-                    var drawX = (mapWidth - 1 - x) * size;
-                    buffer.RectFill(drawX, y * size, size, size, c.R, c.G, c.B, c.A);
-                }
-
-            var px = (mapWidth - 1 - (int)Game.Player.PosX) * size;
-            var py = (int)(Game.Player.PosY * size);
-
-            buffer.RectFill(px - 1, py - 1, 3, 3, 255, 255, 0);
-            buffer.Line(px, py,
-            (int)(px - (Game.Player.DirX * 10)),
-            (int)(py + (Game.Player.DirY * 10)),
-            255, 255, 0);
-        }
         private readonly List<DynamicObject> _livingSprites = [];
         private void CastSprites(Texture32 buffer)
         {
