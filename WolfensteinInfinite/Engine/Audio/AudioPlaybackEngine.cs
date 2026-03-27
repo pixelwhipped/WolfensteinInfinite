@@ -9,7 +9,7 @@ namespace WolfensteinInfinite.Engine.Audio
     public class AudioPlaybackEngine
     {
         private Thread? MidiThread;
-        private readonly OutputDevice MidiOutputDevice;
+        private readonly OutputDevice? MidiOutputDevice;
         private Playback? MidiPlayback;
         public Dictionary<int, AudioSampleMixer> SampleMixers = [];
         private float _soundVolume;
@@ -39,8 +39,12 @@ namespace WolfensteinInfinite.Engine.Audio
         }
         public AudioPlaybackEngine()//int sampleRate = 44100, int channelCount = 2)
         {
-            MidiOutputDevice = OutputDevice.GetAll().ToArray()[0];
-        }
+            var au = OutputDevice.GetAll().ToArray();
+            if (au.Length > 0)
+                MidiOutputDevice = au[0];
+            else
+                MidiOutputDevice = null;
+        }   
         private AudioSampleMixer GetMixer(int sampleRate)
         {
             if (SampleMixers.TryGetValue(sampleRate, out AudioSampleMixer? mixer)) return mixer;
@@ -99,6 +103,7 @@ namespace WolfensteinInfinite.Engine.Audio
         }
         public void PlayMusic(MidiFile midiFile)
         {
+            if (MidiOutputDevice == null) return;
             StopMusic();
             MidiThread = new Thread(() =>
             {
