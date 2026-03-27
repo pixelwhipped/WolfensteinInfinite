@@ -9,18 +9,17 @@ using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.GameObjects
 {
-    public class EnemyWeaponObject
+    public class EnemyWeaponObject(Weapon weapon, Projectile projectile)
     {
         public float AttackCooldownDuration { get; init; }
         public float ShotInterval { get; init; }
         public float MaxFireTime { get; init; }
         //public bool IsSustainedFire { get; init; }
         public bool IsRanged { get; init; }
-        public Weapon Weapon { get; init; }
-        public Projectile Projectile { get; init; }
+        public Weapon Weapon { get; init; } = weapon;
+        public Projectile Projectile { get; init; } = projectile;
         public float AttackCooldown { get; set; }
-        public float FireTimer { get; set; } = 0f;   // total time spent firing (for sustained fire cutoff)
-        //public float ShotTimer { get; set; } = 0f;   // countdown between shots within a burst
+        public float FireTimer { get; set; } = 0f;   // total time spent firing (for sustained fire cutoff)        
     }
 
     public class EnemyObject : DynamicObject
@@ -77,10 +76,8 @@ namespace WolfensteinInfinite.GameObjects
                     var projectile = m.Projectiles.FirstOrDefault(p => p.Name == weapon.Projectile);
                     if (projectile == null) continue;
                     var maxFireTime = weapon.MaxFireTime;
-                    weaponList.Add(new EnemyWeaponObject
+                    weaponList.Add(new EnemyWeaponObject(weapon, projectile)
                     {
-                        Weapon = weapon,
-                        Projectile = projectile,
                         MaxFireTime = maxFireTime,
                         ShotInterval = weapon.FireRate > 0 ? 1f / weapon.FireRate : 0.5f,
                         IsRanged = projectile.AmmoType != AmmoType.MELEE,
@@ -89,7 +86,7 @@ namespace WolfensteinInfinite.GameObjects
                     });
                 }
             }
-            Weapons = weaponList.ToArray();
+            Weapons = [.. weaponList];
             LineOfSightDistanceSquared = Enemy.LineOfSightDistance * Enemy.LineOfSightDistance;
         }
 
@@ -366,7 +363,7 @@ namespace WolfensteinInfinite.GameObjects
             if (angleDiff > 15f) _smoothedFacingAngle = targetAngle;
             FacingAngle = _smoothedFacingAngle;
         }
-        private void EndWeaponAttack(EnemyWeaponObject w)
+        private static void EndWeaponAttack(EnemyWeaponObject w)
         {
             w.AttackCooldown = w.AttackCooldownDuration;
             w.FireTimer = 0f;

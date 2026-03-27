@@ -41,7 +41,7 @@ namespace WolfensteinInfinite
         public Dictionary<string, Dictionary<int, Texture32>> Decals { get; init; } = [];
         public Dictionary<string, Dictionary<int, CharacterSprite>> CharacterSprites { get; init; } = [];
         public Dictionary<string, Dictionary<string, ProjectileSprite>> ProjectileSprites { get; init; } = [];
-        public Dictionary<string, Dictionary<string, GameGraphics.Animation>> SpriteAnimations { get; init; } = [];
+        public Dictionary<string, Dictionary<string, Animation>> SpriteAnimations { get; init; } = [];
         public Dictionary<string, PlayerWeapon> PlayerWeapons { get; init; } = [];
         public Dictionary<string, WeaponAnimation> WeaponAnimations { get; init; } = [];
         public Dictionary<string, Texture32> WeaponHudTextures { get; init; } = [];
@@ -65,7 +65,8 @@ namespace WolfensteinInfinite
             Log("Remebering what I was doing");
             Config = LoadConfig();
             Log("Remebering who I am");
-            LoadBaseModItems();
+            LoadBaseModItems(out Animation pow);
+            POWAnimation = pow;
             Mods = LoadMods(false);
             BuilderMods = LoadBuilderMods();
             SpecialMaps = LoadSpecialMaps();
@@ -174,7 +175,7 @@ namespace WolfensteinInfinite
             return [.. t];
         }
 
-        private void LoadBaseModItems()
+        private void LoadBaseModItems(out Animation pow)
         {
             PickupItemTypes.Add(0, new PickupItem("Clip", PickupItemType.AMMO, 8, 0, "GameData\\Base\\Sprites\\Ammo.png", AmmoType.BULLET));
             PickupItemTypes.Add(1, new PickupItem("UsedClip", PickupItemType.AMMO, 4, 0, "GameData\\Base\\Sprites\\Ammo.png", AmmoType.BULLET));
@@ -219,13 +220,13 @@ namespace WolfensteinInfinite
             WeaponAnimations.Add("MachineGun", AnimationHelpers.Create(PlayerWeapons["MachineGun"]));
             WeaponAnimations.Add("ChainGun", AnimationHelpers.Create(PlayerWeapons["ChainGun"]));
 
-            POWAnimation = new Animation(new Texture32[]
-            {
+            pow = new Animation(
+            [
                 FileHelpers.Shared.LoadSurface32("GameData\\Base\\Sprites\\0.png"),
                 FileHelpers.Shared.LoadSurface32("GameData\\Base\\Sprites\\1.png"),
                 FileHelpers.Shared.LoadSurface32("GameData\\Base\\Sprites\\2.png"),
                 FileHelpers.Shared.LoadSurface32("GameData\\Base\\Sprites\\4.png"),
-            }, 1, 4, 4);
+            ], 1, 4, 4);
 
             foreach (var w in PlayerWeapons.Values)
             {
@@ -645,7 +646,7 @@ namespace WolfensteinInfinite
             }
         }
         public RGBA8[]? PreserveColors { get; set; }
-        public Animation POWAnimation { get; private set; }
+        public Animation POWAnimation { get; init; }
 
         private void RenderQuantize(int colors)
         {

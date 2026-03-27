@@ -62,7 +62,7 @@ namespace WolfensteinInfinite.States
             {
 
                 if (_charBuffer.Length == 1) _charBuffer = string.Empty;
-                else _charBuffer = new string(_charBuffer.Take(_charBuffer.Length - 1).ToArray());
+                else _charBuffer = new string([.. _charBuffer.Take(_charBuffer.Length - 1)]);
             }
             if(k.Code == Keyboard.Key.Enter)
             {

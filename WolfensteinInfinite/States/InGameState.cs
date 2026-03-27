@@ -1540,7 +1540,7 @@ namespace WolfensteinInfinite.States
             (int)(py + (Game.Player.DirY * 10)),
             255, 255, 0);
         }
-        private readonly List<DynamicObject> _livingSprites = new();
+        private readonly List<DynamicObject> _livingSprites = [];
         private void CastSprites(Texture32 buffer)
         {
             // Cull to only objects within render distance before sorting
@@ -2042,7 +2042,7 @@ namespace WolfensteinInfinite.States
             float deltaDistX = (rayDirX == 0) ? float.MaxValue : MathF.Abs(1f / rayDirX);
             float deltaDistY = (rayDirY == 0) ? float.MaxValue : MathF.Abs(1f / rayDirY);
 
-            int stepX, stepY, side = 0;
+            int stepX, stepY, side;
 
             if (rayDirX < 0) { stepX = -1; sideDistX = (Game.Player.PosX - mapX) * deltaDistX; }
             else { stepX = 1; sideDistX = (mapX + 1.0f - Game.Player.PosX) * deltaDistX; }

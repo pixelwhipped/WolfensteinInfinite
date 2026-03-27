@@ -51,8 +51,7 @@ namespace WolfensteinInfinite.States
                 if (item.Value.ItemType == PickupItemType.SPAWNER || item.Value.ItemType == PickupItemType.MISSION_OBJECTIVE) continue;
                 l.Add((item.Key, item.Value));
             }
-            PickupItems = l.ToArray();
-            // PickupItems = [.. wolfenstein.PickupItemTypes.Values.Where(p => p.ItemType != PickupItemType.SPAWNER && p.ItemType != PickupItemType.MISSION_OBJECTIVE)];
+            PickupItems = [.. l];            
             Attacks = [.. wolfenstein.PlayerWeapons.Values.OrderBy(p => p.PreferedOrder)];
             var modOptions = Wolfenstein.Mods.Keys.ToArray();
             ModSelector = new MenuItemOptionSelector("Mod", OnMenuAction, modOptions, 0, 140, wolfenstein.GameResources.TinyFont);

@@ -378,7 +378,7 @@ namespace WolfensteinInfinite.Editor
         private static unsafe void BlitDifficultyOverlay(WriteableBitmap dest, int difficulty, int px, int py)
         {
 
-            var colour = GetDifficultyColor(difficulty);
+            var (r, g, b) = GetDifficultyColor(difficulty);
 
             dest.Lock();
             byte* dst = (byte*)dest.BackBuffer + py * dest.BackBufferStride + px * 4;
@@ -390,9 +390,9 @@ namespace WolfensteinInfinite.Editor
                 for (int col = 2; col < 12; col++)
                 {
                     int offset = col * 4;
-                    rowPtr[offset] = colour.b; // BGRA
-                    rowPtr[offset + 1] = colour.g;
-                    rowPtr[offset + 2] = colour.r;
+                    rowPtr[offset] = b; // BGRA
+                    rowPtr[offset + 1] = g;
+                    rowPtr[offset + 2] = r;
                     rowPtr[offset + 3] = 255;
                 }
             }
@@ -472,16 +472,21 @@ namespace WolfensteinInfinite.Editor
             foreach (var difficulty in Enum.GetValues<Difficulties>())
             {
                 var st = new StackPanel() { Orientation = Orientation.Horizontal, Height = 16 };
-                var c = GetDifficultyColor((int)difficulty);
-                Rectangle myRgbRectangle = new Rectangle();
-                myRgbRectangle.Width = 14;
-                myRgbRectangle.Height = 414;
-                Color myColor = Color.FromArgb(255, c.r, c.g, c.b);
-                SolidColorBrush mySolidColorBrush = new SolidColorBrush(myColor);
+                var (r, g, b) = GetDifficultyColor((int)difficulty);
+                Rectangle myRgbRectangle = new()
+                {
+                    Width = 14,
+                    Height = 414
+                };
+                Color myColor = Color.FromArgb(255, r, g, b);
+                SolidColorBrush solidColorBrush = new(myColor);
+                SolidColorBrush mySolidColorBrush = solidColorBrush;
 
                 myRgbRectangle.Fill = mySolidColorBrush;
-                var tb = new TextBlock();
-                tb.Text = DifficultyHelpers.GetDifficultyString(difficulty);
+                var tb = new TextBlock
+                {
+                    Text = DifficultyHelpers.GetDifficultyString(difficulty)
+                };
                 st.Children.Add(myRgbRectangle);
                 st.Children.Add(tb);
                 DifficultySelection.Items.Add(st);
@@ -569,7 +574,7 @@ namespace WolfensteinInfinite.Editor
             }
             MapSectionSelection.SelectionChanged += MapSectionSelection_SelectionChanged;
         }
-        private MapSection[] LoadSectionsForTarget(string modName, string target)
+        private static MapSection[] LoadSectionsForTarget(string modName, string target)
         {
             var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{modName}\{target}");
             if (!System.IO.File.Exists(file)) return [];
@@ -663,10 +668,12 @@ namespace WolfensteinInfinite.Editor
                 SetMapSectionSelections(null);
             }
             else if (m == "New")
-            {   
-                var section = new MapSection()
-                { Id = builder.MapSections.Length > 0 ? builder.MapSections.Max(s => s.Id) + 1 : 0 };
-                section.IntendedMinLevel = Math.Clamp((int)MinLevelSld.Value, 1, 100);
+            {
+                var section = new MapSection
+                {
+                    Id = builder.MapSections.Length > 0 ? builder.MapSections.Max(s => s.Id) + 1 : 0,
+                    IntendedMinLevel = Math.Clamp((int)MinLevelSld.Value, 1, 100)
+                };
                 builder.MapSections = [.. builder.MapSections, section];
                 ChangeStates[ActiveMod] = true;
                 RefreshSectionDropdown(section.Id);
