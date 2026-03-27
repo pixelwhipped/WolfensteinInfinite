@@ -75,7 +75,7 @@ namespace WolfensteinInfinite.GameObjects
             {
                 foreach (var obj in state.DynamicObjects)
                 {
-                    if (obj is EnemyObject enemy && enemy.IsAlive && enemy.AIState != EnemyAIState.Dead &&
+                    if (obj is EnemyObject enemy && !(enemy.IsCorpse || enemy.IsDying) &&
                         (int)enemy.X == mx && (int)enemy.Y == my)
                     {
                         enemy.TakeDamage(Damage, state);

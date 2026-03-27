@@ -67,10 +67,11 @@ namespace WolfensteinInfinite.States
         private const float SecondsPerTile = 1.5f;
         private const float MinCountdownSeconds = 30f;
 
-        private string _cheatBuffer = "";
+        private string _cheatBuffer = string.Empty;
         private const string CheatIDDQD = "iddqd";
         private const string CheatIDKFA = "idkfa";
         private const string CheatIDDT = "iddt";
+        private const string CheatIDCLEV = "idclev";
 
         private float _weaponCooldown = 0f;
         private float _sustainedFireTime = 0f;
@@ -102,6 +103,7 @@ namespace WolfensteinInfinite.States
         public InGameState(Wolfenstein wolfenstein, Game game) : base(wolfenstein)
         {
             Game = game;
+            Game.Player.GodMode = false;
             HudBuffer = new Texture32(wolfenstein.GameResources.Hud.Width, wolfenstein.GameResources.Hud.Height);
             ReturnState = this;
             NextState = this;
@@ -178,7 +180,7 @@ namespace WolfensteinInfinite.States
         private void RebuildDynamicObjects()
         {
 
-        DynamicObjects.Clear();
+            DynamicObjects.Clear();
 
             foreach (var d in Game.Map.Decals)
             {
@@ -205,7 +207,7 @@ namespace WolfensteinInfinite.States
                         Wolfenstein.PickupItems.TryGetValue(placedKvp.Key, out var pt)
                         ? new StaticSprite(pt)
                         : sprite;
-                     DynamicObjects.Add(new DynamitePlacementObject(d.X + 0.5f, d.Y + 0.5f, sprite, placedSprite));
+                    DynamicObjects.Add(new DynamitePlacementObject(d.X + 0.5f, d.Y + 0.5f, sprite, placedSprite));
                 }
                 else
                 {
@@ -361,7 +363,7 @@ namespace WolfensteinInfinite.States
                             break;
                     }
                     var hit = DynamicObjects.OfType<EnemyObject>()
-                        .FirstOrDefault(e => e.IsAlive &&
+                        .FirstOrDefault(e => !(e.IsCorpse || e.IsDying) &&
                             (int)e.X == mx && (int)e.Y == my);
                     if (hit != null)
                     {
@@ -451,7 +453,7 @@ namespace WolfensteinInfinite.States
             {
                 var countStr = ((int)_dynamiteCountdown).ToString();
                 var (cw, _) = Wolfenstein.GameResources.LargeFont.MeasureString(countStr);
-                buffer.DrawString((buffer.Width/2) - (cw / 2), 14, countStr,
+                buffer.DrawString((buffer.Width / 2) - (cw / 2), 14, countStr,
                     Wolfenstein.GameResources.LargeFont,
                     _dynamiteCountdown < 10f ? RGBA8.RED : RGBA8.YELLOW);
             }
@@ -466,7 +468,7 @@ namespace WolfensteinInfinite.States
                 wall.Update(frameTime, Game.Map);
         }
 
-        private LevelStats BuildLevelStats() => new(
+        public LevelStats BuildLevelStats() => new(
     _enemiesKilled, _enemiesTotal,
     _itemsCollected, _itemsTotal,
     Game.Map.PushWalls.Count(w => w.IsComplete),
@@ -615,15 +617,14 @@ namespace WolfensteinInfinite.States
         {
             _dynamiteCountdown = 0f;
             _dynamiteCountdownActive = false;
-            Game.Map.ObjectivesComplete.Clear();
             // Reset player state — keep score, lives, objectives
             Game.Player.Health = 100;
             Game.Player.Weapon = "Pistol";
             Game.Player.Weapons = ["Knife", "Pistol"];
             Game.Player.Ammo = new Dictionary<AmmoType, int>
-    {
-        { AmmoType.BULLET, 16 }
-    };
+            {
+                { AmmoType.BULLET, 16 }
+            };
 
             // Restore spawn position and direction
             Game.Player.PosX = _spawnX;
@@ -646,7 +647,7 @@ namespace WolfensteinInfinite.States
 
             // Rebuild enemies, pickups — push walls and doors keep their current state
             // since objectives are preserved and doors the player opened should stay open
-            RebuildDynamicObjects();
+            //RebuildDynamicObjects();
 
             // Invalidate light map so it rebuilds from current state
             InvalidateLightMap();
@@ -730,7 +731,7 @@ namespace WolfensteinInfinite.States
                 HudBuffer.Draw(251, objY, DoneObj(MapFlags.HAS_BOOM)
                     ? Wolfenstein.GameResources.DynamiteOn
                     : Wolfenstein.GameResources.DynamiteOff);
-                objY += 20;                
+                objY += 20;
             }
             if (HasObj(MapFlags.HAS_SECRET_MESSAGE))
             {
@@ -817,7 +818,7 @@ namespace WolfensteinInfinite.States
                     Game.Map.ObjectivesComplete[MapFlags.HAS_BOOM] = true;
                     Game.Map.Objectives.TryAdd(MapFlags.HAS_EXPLOSIVE_SET, true);
                     Game.Map.ObjectivesComplete.TryAdd(MapFlags.HAS_EXPLOSIVE_SET, false);
-                    
+
                     // Placement spots already in scene — player uses Space to place
                     break;
 
@@ -933,74 +934,38 @@ namespace WolfensteinInfinite.States
 
         private bool HandleCheatCode(Keyboard.Key key)
         {
-            var keyChar = KeyToChar(key);
+            var keyChar = key.ToString();
             if (keyChar == null) return false;
 
-            _cheatBuffer += keyChar.Value;
+            _cheatBuffer += keyChar;
             if (_cheatBuffer.Length > 10) _cheatBuffer = _cheatBuffer[^10..];
 
-            if (_cheatBuffer.EndsWith(CheatIDDQD))
+            if (_cheatBuffer.EndsWith(CheatIDDQD, StringComparison.InvariantCultureIgnoreCase))
             {
                 ActivateCheatGodMode();
                 return true;
             }
-            if (_cheatBuffer.EndsWith(CheatIDKFA))
+            if (_cheatBuffer.EndsWith(CheatIDKFA, StringComparison.InvariantCultureIgnoreCase))
             {
                 ActivateCheatAllWeapons();
                 return true;
             }
-            if (_cheatBuffer.EndsWith(CheatIDDT))
+            if (_cheatBuffer.EndsWith(CheatIDDT, StringComparison.InvariantCultureIgnoreCase))
             {
                 ActivateCheatRevealMap();
                 return true;
             }
+            if (_cheatBuffer.EndsWith(CheatIDCLEV, StringComparison.InvariantCultureIgnoreCase))
+            {
+                ActivateCheatSelectLevel();
+                return true;
+            }
             return false;
         }
-
-        private static char? KeyToChar(Keyboard.Key key)
+        public void ActivateCheatSelectLevel()
         {
-            return key switch
-            {
-                Keyboard.Key.A => 'a',
-                Keyboard.Key.B => 'b',
-                Keyboard.Key.C => 'c',
-                Keyboard.Key.D => 'd',
-                Keyboard.Key.E => 'e',
-                Keyboard.Key.F => 'f',
-                Keyboard.Key.G => 'g',
-                Keyboard.Key.H => 'h',
-                Keyboard.Key.I => 'i',
-                Keyboard.Key.J => 'j',
-                Keyboard.Key.K => 'k',
-                Keyboard.Key.L => 'l',
-                Keyboard.Key.M => 'm',
-                Keyboard.Key.N => 'n',
-                Keyboard.Key.O => 'o',
-                Keyboard.Key.P => 'p',
-                Keyboard.Key.Q => 'q',
-                Keyboard.Key.R => 'r',
-                Keyboard.Key.S => 's',
-                Keyboard.Key.T => 't',
-                Keyboard.Key.U => 'u',
-                Keyboard.Key.V => 'v',
-                Keyboard.Key.W => 'w',
-                Keyboard.Key.X => 'x',
-                Keyboard.Key.Y => 'y',
-                Keyboard.Key.Z => 'z',
-                Keyboard.Key.Num0 => '0',
-                Keyboard.Key.Num1 => '1',
-                Keyboard.Key.Num2 => '2',
-                Keyboard.Key.Num3 => '3',
-                Keyboard.Key.Num4 => '4',
-                Keyboard.Key.Num5 => '5',
-                Keyboard.Key.Num6 => '6',
-                Keyboard.Key.Num7 => '7',
-                Keyboard.Key.Num8 => '8',
-                Keyboard.Key.Num9 => '9',
-                _ => null
-            };
+            NextState = new LevelSelectState(Wolfenstein, this);
         }
-
         private void ActivateCheatGodMode()
         {
             Game.Player.GodMode = true;
@@ -1226,7 +1191,7 @@ namespace WolfensteinInfinite.States
         {
             if (!_exitActivated) return;
             _exitDelay -= frameTime;
-            if (_exitDelay <= 0f) _pendingExit = true;            
+            if (_exitDelay <= 0f) _pendingExit = true;
         }
         private bool IsDecalPassable(int x, int y)
         {
@@ -1438,7 +1403,7 @@ namespace WolfensteinInfinite.States
 
             for (int i = 0; i < 5; i++)
             {
-                if (door.X == playerMapX + NeighborDX[i] && door.Y == playerMapY + NeighborDY[i]) 
+                if (door.X == playerMapX + NeighborDX[i] && door.Y == playerMapY + NeighborDY[i])
                     return false;
             }
 
@@ -1851,7 +1816,7 @@ namespace WolfensteinInfinite.States
                 }
             }
         }
-        private void CastWalls(Texture32 buffer, int x,float rayDirX,  float rayDirY)
+        private void CastWalls(Texture32 buffer, int x, float rayDirX, float rayDirY)
         {
             //which box of the map we're in
             int mapX = (int)Game.Player.PosX;
@@ -1933,7 +1898,7 @@ namespace WolfensteinInfinite.States
             int drawEnd = lineHeight / 2 + buffer.Height / 2;
             if (drawEnd >= buffer.Height) drawEnd = buffer.Height - 1;
 
-                
+
             //Modified
             //texturing calculations
             int texNum = Game.Map.WorldMap[mapY][mapX];// - 1; //1 subtracted from it so that texture 0 can be used!
@@ -2019,7 +1984,7 @@ namespace WolfensteinInfinite.States
             ZBuffer[x] = perpWallDist; //perpendicular distance is used
         }
 
-        private void CastDoors(Texture32 buffer, int x, float rayDirX,  float rayDirY)
+        private void CastDoors(Texture32 buffer, int x, float rayDirX, float rayDirY)
         {
             int mapX = (int)Game.Player.PosX;
             int mapY = (int)Game.Player.PosY;
@@ -2235,7 +2200,7 @@ namespace WolfensteinInfinite.States
             float doorDarkening = 0.85f;
 
             bool anyOpaque = false;
-            bool anyTransparent = false;  
+            bool anyTransparent = false;
             for (int y = drawStart; y <= drawEnd; y++)
             {
                 int texY = (int)texPos & (texHeight - 1);
@@ -2245,7 +2210,7 @@ namespace WolfensteinInfinite.States
                 if (a == 0) { anyTransparent = true; continue; }
                 if (a < 255)
                 {
-                    anyTransparent = true;  
+                    anyTransparent = true;
                     buffer.GetPixel(x, y, out byte br, out byte bg, out byte bb, out _);
                     float fa = a / 255f;
                     r = (byte)(r * fa * bl + br * (1f - fa));
