@@ -11,7 +11,7 @@ namespace WolfensteinInfinite.GameGraphics
         public int Frames { get; init; }
         public int CurrentFrame { get; set; }
         private float CurrentFrameTime { get; set; }
-        private float FramesPerSecond { get; init; }
+        public float FramesPerSecond { get; init; }
         private Texture32[][] Textures { get; init; }
 
         public Animation(Animation source)

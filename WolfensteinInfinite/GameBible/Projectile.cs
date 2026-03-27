@@ -13,13 +13,13 @@
         public string? TrailAnimation { get; init; } = trailAnimation;
         public string? ImpactAnimation { get; init; } = impactAnimation;
         //Todo Impove
-        public int GetDamage(int tileDist)
+        public int GetDamageOld(int tileDist, Difficulties difficulty)
         {
             switch (AmmoType)
             {
                 case AmmoType.MELEE:
                     if (tileDist > (RangeMod - 1)) return 0;
-                    //if (tileDist > RangeMod || Random.Shared.Next(0, 255) < 60) return 0;
+                    if (tileDist > RangeMod || Random.Shared.Next(0, 255) < 60) return 0;
                     return Random.Shared.Next(0, 255) / DamageMod;                    
                 case AmmoType.BULLET:
                     if(tileDist >= RangeMod && (Random.Shared.Next(0, 255)/12)<tileDist) return Random.Shared.Next(0, 255) / (DamageMod*3);
@@ -36,6 +36,32 @@
                     return (Random.Shared.Next(0, 255) / DamageMod) + (DamageMod * 4);
             }
             return 0;
+        }
+
+        public int GetDamage(int tileDist, Difficulties difficulty)
+        {
+            if (tileDist > (RangeMod)) return 0;
+            var mod = ((float)RangeMod/Math.Max(tileDist, RangeMod))*DamageMod;
+            var diff = 1f;
+            switch (difficulty)
+            {
+                case Difficulties.CAN_I_PLAY_DADDY:
+                    diff = 0.9f;
+                    break;
+                case Difficulties.DONT_HURT_ME:
+                    diff = 1.1f;
+                    break;
+                case Difficulties.BRING_EM_ON:
+                    diff = 1.2f;
+                    break;
+                case Difficulties.I_AM_DEATH_INCARNATE:
+                    diff = 1.5f;
+                    break;
+                default:
+                    diff = 1f;
+                    break;
+            }
+            return (int)Math.Ceiling(mod * diff);
         }
     }
 }

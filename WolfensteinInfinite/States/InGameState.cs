@@ -335,7 +335,7 @@ namespace WolfensteinInfinite.States
                     if (dist > projectile.RangeMod) continue;
                     var dot = (dx / dist) * Game.Player.DirX + (dy / dist) * Game.Player.DirY;
                     if (dot > 0.5f)
-                        obj.TakeDamage(projectile.GetDamage((int)dist), this);
+                        obj.TakeDamage(projectile.GetDamage((int)dist, Difficulties.CAN_I_PLAY_DADDY), this);
                 }
             }
             else if (weapon.AmmoType == AmmoType.BULLET)
@@ -370,7 +370,7 @@ namespace WolfensteinInfinite.States
                         var tileDist = (int)MathF.Sqrt(
                             MathF.Pow(rayX - Game.Player.PosX, 2) +
                             MathF.Pow(rayY - Game.Player.PosY, 2));
-                        hit.TakeDamage(projectile.GetDamage(tileDist), this);
+                        hit.TakeDamage(projectile.GetDamage(tileDist, Difficulties.CAN_I_PLAY_DADDY), this);
                         break;
                     }
                 }
@@ -394,7 +394,7 @@ namespace WolfensteinInfinite.States
                     Game.Player.PosX, Game.Player.PosY,
                     Game.Player.DirX, Game.Player.DirY,
                     speed: 10f,
-                    damage: projectile.GetDamage(0),
+                    damage: projectile.GetDamage(0, Game.Map.Difficulty),
                     maxRange: projectile.RangeMod,
                     isEnemyProjectile: false,
                     sprite: sprite));
@@ -1098,7 +1098,6 @@ namespace WolfensteinInfinite.States
             foreach (var obj in DynamicObjects.ToArray())
             {
                 if (Game.Player.Health > 0) obj.Update(frameTime, this); 
-
             }
                 
             DynamicObjects.RemoveAll(o => !o.IsAlive && o.ObjectType == DynamicObjectType.Projectile);

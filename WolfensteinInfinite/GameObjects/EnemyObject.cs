@@ -20,6 +20,7 @@ namespace WolfensteinInfinite.GameObjects
         public Projectile Projectile { get; init; } = projectile;
         public float AttackCooldown { get; set; }
         public float FireTimer { get; set; } = 0f;   // total time spent firing (for sustained fire cutoff)        
+        public float FrameWait { get; set; } = 0f;
     }
 
     public class EnemyObject : DynamicObject
@@ -385,7 +386,7 @@ namespace WolfensteinInfinite.GameObjects
             if (!string.IsNullOrEmpty(weapon.Sound)) PlaySound($"{Mod}:{weapon.Sound}", state);
 
             var tileDist = projectile.AmmoType == AmmoType.MELEE ? 0 : (int)distToPlayer;
-            var damage = projectile.GetDamage(tileDist);
+            var damage = projectile.GetDamage(tileDist, state.Game.Map.Difficulty);
             if (damage <= 0) return;
 
             if (projectile.AmmoType == AmmoType.MELEE)
@@ -555,6 +556,7 @@ namespace WolfensteinInfinite.GameObjects
 
                 case EnemyAIState.Chase:
                     if (!IsAlerted) ResetTauntTimer();
+                    if (Weapons.All(w => w.AttackCooldown > 0f)) break;
                     IsAlerted = true;                    
                     SetAnimationForState(EnemyAIState.Chase);
                     if (IsRanged)
@@ -614,16 +616,24 @@ namespace WolfensteinInfinite.GameObjects
                     break;
             }
         }
-
+        //private float nextFireWaitTime = 0f;
         private void TryAttack(float frameTime, float distToPlayer, InGameState state)
         {
             if (Weapons.Length == 0) return;
+            foreach (var w in Weapons)
+            {
+                w.FrameWait = MathF.Max(w.FrameWait - frameTime, 0);
+            }           
 
             // Keep facing the player while attacking
             UpdateFacingAngleTowardPlayer(state);
 
             // All weapons still cooling down — wait
-            if (Weapons.All(w => w.AttackCooldown > 0f)) return;
+            if (Weapons.All(w => w.AttackCooldown > 0f))
+            {
+                AIState = EnemyAIState.Chase;   
+                return;
+            }
 
             // Reaction delay before committing to attack
             if (_reactionTimer > 0f)
@@ -641,19 +651,40 @@ namespace WolfensteinInfinite.GameObjects
             }
 
             bool inFireFrame = CharacterSprite.IsInAttackFireFrames(Enemy.FireFrames);
-            if(inFireFrame) ResetTauntTimer();
+            
+            
             foreach (var w in Weapons)
             {
                 if (w.AttackCooldown > 0f) continue;
-                w.FireTimer += frameTime;
                 if (inFireFrame)
                 {
                     int shots = Math.Max(1, (int)MathF.Round(w.Weapon.FireRate));
                     for (int i = 0; i < shots; i++)
-                        FireShot(w.Projectile, w.Weapon, distToPlayer, state);
+                    {
+                        w.FireTimer += frameTime;
+                        if (w.FrameWait <= 0)
+                        {
+                            FireShot(w.Projectile, w.Weapon, distToPlayer, state);
+                        }
+                        if (w.FireTimer >= w.MaxFireTime)
+                        {
+                            EndWeaponAttack(w);
+                            break;
+                        }
+                    }
                 }
-                if (w.FireTimer >= w.MaxFireTime)
-                    EndWeaponAttack(w);
+            }
+            if (inFireFrame)
+            {
+                ResetTauntTimer();
+                foreach (var w in Weapons)
+                {
+                    if (w.FrameWait <= 0)
+                    {
+                        w.FrameWait = CharacterSprite.CurrentFrameTimeInSecond();
+                    }
+                }
+                
             }
         }
         private void SpawnDrops(InGameState state)

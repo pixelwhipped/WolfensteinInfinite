@@ -25,6 +25,13 @@ namespace WolfensteinInfinite.GameGraphics
             AnimationState == CharacterAnimationState.ATTACKING &&
             Animations.TryGetValue(CharacterAnimationState.ATTACKING, out var anim) &&
             frames.Any(p=>p== anim.CurrentFrame);
+
+        public float CurrentFrameTimeInSecond()
+        {
+            if (Animations.TryGetValue(AnimationState, out var anim))
+                return 1.0f / anim.FramesPerSecond;
+            return 0f;
+        }
         public void Update(float frameTimeSeconds)
         {
             if (Animations.TryGetValue(AnimationState, out var anim))
