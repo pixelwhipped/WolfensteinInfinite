@@ -17,11 +17,17 @@
                 <ComboBox x:Name="ModSelection" Width="150" SelectionChanged="ModSelection_SelectionChanged"/>
                 <ComboBox x:Name="SaveTargetSelection" Width="80" SelectionChanged="ModSelection_SelectionChanged"/>
                 <ComboBox x:Name="MapSectionSelection" Width="60" SelectionChanged="MapSectionSelection_SelectionChanged"/>
-                <Label x:Name="LevelLabel" Content="Level" Foreground="White"/>
+                <Label x:Name="LevelLabel" Content="Level 0" Foreground="White"/>
                 <Slider x:Name="MinLevelSld" Minimum="1" Maximum="100" Width="200" ValueChanged="MinLevelSld_ValueChanged"  Foreground="White" />
+                <Button x:Name="BtnDecLevel"  Content="-" Width="24" Click="BtnDecLevel_Click"/>
+                <Button x:Name="BtnIncLevel"  Content="+" Width="24" Click="BtnIncLevel_Click"/>
+                
                 <CheckBox x:Name="IsRotatableChk" Content="Rotatable" 
           VerticalAlignment="Center" Foreground="White" Margin="5,0,0,0"
           Checked="IsRotatableChk_Changed" Unchecked="IsRotatableChk_Changed"/>
+                <CheckBox x:Name="IsFlippableChk" Content="Flippable" 
+VerticalAlignment="Center" Foreground="White" Margin="5,0,0,0"
+Checked="IsFlippableChk_Changed" Unchecked="IsFlippableChk_Changed"/>
                 <Button x:Name="DeleteBtn" Content="Delete" IsEnabled="False" Click="DeleteBtn_Click"/>
                 <Button x:Name="DuplicateBtn" Content="Duplicate" IsEnabled="False" Click="DuplicateBtn_Click"/>
                 <ComboBox x:Name="DifficultySelection" Width="150" SelectionChanged="DifficultySelection_SelectionChanged"/>

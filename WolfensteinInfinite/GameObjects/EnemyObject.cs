@@ -559,14 +559,14 @@ namespace WolfensteinInfinite.GameObjects
                     SetAnimationForState(EnemyAIState.Chase);
                     if (IsRanged)
                     {
-                        if (HasLineOfSight(state))
+                        if (HasLineOfSight(state) && IsFacingPlayer(state))
                             AIState = EnemyAIState.Attack;
                         else
                             TryMoveTowardPlayer(frameTime, state);
                     }
                     else
                     {
-                        if (distToPlayer <= Enemy.MeleeAttackRange)
+                        if (distToPlayer <= Enemy.MeleeAttackRange && IsFacingPlayer(state))
                             AIState = EnemyAIState.Attack;
                         else
                             TryMoveTowardPlayer(frameTime, state);

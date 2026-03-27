@@ -9,7 +9,7 @@ using WolfensteinInfinite.GameMap;
 using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
-using static System.Windows.Forms.AxHost;
+
 
 namespace WolfensteinInfinite.States
 {
@@ -611,7 +611,7 @@ namespace WolfensteinInfinite.States
         {
             RecordHighScore();
             SaveGame.Delete();
-            NextState = new MenuState(Wolfenstein, null);
+            NextState = new HighScores(Wolfenstein, new MenuState(Wolfenstein, null));
         }
         public void ResetGame()
         {
@@ -1096,8 +1096,11 @@ namespace WolfensteinInfinite.States
         private void UpdateDynamicObjects(float frameTime)
         {
             foreach (var obj in DynamicObjects.ToArray())
-                obj.Update(frameTime, this);
+            {
+                if (Game.Player.Health > 0) obj.Update(frameTime, this); 
 
+            }
+                
             DynamicObjects.RemoveAll(o => !o.IsAlive && o.ObjectType == DynamicObjectType.Projectile);
 
             // Boss objective — complete when all boss-type enemies are dead

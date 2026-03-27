@@ -146,6 +146,8 @@ namespace WolfensteinInfinite.WolfMod
         public int Id { get; set; } = 0;
 
         public bool IsRotatable { get; set; } = false;
+        public bool IsFlippable { get; set; } = false;
+        
         public int IntendedMinLevel { get; set; } = 1;
         [JsonIgnore]
         public bool IsFullMap => HasPlayerStart && HasPlayerExit &&
@@ -223,7 +225,7 @@ namespace WolfensteinInfinite.WolfMod
             }
 
             result.IntendedMinLevel = src.IntendedMinLevel;
-            result.IsRotatable = false;
+            result.IsRotatable = false;            
             return result;
         }
         public (int X, int Y)[] GetConnections(int xOffset = 0, int yOffset = 0)

@@ -644,9 +644,11 @@ namespace WolfensteinInfinite.Editor
                 return;
             }
             MinLevelSld.Value = s.IntendedMinLevel;
+            LevelLabel.Content = $"Level {s.IntendedMinLevel}";
             IsRotatableChk.Checked -= IsRotatableChk_Changed;
             IsRotatableChk.Unchecked -= IsRotatableChk_Changed;
             IsRotatableChk.IsChecked = s.IsRotatable;
+            IsFlippableChk.IsChecked = s.IsFlippable;
             IsRotatableChk.Checked += IsRotatableChk_Changed;
             IsRotatableChk.Unchecked += IsRotatableChk_Changed;
             if (s == ActiveSection)
@@ -1227,6 +1229,8 @@ namespace WolfensteinInfinite.Editor
             if (ActiveSection == null) return;
             ActiveSection.IntendedMinLevel = Math.Clamp((int)MinLevelSld.Value, 1, 100);
             LevelLabel.Content = $"Level {ActiveSection.IntendedMinLevel}";
+            ChangeStates[ActiveMod] = true;
+            SetSaveButtonStates();
         }
 
         private void DuplicateBtn_Click(object sender, RoutedEventArgs e)
@@ -1268,6 +1272,32 @@ namespace WolfensteinInfinite.Editor
         {
             if (ActiveSection == null || ActiveMod == null) return;
             ActiveSection.IsRotatable = IsRotatableChk.IsChecked == true;
+            ChangeStates[ActiveMod] = true;
+            SetSaveButtonStates();
+        }
+
+        private void BtnIncLevel_Click(object sender, RoutedEventArgs e)
+        {
+            if (ActiveSection == null) return;
+            ActiveSection.IntendedMinLevel = Math.Clamp((int)MinLevelSld.Value + 1, 1, 100);
+            LevelLabel.Content = $"Level {ActiveSection.IntendedMinLevel}";
+            ChangeStates[ActiveMod] = true;
+            SetSaveButtonStates();
+        }
+
+        private void BtnDecLevel_Click(object sender, RoutedEventArgs e)
+        {
+            if (ActiveSection == null) return;
+            ActiveSection.IntendedMinLevel = Math.Clamp((int)MinLevelSld.Value-1, 1, 100);
+            LevelLabel.Content = $"Level {ActiveSection.IntendedMinLevel}";
+            ChangeStates[ActiveMod] = true;
+            SetSaveButtonStates();
+        }
+
+        private void IsFlippableChk_Changed(object sender, RoutedEventArgs e)
+        {
+            if (ActiveSection == null || ActiveMod == null) return;
+            ActiveSection.IsFlippable= IsFlippableChk.IsChecked == true;
             ChangeStates[ActiveMod] = true;
             SetSaveButtonStates();
         }
