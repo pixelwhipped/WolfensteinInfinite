@@ -1117,7 +1117,7 @@ namespace WolfensteinInfinite.States
             float moveSpeed = frameTime * 5.0f;
             float rotSpeed = frameTime * 2.0f;
 
-            if (Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Up))
+            if (Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyUp))
             {
                 var nextX = (int)(Game.Player.PosX + Game.Player.DirX * moveSpeed);
                 var nextY = (int)(Game.Player.PosY + Game.Player.DirY * moveSpeed);
@@ -1136,7 +1136,7 @@ namespace WolfensteinInfinite.States
                     Game.Player.PosY += Game.Player.DirY * moveSpeed;
             }
 
-            if (Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Down))
+            if (Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyDown))
             {
                 var nextX = (int)(Game.Player.PosX - Game.Player.DirX * moveSpeed);
                 var nextY = (int)(Game.Player.PosY - Game.Player.DirY * moveSpeed);
@@ -1154,28 +1154,75 @@ namespace WolfensteinInfinite.States
                     Game.Player.PosY -= Game.Player.DirY * moveSpeed;
             }
 
-            //rotate to the right
-            if (Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Right))
+            if (Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyStafe))
             {
-                float oldDirX = Game.Player.DirX;
-                Game.Player.DirX = Game.Player.DirX * MathF.Cos(-rotSpeed) - Game.Player.DirY * MathF.Sin(-rotSpeed);
-                Game.Player.DirY = oldDirX * MathF.Sin(-rotSpeed) + Game.Player.DirY * MathF.Cos(-rotSpeed);
-                float oldPlaneX = PlaneX;
-                PlaneX = PlaneX * MathF.Cos(-rotSpeed) - PlaneY * MathF.Sin(-rotSpeed);
-                PlaneY = oldPlaneX * MathF.Sin(-rotSpeed) + PlaneY * MathF.Cos(-rotSpeed);
+                if (Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyRight))
+                {
+                    var nextX = (int)(Game.Player.PosX + PlaneX * moveSpeed);
+                    var nextY = (int)(Game.Player.PosY + PlaneY * moveSpeed);
+                    var curX = (int)Game.Player.PosX;
+                    var curY = (int)Game.Player.PosY;
+                    if (curY >= 0 && nextX >= 0 && curY < Game.Map.WorldMap.Length && nextX < Game.Map.WorldMap[0].Length)
+                    {
+                        var tileX = Game.Map.WorldMap[curY][nextX];
+                        if ((tileX == MapSection.ClosedSectionInterior && IsDecalPassable(nextX, curY)) ||
+                            (tileX == DOOR_TILE && CanPassThroughDoor(nextX, curY)))
+                            Game.Player.PosX += PlaneX * moveSpeed;
+                    }
+                    if (nextY >= 0 && curX >= 0 && nextY < Game.Map.WorldMap.Length && curX < Game.Map.WorldMap[0].Length)
+                    {
+                        var tileY = Game.Map.WorldMap[nextY][curX];
+                        if ((tileY == MapSection.ClosedSectionInterior && IsDecalPassable(curX, nextY)) ||
+                            (tileY == DOOR_TILE && CanPassThroughDoor(curX, nextY)))
+                            Game.Player.PosY += PlaneY * moveSpeed;
+                    }
+                }
+                if (Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyLeft))
+                {
+                    var nextX = (int)(Game.Player.PosX - PlaneX * moveSpeed);
+                    var nextY = (int)(Game.Player.PosY - PlaneY * moveSpeed);
+                    var curX = (int)Game.Player.PosX;
+                    var curY = (int)Game.Player.PosY;
+                    if (curY >= 0 && nextX >= 0 && curY < Game.Map.WorldMap.Length && nextX < Game.Map.WorldMap[0].Length)
+                    {
+                        var tileX = Game.Map.WorldMap[curY][nextX];
+                        if ((tileX == MapSection.ClosedSectionInterior && IsDecalPassable(nextX, curY)) ||
+                            (tileX == DOOR_TILE && CanPassThroughDoor(nextX, curY)))
+                            Game.Player.PosX -= PlaneX * moveSpeed;
+                    }
+                    if (nextY >= 0 && curX >= 0 && nextY < Game.Map.WorldMap.Length && curX < Game.Map.WorldMap[0].Length)
+                    {
+                        var tileY = Game.Map.WorldMap[nextY][curX];
+                        if ((tileY == MapSection.ClosedSectionInterior && IsDecalPassable(curX, nextY)) ||
+                            (tileY == DOOR_TILE && CanPassThroughDoor(curX, nextY)))
+                            Game.Player.PosY -= PlaneY * moveSpeed;
+                    }
+                }
             }
-            //rotate to the left
-            if (Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Left))
+            else
             {
-                float oldDirX = Game.Player.DirX;
-                Game.Player.DirX = Game.Player.DirX * MathF.Cos(rotSpeed) - Game.Player.DirY * MathF.Sin(rotSpeed);
-                Game.Player.DirY = oldDirX * MathF.Sin(rotSpeed) + Game.Player.DirY * MathF.Cos(rotSpeed);
-                float oldPlaneX = PlaneX;
-                PlaneX = PlaneX * MathF.Cos(rotSpeed) - PlaneY * MathF.Sin(rotSpeed);
-                PlaneY = oldPlaneX * MathF.Sin(rotSpeed) + PlaneY * MathF.Cos(rotSpeed);
+                //rotate to the right
+                if (Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyRight))
+                {
+                    float oldDirX = Game.Player.DirX;
+                    Game.Player.DirX = Game.Player.DirX * MathF.Cos(-rotSpeed) - Game.Player.DirY * MathF.Sin(-rotSpeed);
+                    Game.Player.DirY = oldDirX * MathF.Sin(-rotSpeed) + Game.Player.DirY * MathF.Cos(-rotSpeed);
+                    float oldPlaneX = PlaneX;
+                    PlaneX = PlaneX * MathF.Cos(-rotSpeed) - PlaneY * MathF.Sin(-rotSpeed);
+                    PlaneY = oldPlaneX * MathF.Sin(-rotSpeed) + PlaneY * MathF.Cos(-rotSpeed);
+                }
+                //rotate to the left
+                if (Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyLeft))
+                {
+                    float oldDirX = Game.Player.DirX;
+                    Game.Player.DirX = Game.Player.DirX * MathF.Cos(rotSpeed) - Game.Player.DirY * MathF.Sin(rotSpeed);
+                    Game.Player.DirY = oldDirX * MathF.Sin(rotSpeed) + Game.Player.DirY * MathF.Cos(rotSpeed);
+                    float oldPlaneX = PlaneX;
+                    PlaneX = PlaneX * MathF.Cos(rotSpeed) - PlaneY * MathF.Sin(rotSpeed);
+                    PlaneY = oldPlaneX * MathF.Sin(rotSpeed) + PlaneY * MathF.Cos(rotSpeed);
+                }
             }
-
-            if (Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Space))
+            if (Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyOpen))
             {
                 _ = TryInteract(); //Result shouldn't matter
             }
