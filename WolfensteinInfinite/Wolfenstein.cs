@@ -82,8 +82,8 @@ namespace WolfensteinInfinite
             foreach (var m in Mods.Values)
             {
                 if (string.IsNullOrWhiteSpace(m.TitleMusic)) continue;
-                var midi = m.MusicTracks.First(p => p.Name == m.TitleMusic);
-                TitleScreenMusic.Add(MidiFile.Read(FileHelpers.Shared.GetModDataFilePath(midi.File)));
+                    var midi = m.MusicTracks.FirstOrDefault(p => p.Name == m.TitleMusic);
+                if(midi!=null) TitleScreenMusic.Add(MidiFile.Read(FileHelpers.Shared.GetModDataFilePath(midi.File)));
             }
             if (TitleScreenMusic.Count > 0)
                 CurrentMusic = TitleScreenMusic[Random.Shared.Next(0, TitleScreenMusic.Count - 1)];
@@ -472,12 +472,12 @@ namespace WolfensteinInfinite
             //foreach (var version in new Extractor(Debugger.IsAttached).GameVersions)
             foreach (var version in new Extractor(forceRebuild || Args.Rebuild || Args.RebuildWithMapImage).GameVersions)
             {
-                var map = $"WolfensteinInfinite.GameData.{version.Name}.Demo.map.json";
-                var special = $"WolfensteinInfinite.GameData.{version.Name}.Demo.specialmap.json";
+                var map = $"WolfensteinInfinite.GameData.{version.Name}.map.json";
+                var special = $"WolfensteinInfinite.GameData.{version.Name}.specialmap.json";
                 var test = $"WolfensteinInfinite.GameData.Mods.{version.Name}.maptestlevel.json";
                 if (res.Any(p => p.Equals(map))) SaveEmbeddedResource(map, FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\map.json"));
-                if (res.Any(p => p.Equals(special))) SaveEmbeddedResource(map, FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\specialmap.json"));
-                if (res.Any(p => p.Equals(test))) SaveEmbeddedResource(map, FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\maptestlevel.json"));
+                if (res.Any(p => p.Equals(special))) SaveEmbeddedResource(special, FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\specialmap.json"));
+                if (res.Any(p => p.Equals(test))) SaveEmbeddedResource(test, FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\maptestlevel.json"));
 
                 //Needo to copy internal mod/map/test/special json file on rebuild requst
                 var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\mod.json");
@@ -785,7 +785,7 @@ namespace WolfensteinInfinite
                 }
             }
             var addPoint = level * 5;
-            experiment = new Enemy(-1, e.ExperimentalName, EnemyType.HANS_GROSS, 512 * 3, 5000 + Math.Min(level*2, 1000),
+            experiment = new Enemy(-1, e.ExperimentalName, EnemyType.HANS_GROSS, 512 * 3, 5000 + Math.Min(level * 2, 1000),
                 new Dictionary<Difficulties, int>()
                 {
                     [Difficulties.CAN_I_PLAY_DADDY] = 850 + addPoint,
@@ -795,9 +795,9 @@ namespace WolfensteinInfinite
                 }, [wr, wl],
                 []  //Drop was gold key but irrelevent now
                 , CharacterSpriteType.BOSS, e.SpritePath, 0,
-                bosses[Random.Shared.Next(0, bosses.Count)].AlertSounds,
-                bosses[Random.Shared.Next(0, bosses.Count)].DeathSounds,
-                bosses[Random.Shared.Next(0, bosses.Count)].TauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
+                bosses.Count != 0 ? bosses[Random.Shared.Next(0, bosses.Count)].AlertSounds : [],
+                bosses.Count != 0 ? bosses[Random.Shared.Next(0, bosses.Count)].DeathSounds : [],
+                bosses.Count != 0 ? bosses[Random.Shared.Next(0, bosses.Count)].TauntSounds : [], [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
 
         }
 

@@ -33,7 +33,7 @@ namespace WolfensteinInfinite.GameObjects
         public bool IsDying => CharacterSprite.AnimationState == CharacterAnimationState.DYING_LEFT || CharacterSprite.AnimationState == CharacterAnimationState.DYING_RIGHT;
         public bool IsCorpse => CharacterSprite.AnimationState == CharacterAnimationState.DEAD;
         private bool IsHit => CharacterSprite.AnimationState == CharacterAnimationState.HIT;
-        public bool IsAlearted { get; set; } = false;
+        public bool IsAlerted { get; set; } = false;
         private float WorldSpeed { get; init; }
 
         private EnemyAIState _lastAIState = EnemyAIState.Idle;
@@ -415,26 +415,26 @@ namespace WolfensteinInfinite.GameObjects
                 isEnemyProjectile: true,
                 sprite: sprite));
         }
-        public void ResetTuantTimer()
+        public void ResetTauntTimer()
         {
-            IsAlearted = true;
+            IsAlerted = true;
             _tauntTimer = 2f;
             
         }
         public void UpdateTauntTimer(float frameTime, InGameState state)
         {
-            if (IsDying || IsCorpse || !IsAlearted) return;            
+            if (IsDying || IsCorpse || !IsAlerted) return;            
             _tauntTimer -= frameTime;
             if (_tauntTimer < 0)
             {
                 PlaySound(Enemy.TauntSounds, state);
-                ResetTuantTimer();
+                ResetTauntTimer();
             }
         }
         public void Alert(InGameState state)
         {
             if (AIState != EnemyAIState.Idle) return;
-            ResetTuantTimer();
+            ResetTauntTimer();
             AIState = EnemyAIState.Alert;
             _alertTimer = Enemy.AlertPauseDuration;            
             _reactionTimer = Enemy.ReactionDelay;
@@ -554,8 +554,8 @@ namespace WolfensteinInfinite.GameObjects
                     break;
 
                 case EnemyAIState.Chase:
-                    if (!IsAlearted) ResetTuantTimer();
-                    IsAlearted = true;                    
+                    if (!IsAlerted) ResetTauntTimer();
+                    IsAlerted = true;                    
                     SetAnimationForState(EnemyAIState.Chase);
                     if (IsRanged)
                     {
@@ -641,7 +641,7 @@ namespace WolfensteinInfinite.GameObjects
             }
 
             bool inFireFrame = CharacterSprite.IsInAttackFireFrames(Enemy.FireFrames);
-            if(inFireFrame) ResetTuantTimer();
+            if(inFireFrame) ResetTauntTimer();
             foreach (var w in Weapons)
             {
                 if (w.AttackCooldown > 0f) continue;
