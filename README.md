@@ -8,7 +8,7 @@
 ---
 # Wolfenstein Infinite
 > *Get Psyched. Again. And Again.*
-[https://youtu.be/toizV3Pz9-4]
+[https://youtu.be/_RcMwc3LSV4]
 
 ## What Is This?
 
@@ -133,6 +133,7 @@ While playing, type these codes to activate cheats:
 | `iddqd` | God mode — invincibility and full health |
 | `idkfa` | All weapons, max ammo, all objectives complete |
 | `iddt` | Reveal entire map |
+| `idclec` | Select Level |
 
 ---
 
