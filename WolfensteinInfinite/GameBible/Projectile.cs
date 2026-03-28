@@ -12,7 +12,6 @@
         public string? HitSound { get; init; } = hitSound;
         public string? TrailAnimation { get; init; } = trailAnimation;
         public string? ImpactAnimation { get; init; } = impactAnimation;
-        //Todo Impove
         public int GetDamageLegacy(int tileDist, Difficulties difficulty)
         {
             switch (AmmoType)
@@ -37,30 +36,18 @@
             }
             return 0;
         }
-
         public int GetDamage(int tileDist, Difficulties difficulty)
         {
             if (tileDist > (RangeMod)) return 0;
-            var mod = ((float)RangeMod/Math.Max(tileDist, RangeMod))*DamageMod;
-            var diff = 1f;
-            switch (difficulty)
+            var mod = ((float)RangeMod/Math.Max(tileDist, RangeMod))*DamageMod;            
+            var diff = difficulty switch
             {
-                case Difficulties.CAN_I_PLAY_DADDY:
-                    diff = 0.9f;
-                    break;
-                case Difficulties.DONT_HURT_ME:
-                    diff = 1.1f;
-                    break;
-                case Difficulties.BRING_EM_ON:
-                    diff = 1.2f;
-                    break;
-                case Difficulties.I_AM_DEATH_INCARNATE:
-                    diff = 1.5f;
-                    break;
-                default:
-                    diff = 1f;
-                    break;
-            }
+                Difficulties.CAN_I_PLAY_DADDY => 0.9f,
+                Difficulties.DONT_HURT_ME => 1.1f,
+                Difficulties.BRING_EM_ON => 1.2f,
+                Difficulties.I_AM_DEATH_INCARNATE => 1.5f,
+                _ => 1f,
+            };
             return (int)Math.Ceiling(mod * diff);
         }
     }

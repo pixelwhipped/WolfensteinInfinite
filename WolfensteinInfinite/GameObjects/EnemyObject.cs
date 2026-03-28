@@ -141,7 +141,6 @@ namespace WolfensteinInfinite.GameObjects
             // Within 45 degrees is close enough to "facing"
             return diff <= 45f;
         }
-
         private bool HasLineOfSight(InGameState state)
         {
             var px = state.Game.Player.PosX;
@@ -368,18 +367,12 @@ namespace WolfensteinInfinite.GameObjects
         {
             w.AttackCooldown = w.AttackCooldownDuration;
             w.FireTimer = 0f;
-            //w.ShotTimer = 0f;
         }
         private void UpdateWeapons(float frameTime)
         {
             // Tick all weapon attack cooldowns
             foreach (var w in Weapons)
                 if (w.AttackCooldown > 0f) w.AttackCooldown -= frameTime;
-        }
-        private static float CalculateHitChance(float dist, float rangeMod)
-        {
-            float t = Math.Clamp(dist / Math.Max(rangeMod, 1f), 0f, 1f);
-            return MathHelpers.Lerp(0.95f, 0.45f, t);
         }
         private void FireShot(Projectile projectile, Weapon weapon, float distToPlayer, InGameState state)
         {            
@@ -401,14 +394,6 @@ namespace WolfensteinInfinite.GameObjects
             if (dist <= 0) return;
 
             var sprite = FindProjectileSprite(projectile, state);
-            if (sprite == null)
-            {
-                float hitChance = IsFacingPlayer(state) ? CalculateHitChance(distToPlayer, projectile.RangeMod) : 0;
-                if (Random.Shared.NextSingle() > hitChance) return;
-                state.ApplyDamage(damage);
-                return;
-            }
-
             state.DynamicObjects.Add(new ProjectileObject(
                 X, Y, dx / dist, dy / dist,
                 speed: 8f, damage: damage,
@@ -419,8 +404,7 @@ namespace WolfensteinInfinite.GameObjects
         public void ResetTauntTimer()
         {
             IsAlerted = true;
-            _tauntTimer = 2f;
-            
+            _tauntTimer = 2f;            
         }
         public void UpdateTauntTimer(float frameTime, InGameState state)
         {

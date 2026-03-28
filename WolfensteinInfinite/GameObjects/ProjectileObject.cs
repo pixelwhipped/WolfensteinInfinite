@@ -7,7 +7,7 @@ namespace WolfensteinInfinite.GameObjects
     // ProjectileObject
     // -------------------------------------------------------------------------
     public class ProjectileObject(float x, float y, float dirX, float dirY,
-        float speed, int damage, float maxRange, bool isEnemyProjectile, ISprite sprite) : DynamicObject(x, y, DynamicObjectType.Projectile, sprite)
+        float speed, int damage, float maxRange, bool isEnemyProjectile, ISprite? sprite) : DynamicObject(x, y, DynamicObjectType.Projectile, sprite)
     {
         public float DirX { get; } = dirX;
         public float DirY { get; } = dirY;
@@ -20,7 +20,7 @@ namespace WolfensteinInfinite.GameObjects
         public override void Update(float frameTime, InGameState state)
         {
             if (!IsAlive) return;
-            Sprite.Update(frameTime);
+            Sprite?.Update(frameTime);
 
             var moveX = DirX * Speed * frameTime;
             var moveY = DirY * Speed * frameTime;

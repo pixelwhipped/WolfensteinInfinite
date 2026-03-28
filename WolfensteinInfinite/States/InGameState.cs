@@ -73,6 +73,8 @@ namespace WolfensteinInfinite.States
         private const string CheatIDDT = "iddt";
         private const string CheatIDCLEV = "idclev";
 
+        private int _lastLifeScore = 0;
+        private const int LifeScoreThreshold = 40000;
         private float _weaponCooldown = 0f;
         private float _sustainedFireTime = 0f;
         private float _overheatLevel = 0f; // 0 = cool, 1 = max heat
@@ -87,6 +89,8 @@ namespace WolfensteinInfinite.States
 
         private readonly Tween _exitFadeTween = new(1.5f, null);
 
+        private readonly List<EnemyObject> _activeEnemies = [];
+
         private int _enemiesKilled = 0;
         private int _enemiesTotal = 0;
         private int _itemsCollected = 0;
@@ -94,6 +98,10 @@ namespace WolfensteinInfinite.States
         private float _bobTime = 0f;
         private float _lastPlayerX = 0f;
         private float _lastPlayerY = 0f;
+
+        private string? _hudMessage = null;
+        private float _hudMessageTimer = 0f;
+        private const float HudMessageDuration = 3f;
         public void OnEnemyKilled()
         {
             _enemiesKilled++;
@@ -132,11 +140,7 @@ namespace WolfensteinInfinite.States
             SpriteDistance = new float[Game.Map.Decals.Length];
             var fcMod = Game.Mods[Random.Shared.Next(0, Game.Mods.Length)];
             Floor = Wolfenstein.Floors[fcMod];
-            //Floor = new Texture32(64, 64);
-            //Floor.Clear(128, 128, 128);
-            Ceiling = Wolfenstein.Ceilings[fcMod];
-            //Ceiling = new Texture32(64, 64);
-            //Ceiling.Clear(96, 96, 96);
+            Ceiling = Wolfenstein.Ceilings[fcMod];;
 
             RebuildDynamicObjects();
             _spawnX = game.Player.PosX;
@@ -149,12 +153,6 @@ namespace WolfensteinInfinite.States
                 _visited[i] = new bool[Game.Map.WorldMap[i].Length];
             BuildDoorLookup();
         }
-
-
-        // Lower to GameState
-        private string? _hudMessage = null;
-        private float _hudMessageTimer = 0f;
-        private const float HudMessageDuration = 3f;
 
         public void ShowHudMessage(string message)
         {
@@ -177,7 +175,7 @@ namespace WolfensteinInfinite.States
             buffer.RectFill(x - 4, y - 4, w + 8, h + 8, 0, 0, 0, 64);
             buffer.DrawString(x, y, _hudMessage, Wolfenstein.GameResources.TinyFont, RGBA8.YELLOW);
         }
-        private readonly List<EnemyObject> _activeEnemies = [];
+        
         private void RebuildDynamicObjects()
         {
 
@@ -300,7 +298,6 @@ namespace WolfensteinInfinite.States
             if (_dynamiteCountdown <= 0)
             {
                 _dynamiteCountdownActive = false;
-                //Game.Map.ObjectivesComplete[MapFlags.HAS_BOOM] = false;
                 ApplyDamage(999); // boom — triggers reset or game over
             }
         }
@@ -312,6 +309,7 @@ namespace WolfensteinInfinite.States
             Wolfenstein.WeaponAnimations[Game.Player.Weapon].OnFire = new Action(DoAttack);
         }
 
+        //Handled slightly different thatn EnemyObject FireShot Aim Assist
         private void DoAttack()
         {
             var weapon = WeaponTransitionState.TransitionWeapon;
@@ -335,16 +333,15 @@ namespace WolfensteinInfinite.States
             }
             if (projectile == null) return;
 
-            if (weapon.AmmoType == AmmoType.MELEE)
+            if (weapon.AmmoType == AmmoType.MELEE) //Dont break on first hit multi slash
             {
                 foreach (var obj in DynamicObjects.OfType<EnemyObject>().Where(e => e.IsAlive))
                 {
                     var dx = obj.X - Game.Player.PosX;
                     var dy = obj.Y - Game.Player.PosY;
                     var dist = MathF.Sqrt(dx * dx + dy * dy);
-                    if (dist > projectile.RangeMod) continue;
                     var dot = (dx / dist) * Game.Player.DirX + (dy / dist) * Game.Player.DirY;
-                    if (dot > 0.5f)
+                    if (dot > 0.5f) //If facing enemy
                         obj.TakeDamage(projectile.GetDamage((int)dist, Difficulties.CAN_I_PLAY_DADDY), this);
                 }
             }
@@ -479,10 +476,10 @@ namespace WolfensteinInfinite.States
         }
 
         public LevelStats BuildLevelStats() => new(
-    _enemiesKilled, _enemiesTotal,
-    _itemsCollected, _itemsTotal,
-    Game.Map.PushWalls.Count(w => w.IsComplete),
-    Game.Map.PushWalls.Count, Game.Map.LevelScore);
+            _enemiesKilled, _enemiesTotal,
+            _itemsCollected, _itemsTotal,
+            Game.Map.PushWalls.Count(w => w.IsComplete),
+            Game.Map.PushWalls.Count, Game.Map.LevelScore);
 
         private LevelCompleteState HandleExit()
         {
@@ -505,8 +502,6 @@ namespace WolfensteinInfinite.States
             var w = (int)(texture.Width * Wolfenstein.UIScale);
             var h = (int)(texture.Height * Wolfenstein.UIScale);
 
-
-            //buffer.Blit((int)(((buffer.Width) / 2) - (w / 2)), (int)((buffer.Height) - (h + (int)(HudBuffer.Height * Wolfenstein.UIScale))) + (int)(WeaponTransitionState.CurrentHeightOffset * Wolfenstein.UIScale), w, h, texture);
             // Calculate bob offset
             int bobX = 0, bobY = 0;
             if (Wolfenstein.Config.WeaponBob && !WeaponTransitionState.Transitioning)
@@ -614,8 +609,6 @@ namespace WolfensteinInfinite.States
                 Wolfenstein.WeaponAnimations[Game.Player.Weapon].Reset();
             }
         }
-
-
 
         public void EndGame()
         {
@@ -814,7 +807,6 @@ namespace WolfensteinInfinite.States
             switch (item.Name)
             {
                 case "Key":
-                    //Game.Map.Objectives[MapFlags.HAS_LOCKED_DOOR] = true;
                     Game.Map.ObjectivesComplete[MapFlags.HAS_LOCKED_DOOR] = true;
                     break;
 
@@ -822,15 +814,12 @@ namespace WolfensteinInfinite.States
                     Game.Map.ObjectivesComplete[MapFlags.HAS_SECRET_MESSAGE] = true;
                     Game.Map.Objectives.TryAdd(MapFlags.HAS_SENT_SECRET, true);
                     Game.Map.ObjectivesComplete.TryAdd(MapFlags.HAS_SENT_SECRET, false);
-                    // Radio stays on map — player must interact with it to complete
                     break;
 
                 case "Dynamite":
                     Game.Map.ObjectivesComplete[MapFlags.HAS_BOOM] = true;
                     Game.Map.Objectives.TryAdd(MapFlags.HAS_EXPLOSIVE_SET, true);
                     Game.Map.ObjectivesComplete.TryAdd(MapFlags.HAS_EXPLOSIVE_SET, false);
-
-                    // Placement spots already in scene — player uses Space to place
                     break;
 
                 case "POW":
@@ -859,7 +848,6 @@ namespace WolfensteinInfinite.States
             PickupTween.Reset();
             return true;
         }
-
         private bool ApplyWeapon(PickupItem item)
         {
             if (!Wolfenstein.PlayerWeapons.TryGetValue(item.Name, out PlayerWeapon? value)) return false;
@@ -877,8 +865,7 @@ namespace WolfensteinInfinite.States
             return true;
         }
 
-        private int _lastLifeScore = 0;
-        private const int LifeScoreThreshold = 40000;
+        
 
         public void AddToScore(int value)
         {
@@ -1574,7 +1561,7 @@ namespace WolfensteinInfinite.States
                 float spriteAngle = angleToPlayer;
                 if (obj is EnemyObject enemyObj)
                     spriteAngle = (angleToPlayer - enemyObj.FacingAngle + 360f) % 360f;
-
+                if (obj.Sprite == null) continue;
                 var texture = obj.Sprite.GetTexture(spriteAngle);
 
                 if (texture == null) continue;

@@ -7,7 +7,7 @@ namespace WolfensteinInfinite.GameHelpers
     
     public static class EnemyHelpers
     {
-        public static RGBA8 RedBlood = new() { R = 176, G = 0, B = 0, A = 255 };
+        public static RGBA8 RedBlood => new() { R = 176, G = 0, B = 0, A = 255 };
         public static bool IsBoss(this EnemyType enemyType) => enemyType switch
         {
             EnemyType.HANS_GROSS or EnemyType.DOCTOR_SCHABBS or EnemyType.MECHA_HITLER or EnemyType.ADOLF_HITLER or EnemyType.OTTO_GIFTMACHER or EnemyType.GRETEL_GROSSE or EnemyType.GENERAL_FETTGESICHT or EnemyType.HITLER_GHOST => true,
