@@ -333,6 +333,15 @@ namespace WolfensteinInfinite.States
             }
             if (projectile == null) return;
 
+            var diffPlayerBuff = Game.Map.Difficulty switch //Slight helper
+            {
+                Difficulties.CAN_I_PLAY_DADDY => 1.5f,
+                Difficulties.DONT_HURT_ME => 1.3f,
+                Difficulties.BRING_EM_ON => 1.2f,
+                Difficulties.I_AM_DEATH_INCARNATE => 1f,
+                _ => 1,
+            };
+
             if (weapon.AmmoType == AmmoType.MELEE) //Dont break on first hit multi slash
             {
                 foreach (var obj in DynamicObjects.OfType<EnemyObject>().Where(e => e.IsAlive))
@@ -342,7 +351,7 @@ namespace WolfensteinInfinite.States
                     var dist = MathF.Sqrt(dx * dx + dy * dy);
                     var dot = (dx / dist) * Game.Player.DirX + (dy / dist) * Game.Player.DirY;
                     if (dot > 0.5f) //If facing enemy
-                        obj.TakeDamage(projectile.GetDamage((int)dist, Difficulties.CAN_I_PLAY_DADDY), this);
+                        obj.TakeDamage((int)Math.Ceiling(projectile.GetDamage((int)dist, Difficulties.CAN_I_PLAY_DADDY)* diffPlayerBuff), this);
                 }
             }
             else if (weapon.AmmoType == AmmoType.BULLET)
@@ -352,7 +361,6 @@ namespace WolfensteinInfinite.States
                 var steps = (int)(projectile.RangeMod * 8);
                 var stepX = Game.Player.DirX / 8f;
                 var stepY = Game.Player.DirY / 8f;
-
                 for (int i = 0; i < steps; i++)
                 {
                     rayX += stepX;
@@ -377,7 +385,7 @@ namespace WolfensteinInfinite.States
                         var tileDist = (int)MathF.Sqrt(
                             MathF.Pow(rayX - Game.Player.PosX, 2) +
                             MathF.Pow(rayY - Game.Player.PosY, 2));
-                        hit.TakeDamage(projectile.GetDamage(tileDist, Difficulties.CAN_I_PLAY_DADDY), this);
+                        hit.TakeDamage((int)Math.Ceiling(projectile.GetDamage(tileDist, Game.Map.Difficulty)* diffPlayerBuff), this);
                         break;
                     }
                 }
@@ -401,7 +409,7 @@ namespace WolfensteinInfinite.States
                     Game.Player.PosX, Game.Player.PosY,
                     Game.Player.DirX, Game.Player.DirY,
                     speed: 10f,
-                    damage: projectile.GetDamage(0, Game.Map.Difficulty),
+                    damage: (int)Math.Ceiling(projectile.GetDamage(0, Game.Map.Difficulty)* diffPlayerBuff),
                     maxRange: projectile.RangeMod,
                     isEnemyProjectile: false,
                     sprite: sprite));

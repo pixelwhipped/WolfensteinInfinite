@@ -48,10 +48,10 @@ namespace WolfensteinInfinite.GameHelpers
             return new(id, "SS Soldier", EnemyType.SS_SOLDIER, 512 * 4, 500,
             new Dictionary<Difficulties, int>()
             {
-                [Difficulties.CAN_I_PLAY_DADDY] = 100,
-                [Difficulties.DONT_HURT_ME] = 100,
-                [Difficulties.BRING_EM_ON] = 100,
-                [Difficulties.I_AM_DEATH_INCARNATE] = 100
+                [Difficulties.CAN_I_PLAY_DADDY] = 50,
+                [Difficulties.DONT_HURT_ME] = 50,
+                [Difficulties.BRING_EM_ON] = 50,
+                [Difficulties.I_AM_DEATH_INCARNATE] = 50
             }, ["MachineGun"],
             new Dictionary<string, int>()
             {
@@ -79,10 +79,10 @@ namespace WolfensteinInfinite.GameHelpers
             return new(id, "Officer", EnemyType.OFFICER, 512 * 5, 400,
             new Dictionary<Difficulties, int>()
             {
-                [Difficulties.CAN_I_PLAY_DADDY] = 50,
-                [Difficulties.DONT_HURT_ME] = 50,
-                [Difficulties.BRING_EM_ON] = 50,
-                [Difficulties.I_AM_DEATH_INCARNATE] = 50
+                [Difficulties.CAN_I_PLAY_DADDY] = 100,
+                [Difficulties.DONT_HURT_ME] = 100,
+                [Difficulties.BRING_EM_ON] = 100,
+                [Difficulties.I_AM_DEATH_INCARNATE] = 100
             }, ["Pistol"],
             new Dictionary<string, int>()
             {
