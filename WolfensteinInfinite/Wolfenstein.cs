@@ -367,7 +367,7 @@ namespace WolfensteinInfinite
             return FileHelpers.Shared.Deserialize<Config>(file) ?? Config.GetDefault();
         }
 
-        private void SaveConfig()
+        public void SaveConfig()
         {
             var file = Path.Combine(FileHelpers.Shared.BaseDirectory, "config.json");
             FileHelpers.Shared.Serialize(Config, file);

@@ -256,7 +256,13 @@ namespace WolfensteinInfinite.States
                 Game.Player.Name,
                 Game.Map.Level,
                 Game.Player.Score);
-
+            var index = Array.FindIndex(Wolfenstein.Config.HighScores, 0, p => p.GameId == Game.GameId);
+            if (index >= 0)
+            {
+                Wolfenstein.Config.HighScores[index] = newScore;
+                Wolfenstein.SaveConfig();
+                return;
+            }           
             var updated = Wolfenstein.Config.HighScores
                 .Append(newScore)
                 .OrderByDescending(s => s.Score)
@@ -265,7 +271,10 @@ namespace WolfensteinInfinite.States
                 .ToArray();
 
             if (updated.Any(s => s.GameId == Game.GameId))
+            {
                 Wolfenstein.Config.HighScores = updated;
+                Wolfenstein.SaveConfig();
+            }
         }
 
         public void StartDynamiteCountdown()
