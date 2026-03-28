@@ -1226,7 +1226,7 @@ namespace WolfensteinInfinite.Editor
 
         private void MinLevelSld_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
-            if (ActiveSection == null) return;
+            if (ActiveSection == null || ActiveMod == null) return;
             ActiveSection.IntendedMinLevel = Math.Clamp((int)MinLevelSld.Value, 1, 100);
             LevelLabel.Content = $"Level {ActiveSection.IntendedMinLevel}";
             ChangeStates[ActiveMod] = true;
@@ -1276,23 +1276,9 @@ namespace WolfensteinInfinite.Editor
             SetSaveButtonStates();
         }
 
-        private void BtnIncLevel_Click(object sender, RoutedEventArgs e)
-        {
-            if (ActiveSection == null) return;
-            ActiveSection.IntendedMinLevel = Math.Clamp((int)MinLevelSld.Value + 1, 1, 100);
-            LevelLabel.Content = $"Level {ActiveSection.IntendedMinLevel}";
-            ChangeStates[ActiveMod] = true;
-            SetSaveButtonStates();
-        }
+        private void BtnIncLevel_Click(object sender, RoutedEventArgs e) => MinLevelSld.Value = Math.Clamp((int)MinLevelSld.Value + 1, 1, 100);
 
-        private void BtnDecLevel_Click(object sender, RoutedEventArgs e)
-        {
-            if (ActiveSection == null) return;
-            ActiveSection.IntendedMinLevel = Math.Clamp((int)MinLevelSld.Value-1, 1, 100);
-            LevelLabel.Content = $"Level {ActiveSection.IntendedMinLevel}";
-            ChangeStates[ActiveMod] = true;
-            SetSaveButtonStates();
-        }
+        private void BtnDecLevel_Click(object sender, RoutedEventArgs e) => MinLevelSld.Value = Math.Clamp((int)MinLevelSld.Value - 1, 1, 100);
 
         private void IsFlippableChk_Changed(object sender, RoutedEventArgs e)
         {
