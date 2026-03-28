@@ -656,6 +656,9 @@
     <None Update="GameData\MAPHEAD.WL6">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
+    <None Update="GameData\Mods\Demo\specialmap.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="GameData\Mods\Infinite\Sprites\ExBottom01.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
