@@ -1,6 +1,8 @@
-﻿namespace WolfensteinInfinite.GameBible
+﻿using WolfensteinInfinite.Engine.Graphics;
+
+namespace WolfensteinInfinite.GameBible
 {
-    public class Enemy(int id, string name, EnemyType enemyType, int speed, int points, Dictionary<Difficulties, int> hitPoints, string[] weapons, Dictionary<string, int> dropItemProbability, CharacterSpriteType animationType, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds, int[] fireFrames , float reactionDelay, float alertPauseDuration, float meleeAttackRange, float alertRadius, float lineOfSightDistance, bool canFlee, float fleeDuration, float fleeHealthThreshold)
+    public class Enemy(int id, string name, EnemyType enemyType, int speed, int points, Dictionary<Difficulties, int> hitPoints, string[] weapons, Dictionary<string, int> dropItemProbability, CharacterSpriteType animationType, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds, int[] fireFrames , float reactionDelay, float alertPauseDuration, float meleeAttackRange, float alertRadius, float lineOfSightDistance, bool canFlee, float fleeDuration, float fleeHealthThreshold, RGBA8 bloodColor)
     {
         public int MapID { get; init; } = id;
         public CharacterSpriteType AnimationType { get; init; } = animationType;
@@ -29,5 +31,6 @@
         public bool CanFlee { get; init; } = canFlee;
         public float FleeDuration { get; init; } = fleeDuration;// 1.5f;
         public float FleeHealthThreshold { get; init; } = fleeHealthThreshold; //0.25f;
+        public RGBA8 BloodColor { get; init; } = bloodColor;
     }
 }

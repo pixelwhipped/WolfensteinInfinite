@@ -13,7 +13,7 @@
         public string? TrailAnimation { get; init; } = trailAnimation;
         public string? ImpactAnimation { get; init; } = impactAnimation;
         //Todo Impove
-        public int GetDamageOld(int tileDist, Difficulties difficulty)
+        public int GetDamageLegacy(int tileDist, Difficulties difficulty)
         {
             switch (AmmoType)
             {

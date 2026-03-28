@@ -1,10 +1,15 @@
-﻿using WolfensteinInfinite.GameBible;
+﻿using WolfensteinInfinite.Engine.Graphics;
+using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.Utilities;
 
 namespace WolfensteinInfinite.WolfMod
 {
     public class Mod(string name)
     {
+        public RGBA8 FloorColor { get; set; } = new RGBA8() { R = 128, B = 128, G = 128, A = 255 };
+        public string FloorTexture { get; set; } = string.Empty;
+        public RGBA8 CeilingColor { get; set; } = new RGBA8() { R = 96, B = 96, G = 96, A = 96 };
+        public string CeilingTexture { get; set; } = string.Empty;
         public string EndLevelMusic { get; set; } = string.Empty;
         public string TitleMusic { get; set; } = string.Empty;
         public string Name { get; init; } = name;

@@ -1130,7 +1130,7 @@ namespace WolfensteinInfinite.Editor
                 s.Layers = MapSection.Trim(s);
 
             var target = SaveTargetSelection.SelectedItem as string ?? "map.json";
-            if (target != "maptestlevel.json")
+            if (!(target == "maptestlevel.json" || target == "specialmap.json"))
                 if (!builder.Validate(out errors)) return false;
 
             var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{mod.Name}\{target}");

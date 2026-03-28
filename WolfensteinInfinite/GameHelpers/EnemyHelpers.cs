@@ -1,10 +1,13 @@
 ﻿//Clean
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 
 namespace WolfensteinInfinite.GameHelpers
 {
+    
     public static class EnemyHelpers
     {
+        public static RGBA8 RedBlood = new() { R = 176, G = 0, B = 0, A = 255 };
         public static bool IsBoss(this EnemyType enemyType) => enemyType switch
         {
             EnemyType.HANS_GROSS or EnemyType.DOCTOR_SCHABBS or EnemyType.MECHA_HITLER or EnemyType.ADOLF_HITLER or EnemyType.OTTO_GIFTMACHER or EnemyType.GRETEL_GROSSE or EnemyType.GENERAL_FETTGESICHT or EnemyType.HITLER_GHOST => true,
@@ -26,7 +29,7 @@ namespace WolfensteinInfinite.GameHelpers
                 {
                     ["UsedClip"] = 100
                 },
-                CharacterSpriteType.GUARD, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
+                CharacterSpriteType.GUARD, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood);
         }
         public static Enemy CreateDog(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -38,7 +41,7 @@ namespace WolfensteinInfinite.GameHelpers
                  [Difficulties.BRING_EM_ON] = 1,
                  [Difficulties.I_AM_DEATH_INCARNATE] = 1
              },
-             ["Bite"], [], CharacterSpriteType.DOG, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1], 1f, 0.5f, 1.8f, 5f, 14f, true, 1.5f, 0.25f);
+             ["Bite"], [], CharacterSpriteType.DOG, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1], 1f, 0.5f, 1.8f, 5f, 14f, true, 1.5f, 0.25f, RedBlood);
         }
         public static Enemy CreateSSSoldier(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -54,7 +57,7 @@ namespace WolfensteinInfinite.GameHelpers
             {
                 ["UsedClip"] = 50,
                 ["MachineGun"] = 50
-            }, CharacterSpriteType.GUARD, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, true, 1.5f, 0.25f);
+            }, CharacterSpriteType.GUARD, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, true, 1.5f, 0.25f, RedBlood);
         }
         public static Enemy CreateMutant(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -69,7 +72,7 @@ namespace WolfensteinInfinite.GameHelpers
             new Dictionary<string, int>()
             {
                 ["UsedClip"] = 100
-            }, CharacterSpriteType.MUTANT, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1,3], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
+            }, CharacterSpriteType.MUTANT, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1,3], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, new RGBA8() { R = 108, G = 0, B = 112, A = 255 });
         }
         public static Enemy CreateOfficer(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -84,7 +87,7 @@ namespace WolfensteinInfinite.GameHelpers
             new Dictionary<string, int>()
             {
                 ["UsedClip"] = 100
-            }, CharacterSpriteType.OFFICER, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2] , 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
+            }, CharacterSpriteType.OFFICER, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2] , 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood);
         }
         public static Enemy CreateHansGross(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -97,7 +100,7 @@ namespace WolfensteinInfinite.GameHelpers
                     [Difficulties.I_AM_DEATH_INCARNATE] = 1200
                 }, ["ChainGun", "ChainGun"],
                 []  //Drop was gold key but irrelevent now
-                , CharacterSpriteType.BOSS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
+                , CharacterSpriteType.BOSS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood);
         }
         public static Enemy CreateDoctorSchabbs(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -109,7 +112,7 @@ namespace WolfensteinInfinite.GameHelpers
                 [Difficulties.BRING_EM_ON] = 1550,
                 [Difficulties.I_AM_DEATH_INCARNATE] = 2400
             }, ["KorpsokineticSerum"], []
-            , CharacterSpriteType.DOCTOR_SCHABBS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
+            , CharacterSpriteType.DOCTOR_SCHABBS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood);
         }
         public static Enemy CreateMechaHitler(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -124,7 +127,7 @@ namespace WolfensteinInfinite.GameHelpers
             new Dictionary<string, int>()
             {
                 ["AdolfHitler"] = 100
-            }, CharacterSpriteType.MECHA_HITLER, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
+            }, CharacterSpriteType.MECHA_HITLER, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, new RGBA8() { R=0,G=0,B=0,A=0});
         }
         public static Enemy CreateAdolfHitler(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -136,7 +139,7 @@ namespace WolfensteinInfinite.GameHelpers
                 [Difficulties.BRING_EM_ON] = 800,
                 [Difficulties.I_AM_DEATH_INCARNATE] = 900
             }, ["ChainGun", "ChainGun"],
-            new Dictionary<string, int>() { ["ChainGun"] = 100 }, CharacterSpriteType.ADOLF_HITLER, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
+            new Dictionary<string, int>() { ["ChainGun"] = 100 }, CharacterSpriteType.ADOLF_HITLER, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood);
         }
         public static Enemy CreateOttoGiftmacher(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -148,7 +151,7 @@ namespace WolfensteinInfinite.GameHelpers
                 [Difficulties.BRING_EM_ON] = 1050,
                 [Difficulties.I_AM_DEATH_INCARNATE] = 1200
             }, ["RocketLauncher"],
-            [], CharacterSpriteType.BOSS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
+            [], CharacterSpriteType.BOSS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood);
         }
         public static Enemy CreateGretelGross(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -160,7 +163,7 @@ namespace WolfensteinInfinite.GameHelpers
                 [Difficulties.BRING_EM_ON] = 1050,
                 [Difficulties.I_AM_DEATH_INCARNATE] = 1200
             }, ["ChainGun", "ChainGun"],
-            new Dictionary<string, int>() { ["ChainGun"] = 100 }, CharacterSpriteType.BOSS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
+            new Dictionary<string, int>() { ["ChainGun"] = 100 }, CharacterSpriteType.BOSS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood);
         }
         public static Enemy CreateGeneralFettgesicht(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -172,7 +175,7 @@ namespace WolfensteinInfinite.GameHelpers
                 [Difficulties.BRING_EM_ON] = 1050,
                 [Difficulties.I_AM_DEATH_INCARNATE] = 1200
             }, ["RocketLauncher", "ChainGun"],
-            new Dictionary<string, int>() { ["ChainGun"] = 100 }, CharacterSpriteType.BOSS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
+            new Dictionary<string, int>() { ["ChainGun"] = 100 }, CharacterSpriteType.BOSS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood);
         }
         public static Enemy CreateHitlerGhost(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -184,7 +187,7 @@ namespace WolfensteinInfinite.GameHelpers
                 [Difficulties.BRING_EM_ON] = 400,
                 [Difficulties.I_AM_DEATH_INCARNATE] = 500
             }, ["FlameThrower"],
-            [], CharacterSpriteType.HITLER_GHOST, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
+            [], CharacterSpriteType.HITLER_GHOST, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f,new RGBA8() { R = 0, G = 0, B = 0, A = 0 });
         }
         public static Enemy CreatePacManGhost(int id, string name, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -196,7 +199,7 @@ namespace WolfensteinInfinite.GameHelpers
                 [Difficulties.BRING_EM_ON] = -1,
                 [Difficulties.I_AM_DEATH_INCARNATE] = -1
             },
-            ["DrainLife"], [], CharacterSpriteType.GHOST, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [0], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
+            ["DrainLife"], [], CharacterSpriteType.GHOST, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [0], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, new RGBA8() { R = 0, G = 0, B = 0, A = 0 });
         }
         public static Enemy CreateBlinky(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         => CreatePacManGhost(id, "Blinky", spritePath, startSprite, alertSounds, deathSounds, tauntSounds);

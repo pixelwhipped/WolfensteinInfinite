@@ -130,12 +130,13 @@ namespace WolfensteinInfinite.States
             ZBuffer = new float[wolfenstein.Graphics.Width];
             SpriteOrder = new int[Game.Map.Decals.Length];
             SpriteDistance = new float[Game.Map.Decals.Length];
-
-            Floor = new Texture32(64, 64);
-            Floor.Clear(128, 128, 128);
-
-            Ceiling = new Texture32(64, 64);
-            Ceiling.Clear(96, 96, 96);
+            var fcMod = Game.Mods[Random.Shared.Next(0, Game.Mods.Length)];
+            Floor = Wolfenstein.Floors[fcMod];
+            //Floor = new Texture32(64, 64);
+            //Floor.Clear(128, 128, 128);
+            Ceiling = Wolfenstein.Ceilings[fcMod];
+            //Ceiling = new Texture32(64, 64);
+            //Ceiling.Clear(96, 96, 96);
 
             RebuildDynamicObjects();
             _spawnX = game.Player.PosX;

@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Windows.Media;
 using WolfensteinInfinite.DataFormats;
 using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
@@ -58,6 +59,8 @@ namespace WolfensteinInfinite
         public MidiFile? CurrentMusic { get; set; }
         public Config Config { get; init; }
 
+        public Dictionary<string, Texture32> Floors { get; init; } = [];
+        public Dictionary<string, Texture32> Ceilings { get; init; } = [];
         public Wolfenstein(App app)
         {
             Log("Cracking knuckles");
@@ -82,8 +85,8 @@ namespace WolfensteinInfinite
             foreach (var m in Mods.Values)
             {
                 if (string.IsNullOrWhiteSpace(m.TitleMusic)) continue;
-                    var midi = m.MusicTracks.FirstOrDefault(p => p.Name == m.TitleMusic);
-                if(midi!=null) TitleScreenMusic.Add(MidiFile.Read(FileHelpers.Shared.GetModDataFilePath(midi.File)));
+                var midi = m.MusicTracks.FirstOrDefault(p => p.Name == m.TitleMusic);
+                if (midi != null) TitleScreenMusic.Add(MidiFile.Read(FileHelpers.Shared.GetModDataFilePath(midi.File)));
             }
             if (TitleScreenMusic.Count > 0)
                 CurrentMusic = TitleScreenMusic[Random.Shared.Next(0, TitleScreenMusic.Count - 1)];
@@ -511,6 +514,26 @@ namespace WolfensteinInfinite
                         if (m != null && !mods.ContainsKey(m.Name) && m.Validate())
                         {
                             mods.Add(m.Name, m);
+                            if (!string.IsNullOrWhiteSpace(m.CeilingTexture))
+                            {
+                                Ceilings.Add(m.Name, FileHelpers.Shared.LoadSurface32(FileHelpers.Shared.GetModDataFilePath(m.CeilingTexture)));
+                            }
+                            else
+                            {
+                                var ceiling = new Texture32(64, 64);
+                                ceiling.Clear(m.CeilingColor.R, m.CeilingColor.G, m.CeilingColor.B);
+                                Ceilings.Add(m.Name, ceiling);
+                            }
+                            if (!string.IsNullOrWhiteSpace(m.FloorTexture))
+                            {
+                                Floors.Add(m.Name, FileHelpers.Shared.LoadSurface32(FileHelpers.Shared.GetModDataFilePath(m.FloorTexture)));
+                            }
+                            else
+                            {
+                                var floor = new Texture32(64, 64);
+                                floor.Clear(m.FloorColor.R, m.FloorColor.G, m.FloorColor.B);
+                                Floors.Add(m.Name, floor);
+                            }
                             var i = Array.FindIndex(Config.Mods, p => p.Name == m.Name);
                             if (i >= 0)
                             {
@@ -692,7 +715,9 @@ namespace WolfensteinInfinite
             var top = ExperimentalEnemyTexture[mod.Name][e.TopSpriteOptions[Random.Shared.Next(0, e.TopSpriteOptions.Length)]];
             var mid = ExperimentalEnemyTexture[mod.Name][e.MidSpriteOptions[Random.Shared.Next(0, e.MidSpriteOptions.Length)]];
             var bottom = ExperimentalEnemyTexture[mod.Name][e.BottomSpriteOptions[Random.Shared.Next(0, e.BottomSpriteOptions.Length)]];
-            var gore = ExperimentalEnemyTexture[mod.Name][e.GoreSpriteOptions[Random.Shared.Next(0, e.GoreSpriteOptions.Length)]];
+            var gid = Random.Shared.Next(0, e.GoreSpriteOptions.Length);
+            var blood = gid > 0 ? new RGBA8() { R = 0, G = 112, B = 0, A = 112 } : EnemyHelpers.RedBlood;
+            var gore = ExperimentalEnemyTexture[mod.Name][e.GoreSpriteOptions[gid]];
             var shadow = ExperimentalEnemyTexture[mod.Name][e.ShadowSpriteOptions[Random.Shared.Next(0, e.ShadowSpriteOptions.Length)]];
             var decal = ExperimentalEnemyTexture[mod.Name][e.DecalSpriteOptions[Random.Shared.Next(0, e.DecalSpriteOptions.Length)]];
             var eyes = ExperimentalEnemyTexture[mod.Name][e.EyeSpriteOptions[Random.Shared.Next(0, e.EyeSpriteOptions.Length)]];
@@ -797,7 +822,7 @@ namespace WolfensteinInfinite
                 , CharacterSpriteType.BOSS, e.SpritePath, 0,
                 bosses.Count != 0 ? bosses[Random.Shared.Next(0, bosses.Count)].AlertSounds : [],
                 bosses.Count != 0 ? bosses[Random.Shared.Next(0, bosses.Count)].DeathSounds : [],
-                bosses.Count != 0 ? bosses[Random.Shared.Next(0, bosses.Count)].TauntSounds : [], [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f);
+                bosses.Count != 0 ? bosses[Random.Shared.Next(0, bosses.Count)].TauntSounds : [], [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, blood);
 
         }
 
@@ -810,7 +835,7 @@ namespace WolfensteinInfinite
             }
         }
         public void ReloadMod(string modName)
-        {           
+        {
             var modPath = FileHelpers.Shared.GetDataFilePath($@"Mods\{modName}\map.json");
             if (File.Exists(modPath))
             {
