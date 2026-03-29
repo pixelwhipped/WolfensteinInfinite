@@ -468,15 +468,26 @@ namespace WolfensteinInfinite
         private Dictionary<string, Mod> LoadMods(bool forceRebuild)
         {
             var res = Assembly.GetExecutingAssembly().GetManifestResourceNames();
-
+            if (forceRebuild)
+            {
+                Ceilings.Clear();
+                Floors.Clear();
+                Textures.Clear();
+                Decals.Clear();
+                CharacterSprites.Clear();
+                EnemySounds.Clear();
+                ProjectileSprites.Clear();
+                SpriteAnimations.Clear();
+                ExperimentalEnemyTexture.Clear();
+            }
             CheckInfiniteMod();
             var mods = new Dictionary<string, Mod>();
             //Check original versions and export mod files
             //foreach (var version in new Extractor(Debugger.IsAttached).GameVersions)
             foreach (var version in new Extractor(forceRebuild || Args.Rebuild || Args.RebuildWithMapImage).GameVersions)
             {
-                var map = $"WolfensteinInfinite.GameData.{version.Name}.map.json";
-                var special = $"WolfensteinInfinite.GameData.{version.Name}.specialmap.json";
+                var map = $"WolfensteinInfinite.GameData.Mods.{version.Name}.map.json";
+                var special = $"WolfensteinInfinite.GameData.Mods.{version.Name}.specialmap.json";
                 var test = $"WolfensteinInfinite.GameData.Mods.{version.Name}.maptestlevel.json";
                 if (res.Any(p => p.Equals(map))) SaveEmbeddedResource(map, FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\map.json"));
                 if (res.Any(p => p.Equals(special))) SaveEmbeddedResource(special, FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\specialmap.json"));
@@ -484,7 +495,7 @@ namespace WolfensteinInfinite
 
                 //Needo to copy internal mod/map/test/special json file on rebuild requst
                 var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\mod.json");
-                if (!File.Exists(file) || Debugger.IsAttached)
+                if (!File.Exists(file) || Debugger.IsAttached || forceRebuild)
                 {
                     try
                     {

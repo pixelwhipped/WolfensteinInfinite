@@ -12,6 +12,9 @@
 
   <ItemGroup>
     <None Remove="GameData\Mods\Demo\map.json" />
+    <None Remove="GameData\Mods\Demo\specialmap.json" />
+    <None Remove="GameData\Mods\Wolfenstein3D\map.json" />
+    <None Remove="GameData\Mods\Wolfenstein3D\specialmap.json" />
     <None Remove="Icon.ico" />
   </ItemGroup>
 
@@ -21,6 +24,15 @@
 
   <ItemGroup>
     <EmbeddedResource Include="GameData\Mods\Demo\map.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GameData\Mods\Demo\specialmap.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GameData\Mods\Wolfenstein3D\map.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GameData\Mods\Wolfenstein3D\specialmap.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Icon.ico" />
@@ -655,9 +667,6 @@
     </None>
     <None Update="GameData\MAPHEAD.WL6">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </None>
-    <None Update="GameData\Mods\Demo\specialmap.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="GameData\Mods\Infinite\Sprites\ExBottom01.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
