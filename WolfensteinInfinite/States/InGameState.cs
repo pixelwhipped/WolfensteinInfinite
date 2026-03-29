@@ -1,5 +1,6 @@
 //WIP Work in progress
 using SFML.Window;
+using System.Diagnostics.Eventing.Reader;
 using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
@@ -313,9 +314,17 @@ namespace WolfensteinInfinite.States
         private void DoAttack()
         {
             var weapon = WeaponTransitionState.TransitionWeapon;
+            var transitionAfter = false;
             var t = weapon.AmmoType;
             if (Game.Player.Ammo.TryGetValue(t, out int value))
+            {
+                if (value == 0) return;
                 Game.Player.Ammo[t] = Math.Max(value - 1, 0);
+                if (Game.Player.Ammo[t] == 0)
+                {
+                    transitionAfter = true;
+                }
+            }
 
             // Set cooldown for next shot (only for non-sustained fire weapons)
             if (weapon.MaxFireTime <= 0)
@@ -331,7 +340,11 @@ namespace WolfensteinInfinite.States
                 projectile = m.Projectiles.FirstOrDefault(p => p.AmmoType == weapon.AmmoType);
                 if (projectile != null) break;
             }
-            if (projectile == null) return;
+            if (projectile == null)
+            {
+                if (transitionAfter) WeaponTransition(GetNextWeampon(weapon));
+                return;
+            }
 
             var diffPlayerBuff = Game.Map.Difficulty switch //Slight helper
             {
@@ -403,7 +416,11 @@ namespace WolfensteinInfinite.States
                         break;
                     }
                 }
-                if (sprite == null) return;
+                if (sprite == null)
+                {
+                    if (transitionAfter) WeaponTransition(GetNextWeampon(weapon));
+                    return;
+                }
 
                 DynamicObjects.Add(new ProjectileObject(
                     Game.Player.PosX, Game.Player.PosY,
@@ -414,6 +431,27 @@ namespace WolfensteinInfinite.States
                     isEnemyProjectile: false,
                     sprite: sprite));
             }
+            if (transitionAfter) WeaponTransition(GetNextWeampon(weapon));
+            
+        }
+
+        private string GetNextWeampon(PlayerWeapon weapon)
+        {
+            if (weapon.AmmoType == AmmoType.MELEE) return weapon.Name;
+            if (Game.Player.Ammo.TryGetValue(weapon.AmmoType, out int value))
+            { 
+                if(value!=0) return weapon.Name;
+                if (weapon.AmmoType != AmmoType.BULLET)
+                {
+                    if (Game.Player.Ammo.TryGetValue(weapon.AmmoType, out int bammo))
+                    {
+                        if (bammo > 0) return "Pistol";
+                        return "Knife";
+                    }
+                }
+                return "Knife";
+            }
+            return weapon.Name;
         }
 
         private void WeaponTransition(string v)
@@ -549,7 +587,7 @@ namespace WolfensteinInfinite.States
             Wolfenstein.WeaponAnimations[Game.Player.Weapon].InLoop = false;
             var weapon = WeaponTransitionState.TransitionWeapon;
             var t = weapon.AmmoType;
-            if (!Game.Player.Ammo.TryGetValue(t, out int ammo)) ammo = 1;
+            if (!Game.Player.Ammo.TryGetValue(t, out int ammo)) ammo = 0;
 
             bool keyHeld = Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyFire);
             bool isSustainedFire = weapon.MaxFireTime > 0;
@@ -601,13 +639,13 @@ namespace WolfensteinInfinite.States
                 Wolfenstein.WeaponAnimations[Game.Player.Weapon].InLoop = true;
                 Wolfenstein.WeaponAnimations[Game.Player.Weapon].Update(frameTime);
             }
-            else if (keyHeld && !isSustainedFire)
+            else if (ammo > 0 && keyHeld && !isSustainedFire)
             {
                 // Key held but can't fire yet (cooldown) - keep animation running but not in loop
                 Wolfenstein.WeaponAnimations[Game.Player.Weapon].InLoop = false;
                 Wolfenstein.WeaponAnimations[Game.Player.Weapon].Update(frameTime);
             }
-            else if (keyHeld && Wolfenstein.WeaponAnimations[Game.Player.Weapon].CurrentFrame != 0)
+            else if (ammo > 0 && keyHeld && Wolfenstein.WeaponAnimations[Game.Player.Weapon].CurrentFrame != 0)
             {
                 // Key held but in cooldown - continue animation
                 Wolfenstein.WeaponAnimations[Game.Player.Weapon].Update(frameTime);
@@ -992,7 +1030,7 @@ namespace WolfensteinInfinite.States
             foreach (var ammoType in Enum.GetValues<AmmoType>())
                 Game.Player.Ammo[ammoType] = 999;
 
-            WeaponTransition("Knife");
+            WeaponTransition("ChainGun");
             ShowHudMessage("ALL WEAPONS & MAX AMMO");
         }
 
