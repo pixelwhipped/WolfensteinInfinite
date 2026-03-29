@@ -357,7 +357,7 @@ namespace WolfensteinInfinite.States
 
             if (weapon.AmmoType == AmmoType.MELEE) //Dont break on first hit multi slash
             {
-                foreach (var obj in DynamicObjects.OfType<EnemyObject>().Where(e => e.IsAlive))
+                foreach (var obj in DynamicObjects.ToArray().OfType<EnemyObject>().Where(e => e.IsAlive))
                 {
                     var dx = obj.X - Game.Player.PosX;
                     var dy = obj.Y - Game.Player.PosY;
@@ -588,7 +588,7 @@ namespace WolfensteinInfinite.States
             var weapon = WeaponTransitionState.TransitionWeapon;
             var t = weapon.AmmoType;
             if (!Game.Player.Ammo.TryGetValue(t, out int ammo)) ammo = 0;
-
+            if (t == AmmoType.MELEE) ammo = Math.Max(ammo, 1);
             bool keyHeld = Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyFire);
             bool isSustainedFire = weapon.MaxFireTime > 0;
 

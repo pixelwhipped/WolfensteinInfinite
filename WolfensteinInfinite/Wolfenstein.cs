@@ -251,9 +251,9 @@ namespace WolfensteinInfinite
             {
                 var t = new List<Texture>(mod.Value.Textures)
                 {
-                    new(1001, "ElevatorDoor", "GameData\\Base\\Textures\\ElevatorDoor.png"),
-                    new(1002, "ElevatorSide", "GameData\\Base\\Textures\\ElevatorSide.png"),
-                    new(1003, "ElevatorSwitch", "GameData\\Base\\Textures\\ElevatorUp.png")
+                    new(1001, "ElevatorDoor", "GameData\\Base\\Textures\\ElevatorDoor.png",-1),
+                    new(1002, "ElevatorSide", "GameData\\Base\\Textures\\ElevatorSide.png",-1),
+                    new(1003, "ElevatorSwitch", "GameData\\Base\\Textures\\ElevatorUp.png",-1)
                 };
                 Textures[mod.Key].Add(1001, GameResources.ElevatorDoor);
                 Textures[mod.Key].Add(1002, GameResources.ElevatorSide);
