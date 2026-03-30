@@ -9,6 +9,7 @@ namespace WolfensteinInfinite.GameGraphics
         HIT,
         DYING_LEFT,
         DYING_RIGHT,
-        DEAD,
+        DEAD_LEFT,
+        DEAD_RIGHT,
     }
 }

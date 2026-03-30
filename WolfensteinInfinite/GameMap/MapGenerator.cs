@@ -24,10 +24,12 @@ namespace WolfensteinInfinite.GameMap
         public Wolfenstein Wolfenstein { get; init; }
         public int[][] FlatMap { get; set; }
 
-        public MapSection[] FlipSection(MapSection section)
+        public static MapSection[] FlipSection(MapSection section)
         {
-            var flip = new List<MapSection>();
-            flip.Add(section);
+            var flip = new List<MapSection>
+            {
+                section
+            };
             if (section.IsFlippable)
             {
                 int h = section.Height;
@@ -927,8 +929,8 @@ namespace WolfensteinInfinite.GameMap
 
             if (playerX >= 0 && playerY >= 0)
             {
-                player.PosX = playerX;
-                player.PosY = playerY;
+                player.PosX = playerX+0.5f;
+                player.PosY = playerY+0.5f;
                 var direction = DeterminFacingDirection(playerX, playerY, wallMap, doorMap);
                 var (dX, dY) = GetXYDirection(direction);
                 player.DirX = dX;

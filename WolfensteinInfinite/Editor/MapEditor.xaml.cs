@@ -554,8 +554,10 @@ namespace WolfensteinInfinite.Editor
             var target = SaveTargetSelection.SelectedItem as string ?? "map.json";
             var targetSections = LoadSectionsForTarget(ActiveMod.Name, target);
 
+
             // Update BuilderMods so SetMapSectionSelections(int) can find the sections
-            Wolfenstein.BuilderMods[ActiveMod.Name].MapSections = targetSections;
+            MapBuilder builder = GetSelectedBuilder(ActiveMod);
+            builder.MapSections = targetSections;
 
             foreach (var section in targetSections)
                 MapSectionSelection.Items.Add(section.Id.ToString());
@@ -598,7 +600,7 @@ namespace WolfensteinInfinite.Editor
                 MapSectionSelection.SelectionChanged += MapSectionSelection_SelectionChanged;
                 return;
             }
-            var builder = Wolfenstein.BuilderMods[ActiveMod.Name];
+            var builder = GetSelectedBuilder(ActiveMod);// Wolfenstein.BuilderMods[ActiveMod.Name];
             foreach (var section in builder.MapSections)
                 MapSectionSelection.Items.Add(section.Id.ToString());
             MapSectionSelection.Items.Add("New");
@@ -628,7 +630,7 @@ namespace WolfensteinInfinite.Editor
                 SectionCanvas.Height = 0;
                 return;
             }
-            var builder = Wolfenstein.BuilderMods[ActiveMod.Name];
+            var builder = GetSelectedBuilder(ActiveMod);
             if (ActiveSection != null)
             {
                 var index = Array.FindIndex(builder.MapSections, p => p.Id == ActiveSection.Id);
@@ -663,7 +665,7 @@ namespace WolfensteinInfinite.Editor
         private void MapSectionSelection_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (ActiveMod == null) return;
-            var builder = Wolfenstein.BuilderMods[ActiveMod.Name];
+            var builder = GetSelectedBuilder(ActiveMod); //Wolfenstein.BuilderMods[ActiveMod.Name];
             var m = MapSectionSelection.SelectedItem as string;
             if (string.IsNullOrEmpty(m))
             {
@@ -1120,8 +1122,63 @@ namespace WolfensteinInfinite.Editor
             SaveAllBtn.IsEnabled = ChangeStates.Any(p => p.Value);
             MinLevelSld.IsEnabled = IsRotatableChk.IsEnabled = TestBtn.IsEnabled = DeleteBtn.IsEnabled = DuplicateBtn.IsEnabled = ActiveSection != null;
         }
-
+        public MapBuilder GetSelectedBuilder(Mod mod)
+        {
+            MapBuilder builder;
+            var target = SaveTargetSelection.SelectedItem as string ?? "map.json";
+            if (target == "maptestlevel.json")
+            {
+                if (!Wolfenstein.TestMaps.ContainsKey(mod.Name))
+                    Wolfenstein.TestMaps.Add(mod.Name, new MapBuilder());
+                builder = Wolfenstein.TestMaps[mod.Name];
+            }
+            else if (target == "specialmap.json")
+            {
+                if (!Wolfenstein.SpecialMaps.ContainsKey(mod.Name))
+                    Wolfenstein.SpecialMaps.Add(mod.Name, new MapBuilder());
+                builder = Wolfenstein.SpecialMaps[mod.Name];
+            }
+            else
+            {
+                if (!Wolfenstein.BuilderMods.ContainsKey(mod.Name))
+                    Wolfenstein.BuilderMods.Add(mod.Name, new MapBuilder());
+                builder = Wolfenstein.BuilderMods[mod.Name];
+            }
+            return builder;
+        }
         private bool Save(Mod mod, out string[] errors)
+        {
+            errors = [];
+            if (mod == null) return false;
+            MapBuilder builder = GetSelectedBuilder(mod);
+            foreach (var s in builder.MapSections)
+                s.Layers = MapSection.Trim(s);
+            var target = SaveTargetSelection.SelectedItem as string ?? "map.json";
+            if (target == "map.json" && !builder.Validate(out errors))
+                return false;
+            var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{mod.Name}\{target}");
+            try
+            {
+                if (!FileHelpers.Shared.Serialize(builder, file)) throw new Exception();
+                ChangeStates[mod] = false;
+                if (ActiveSection != null) ActiveSection.Layers = MapSection.Expand(ActiveSection);
+
+                // Always reload the base mod (map pool, textures, etc.)
+                Wolfenstein.ReloadMod(mod.Name, [target]);
+
+                return true;
+            }
+            catch
+            {
+                Logger.GetLogger(mod).Log($"Having an issue with {file}");
+                return false;
+            }
+            finally
+            {
+                SetSaveButtonStates();
+            }
+        }
+        private bool SaveOld(Mod mod, out string[] errors)
         {
             errors = [];
             if (mod == null) return false;
@@ -1141,7 +1198,7 @@ namespace WolfensteinInfinite.Editor
                 if (ActiveSection != null) ActiveSection.Layers = MapSection.Expand(ActiveSection);
 
                 // Always reload the base mod (map pool, textures, etc.)
-                Wolfenstein.ReloadMod(mod.Name);                
+                Wolfenstein.ReloadMod(mod.Name, [target]);                
 
                 return true;
             }
@@ -1183,7 +1240,7 @@ namespace WolfensteinInfinite.Editor
         private void DeleteBtn_Click(object sender, RoutedEventArgs e)
         {
             if (ActiveMod == null || ActiveSection == null) return;
-            var builder = Wolfenstein.BuilderMods[ActiveMod.Name];
+            var builder = GetSelectedBuilder(ActiveMod);// Wolfenstein.BuilderMods[ActiveMod.Name];
             builder.MapSections = [.. builder.MapSections.Where(p => p.Id != ActiveSection.Id)];
             ChangeStates[ActiveMod] = true;
             RefreshSectionDropdown();
@@ -1192,7 +1249,7 @@ namespace WolfensteinInfinite.Editor
         private void RefreshSectionDropdown(int? selectId = null)
         {
             if (ActiveMod == null) return;
-            var builder = Wolfenstein.BuilderMods[ActiveMod.Name];
+            var builder = GetSelectedBuilder(ActiveMod);// Wolfenstein.BuilderMods[ActiveMod.Name];
 
             MapSectionSelection.SelectionChanged -= MapSectionSelection_SelectionChanged;
             MapSectionSelection.Items.Clear();
@@ -1236,7 +1293,7 @@ namespace WolfensteinInfinite.Editor
         private void DuplicateBtn_Click(object sender, RoutedEventArgs e)
         {
             if (ActiveMod == null || ActiveSection == null) return;
-            var builder = Wolfenstein.BuilderMods[ActiveMod.Name];
+            var builder = GetSelectedBuilder(ActiveMod);// Wolfenstein.BuilderMods[ActiveMod.Name];
             var target = SaveTargetSelection.SelectedItem as string ?? "map.json";
 
             // Always derive the canonical section list from the correct file,

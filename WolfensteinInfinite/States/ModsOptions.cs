@@ -20,7 +20,7 @@ namespace WolfensteinInfinite.States
                 Wolfenstein.GameResources.Effects["ChangeMenu"]
                 );
             var hasMods = Wolfenstein.Mods.Keys.Count != 0;
-            Menu.MenuItems.Add(new MenuItem("Wiki", OnMenuAction, Wolfenstein.GameResources.SmallFont,hasMods, hasMods?null:RGBA8.STEEL_BLUE));
+            Menu.MenuItems.Add(new MenuItem("Wiki", OnMenuAction, Wolfenstein.GameResources.SmallFont, hasMods, hasMods ? null : RGBA8.STEEL_BLUE));
             Menu.MenuItems.Add(new MenuItem("Rebuild", OnMenuAction, Wolfenstein.GameResources.SmallFont, true));
             foreach (var mod in Wolfenstein.Config.Mods)
             {
@@ -34,7 +34,8 @@ namespace WolfensteinInfinite.States
             {
                 NextState = new WikiState(Wolfenstein, this);
                 return;
-            }else if (item.Text == "Rebuild")
+            }
+            else if (item.Text == "Rebuild")
             {
                 NextState = new RebuildState(Wolfenstein, this);
             }
@@ -44,10 +45,16 @@ namespace WolfensteinInfinite.States
                 if (mod.Name == mItem.Text)
                 {
                     mod.Enabled = mItem.State;
-                    if (mod.Name == "Demo" && mItem.State) Disable("Wolfenstein3D");
-                    if (mod.Name == "Wolfenstein3D" && mItem.State) Disable("Demo");
+                    if (mod.Name == "Demo" && mItem.State)
+                    {
+                        Disable("Wolfenstein3D");
+                    }
+                    if (mod.Name == "Wolfenstein3D" && mItem.State)
+                    {
+                        Disable("Demo");
+                    }
                     break;
-                }                
+                }
             }
         }
         public void Disable(string mod)
@@ -60,7 +67,7 @@ namespace WolfensteinInfinite.States
                     break;
                 }
             }
-            foreach(var m in Menu.MenuItems)
+            foreach (var m in Menu.MenuItems)
             {
                 if (m is not MenuItemOnOff mItem) continue;
                 if (mItem.Text == mod)

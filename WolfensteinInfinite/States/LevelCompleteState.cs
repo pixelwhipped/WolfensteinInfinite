@@ -7,6 +7,7 @@ using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.Utilities;
+using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.States
 {
@@ -20,7 +21,7 @@ namespace WolfensteinInfinite.States
         private readonly Game Game;
         //Score, Enemy, Items, Secrets
         private readonly Tween[] Tweens = [new(0.75f, null), new(0.75f, null), new(0.75f, null), new(0.75f, null)];
-        private readonly Tween FireSound = new(0.05f,null);
+        private readonly Tween FireSound = new(0.05f, null);
         public LevelCompleteState(Wolfenstein wolfenstein, Game game,
             LevelStats stats) : base(wolfenstein)
         {
@@ -29,8 +30,8 @@ namespace WolfensteinInfinite.States
             _stats = stats;
             ReturnState = this;
             NextState = this;
-            Wolfenstein.PlayMusic(Wolfenstein.LevelCompleteMusic); 
-            if(stats.LevelScore == 0) Tweens[0].End();
+            Wolfenstein.PlayMusic(Wolfenstein.LevelCompleteMusic);
+            if (stats.LevelScore == 0) Tweens[0].End();
             if (stats.EnemiesKilled == 0) Tweens[1].End();
             if (stats.ItemsCollected == 0) Tweens[2].End();
             if (stats.SecretsFound == 0) Tweens[3].End();
@@ -42,27 +43,32 @@ namespace WolfensteinInfinite.States
             {
                 GameState nextLevel;
 
-                if (Wolfenstein.TestMapSections != null && Wolfenstein.TestMapSections.Length >= Game.Map.Level)
+                var mods = Wolfenstein.Config.Mods.Where(p => p.Enabled);
+                var tmods = Wolfenstein.TestMapSections == null ? [] : Wolfenstein.TestMapSections.Where(p => mods.Any(mo => mo.Name == p.mod)).ToArray();
+                if (tmods != null && tmods.Length >= Game.Map.Level)
                 {
                     nextLevel = new SpecialLevelState(
                                 Wolfenstein,
                                 Game.Player,
                                 Difficulties.CAN_I_PLAY_DADDY,
                                 Game.Map.Level,
-                                Wolfenstein.TestMapSections[Game.Map.Level - 1].mod,
-                                Wolfenstein.TestMapSections[Game.Map.Level - 1].section);
+                                tmods[Game.Map.Level - 1].mod,
+                                tmods[Game.Map.Level - 1].section);
                 }
                 else if (Game.Map.Level % 10 == 0)
                 {
-                    var specials = Game.Mods
-                        .Where(m => Wolfenstein.SpecialMaps.ContainsKey(m))
-                        .SelectMany(m => Wolfenstein.SpecialMaps[m].MapSections
-                            .Select(s => (Mod: m, Section: s)))
-                        .ToArray();
-
-                    if (specials.Length > 0)
+                    var smods = Wolfenstein.SpecialMaps == null ? [] : Wolfenstein.SpecialMaps.Where(p => mods.Any(mo => mo.Name == p.Key)).ToDictionary();
+                    var specials = new List<(string Mod, MapSection Section)>();
+                    foreach(var m in smods)
                     {
-                        var chosen = specials[Random.Shared.Next(specials.Length)];
+                        foreach (var section in m.Value.MapSections)
+                        {
+                            specials.Add((Mod: m.Key, Section: section));
+                        }
+                    }
+                    if (specials.Count > 0)
+                    {
+                        var chosen = specials[Random.Shared.Next(specials.Count)];
                         nextLevel = new SpecialLevelState(
                         Wolfenstein, Game.Player, Game.Map.Difficulty,
                         Game.Map.Level, chosen.Mod, chosen.Section);
@@ -80,7 +86,7 @@ namespace WolfensteinInfinite.States
                 }
                 return nextLevel;
             }
-                
+
 
             _readyTimer += frameTime;
 
@@ -96,7 +102,7 @@ namespace WolfensteinInfinite.States
                 }
                 break;
             }
-            
+
 
             // Draw background
             buffer.Clear(0, 0, 0);
@@ -106,7 +112,7 @@ namespace WolfensteinInfinite.States
 
             // Level complete heading
             var heading = $"LEVEL {_completedLevel} COMPLETE";
-            var (hw,hh) = Wolfenstein.GameResources.MenuFont.MeasureString(heading);
+            var (hw, hh) = Wolfenstein.GameResources.MenuFont.MeasureString(heading);
             buffer.DrawString(centerX - hw / 2, y,
                 heading, Wolfenstein.GameResources.MenuFont, RGBA8.WHITE);
 
@@ -117,7 +123,7 @@ namespace WolfensteinInfinite.States
             var (sw, sh) = Wolfenstein.GameResources.SmallFont.MeasureString(score);
             buffer.DrawString(centerX - sw / 2, y,
                 score, Wolfenstein.GameResources.SmallFont, RGBA8.WHITE);
-            y += sh+6;
+            y += sh + 6;
             var enemies = $"KILL RATIO {(int)(Pct(_stats.EnemiesKilled, _stats.EnemiesTotal) * Tweens[1].Value)}%";
             var (ew, eh) = Wolfenstein.GameResources.SmallFont.MeasureString(enemies);
             buffer.DrawString(centerX - ew / 2, y, enemies,
@@ -129,12 +135,12 @@ namespace WolfensteinInfinite.States
             buffer.DrawString(centerX - iw / 2, y, items,
                 Wolfenstein.GameResources.SmallFont, RGBA8.WHITE);
 
-            y += ih+6;
+            y += ih + 6;
             var secrets = $"SECRETS    {(int)(Pct(_stats.SecretsFound, _stats.SecretsTotal) * Tweens[3].Value)}%";
             var (secw, _) = Wolfenstein.GameResources.SmallFont.MeasureString(secrets);
             buffer.DrawString(centerX - secw / 2, y, secrets,
                 Wolfenstein.GameResources.SmallFont, RGBA8.WHITE);
-            
+
 
             // Continue prompt — only after minimum display time
             if (_readyTimer >= MinDisplayTime)

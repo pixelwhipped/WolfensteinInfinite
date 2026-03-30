@@ -379,7 +379,42 @@ namespace WolfensteinInfinite.WolfMod
                 }
             }
 
-            // No valid starting door found
+            // No valid starting door found (e.g. testmaps / specialmaps with no exterior door).
+            // Fall back: scan from (0,0) and use the first wall that borders empty space or the
+            // map boundary as the perimeter-trace starting point.
+            if (!foundStart)
+            {
+                for (int y = 0; y < height && !foundStart; y++)
+                {
+                    for (int x = 0; x < width && !foundStart; x++)
+                    {
+                        if (grid[y][x] == ClosedSectionWall || grid[y][x] == ClosedSectionWallAny)
+                        {
+                            var neighbors = new[] {
+                                (y - 1, x), // up
+                                (y, x + 1), // right
+                                (y + 1, x), // down
+                                (y, x - 1)  // left
+                            };
+
+                            foreach (var (ny, nx) in neighbors)
+                            {
+                                if (!IsInBounds(ny, nx, height, width) || grid[ny][nx] == ClosedSectionNothing)
+                                {
+                                    startY = y;
+                                    startX = x;
+                                    emptyY = ny;
+                                    emptyX = nx;
+                                    foundStart = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Still no valid start — map has no traceable wall structure at all
             if (!foundStart)
             {
                 closed = false;

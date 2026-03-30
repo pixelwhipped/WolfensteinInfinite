@@ -487,11 +487,15 @@ namespace WolfensteinInfinite
             foreach (var version in new Extractor(forceRebuild || Args.Rebuild || Args.RebuildWithMapImage).GameVersions)
             {
                 var map = $"WolfensteinInfinite.GameData.Mods.{version.Name}.map.json";
+                var mFile = FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\map.json");
                 var special = $"WolfensteinInfinite.GameData.Mods.{version.Name}.specialmap.json";
+                var sFile = FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\specialmap.json");
                 var test = $"WolfensteinInfinite.GameData.Mods.{version.Name}.maptestlevel.json";
-                if (res.Any(p => p.Equals(map))) SaveEmbeddedResource(map, FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\map.json"));
-                if (res.Any(p => p.Equals(special))) SaveEmbeddedResource(special, FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\specialmap.json"));
-                if (res.Any(p => p.Equals(test))) SaveEmbeddedResource(test, FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\maptestlevel.json"));
+                var tFile = FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\maptestlevel.json");
+
+                if ((forceRebuild || !File.Exists(mFile)) && res.Any(p => p.Equals(map))) SaveEmbeddedResource(map, mFile);
+                if ((forceRebuild || !File.Exists(sFile)) && res.Any(p => p.Equals(special))) SaveEmbeddedResource(special, sFile);
+                if ((forceRebuild || !File.Exists(tFile)) && res.Any(p => p.Equals(test))) SaveEmbeddedResource(test, tFile);
 
                 //Needo to copy internal mod/map/test/special json file on rebuild requst
                 var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\mod.json");
@@ -788,7 +792,8 @@ namespace WolfensteinInfinite
                 tex.Draw(i * -64, 0, composit);
                 animation.Add(tex);
             }
-            Animations.Add(CharacterAnimationState.DEAD, new Animation([.. animation], 1, 1, 1));
+            Animations.Add(CharacterAnimationState.DEAD_LEFT, new Animation([.. animation], 1, 1, 1));
+            Animations.Add(CharacterAnimationState.DEAD_RIGHT, new Animation([.. animation], 1, 1, 1));
             animation.Clear();
 
             for (int i = 8; i < 11; i++)
@@ -842,30 +847,37 @@ namespace WolfensteinInfinite
             Mods = LoadMods(true);
             foreach (var mod in Mods)
             {
-                ReloadMod(mod.Key);
+                ReloadMod(mod.Key, ["map.json", "specialmap.json", "maptestlevel.json"]);
             }
         }
-        public void ReloadMod(string modName)
+        public void ReloadMod(string modName, string[] mapTypes)
         {
-            var modPath = FileHelpers.Shared.GetDataFilePath($@"Mods\{modName}\map.json");
-            if (File.Exists(modPath))
+            if (mapTypes.Contains("map.json"))
             {
-                var builder = FileHelpers.Shared.Deserialize<MapBuilder>(modPath);
-                if (builder != null) BuilderMods[modName] = builder;
+                var modPath = FileHelpers.Shared.GetDataFilePath($@"Mods\{modName}\map.json");
+                if (File.Exists(modPath))
+                {
+                    var builder = FileHelpers.Shared.Deserialize<MapBuilder>(modPath);
+                    if (builder != null) BuilderMods[modName] = builder;
+                }
             }
-
-            var specialPath = FileHelpers.Shared.GetDataFilePath($@"Mods\{modName}\specialmap.json");
-            if (File.Exists(specialPath))
+            if (mapTypes.Contains("specialmap.json"))
             {
-                var sections = FileHelpers.Shared.Deserialize<MapBuilder>(specialPath);
-                if (sections != null) SpecialMaps[modName] = sections;
+                var specialPath = FileHelpers.Shared.GetDataFilePath($@"Mods\{modName}\specialmap.json");
+                if (File.Exists(specialPath))
+                {
+                    var sections = FileHelpers.Shared.Deserialize<MapBuilder>(specialPath);
+                    if (sections != null) SpecialMaps[modName] = sections;
+                }
             }
-
-            var testPath = FileHelpers.Shared.GetDataFilePath($@"Mods\{modName}\maptestlevel.json");
-            if (File.Exists(testPath))
+            if (mapTypes.Contains("maptestlevel.json"))
             {
-                var sections = FileHelpers.Shared.Deserialize<MapBuilder>(testPath);
-                if (sections != null) TestMaps[modName] = sections;
+                var testPath = FileHelpers.Shared.GetDataFilePath($@"Mods\{modName}\maptestlevel.json");
+                if (File.Exists(testPath))
+                {
+                    var sections = FileHelpers.Shared.Deserialize<MapBuilder>(testPath);
+                    if (sections != null) TestMaps[modName] = sections;
+                }
             }
         }
 

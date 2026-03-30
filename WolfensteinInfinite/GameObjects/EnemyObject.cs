@@ -31,8 +31,9 @@ namespace WolfensteinInfinite.GameObjects
         public int MaxHitPoints { get; private set; }
         public int PointsReward { get; init; }
         public EnemyAIState AIState { get; private set; } = EnemyAIState.Idle;
+        private bool _diedLeft = true;
         public bool IsDying => CharacterSprite.AnimationState == CharacterAnimationState.DYING_LEFT || CharacterSprite.AnimationState == CharacterAnimationState.DYING_RIGHT;
-        public bool IsCorpse => CharacterSprite.AnimationState == CharacterAnimationState.DEAD;
+        public bool IsCorpse => CharacterSprite.AnimationState == CharacterAnimationState.DEAD_LEFT || CharacterSprite.AnimationState == CharacterAnimationState.DEAD_RIGHT;
         private bool IsHit => CharacterSprite.AnimationState == CharacterAnimationState.HIT;
         public bool IsAlerted { get; set; } = false;
         private float WorldSpeed { get; init; }
@@ -49,6 +50,7 @@ namespace WolfensteinInfinite.GameObjects
         private float _fleeTimer = 0f;
         private float _smoothedFacingAngle = 180f;
         private float _tauntTimer = 0f;
+        
         public CharacterSprite CharacterSprite { get; init; }
         public EnemyObject(float x, float y, CharacterSprite sprite, Enemy enemy,
             Difficulties difficulty, string mod, Wolfenstein wolfenstein, int level)
@@ -463,11 +465,23 @@ namespace WolfensteinInfinite.GameObjects
                     dyingOptions.Add(CharacterAnimationState.DYING_RIGHT);
 
                 if (dyingOptions.Count > 0)
-                    SetAnimation(dyingOptions[Random.Shared.Next(dyingOptions.Count)]);
-                else
                 {
-                    if (CharacterSprite.HasAnimation(CharacterAnimationState.DEAD))
-                        SetAnimation(CharacterAnimationState.DEAD);
+                    var option = dyingOptions[Random.Shared.Next(dyingOptions.Count)];
+                    SetAnimation(option);
+                    _diedLeft = option == CharacterAnimationState.DYING_LEFT ? true : false;
+                }
+                else //Default to left will be the same as right
+                {
+                    if (CharacterSprite.HasAnimation(CharacterAnimationState.DYING_LEFT))
+                    {
+                        SetAnimation(CharacterAnimationState.DYING_LEFT);
+                        _diedLeft = true;
+                    }
+                    else if (CharacterSprite.HasAnimation(CharacterAnimationState.DYING_RIGHT))
+                    {
+                        SetAnimation(CharacterAnimationState.DYING_RIGHT);
+                        _diedLeft = false;
+                    }
                 }
                 state.AddToScore(PointsReward);
                 state.Game.Map.LevelScore += PointsReward;
@@ -501,8 +515,14 @@ namespace WolfensteinInfinite.GameObjects
             {
                 if (CharacterSprite.IsDeathAnimationComplete)
                 {
-                    if (CharacterSprite.HasAnimation(CharacterAnimationState.DEAD))
-                        SetAnimation(CharacterAnimationState.DEAD);
+                    if (_diedLeft && CharacterSprite.HasAnimation(CharacterAnimationState.DEAD_LEFT))
+                    {
+                        SetAnimation(CharacterAnimationState.DEAD_LEFT);
+                    }
+                    if (!_diedLeft && CharacterSprite.HasAnimation(CharacterAnimationState.DEAD_RIGHT))
+                    {
+                        SetAnimation(CharacterAnimationState.DEAD_RIGHT);
+                    }
                 }
                 return;
             }

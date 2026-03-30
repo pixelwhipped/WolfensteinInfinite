@@ -8,7 +8,7 @@ namespace WolfensteinInfinite.GameGraphics
 
         private readonly Dictionary<CharacterAnimationState, Animation> Animations = animations;
         public CharacterAnimationState AnimationState { get; set; } = CharacterAnimationState.STANDING;
-        public bool IsDeathAnimationComplete => AnimationState ==  CharacterAnimationState.DEAD || (
+        public bool IsDeathAnimationComplete => (AnimationState ==  CharacterAnimationState.DEAD_LEFT || AnimationState == CharacterAnimationState.DEAD_RIGHT) || (
             (AnimationState == CharacterAnimationState.DYING_LEFT ||
              AnimationState == CharacterAnimationState.DYING_RIGHT) &&
              Animations[AnimationState].IsComplete);
