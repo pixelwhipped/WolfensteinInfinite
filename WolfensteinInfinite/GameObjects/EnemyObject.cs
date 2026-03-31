@@ -1,9 +1,7 @@
-﻿using System.Net.NetworkInformation;
-using WolfensteinInfinite.Engine.Audio;
+﻿using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.States;
-using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
 
 
