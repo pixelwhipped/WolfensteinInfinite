@@ -425,7 +425,7 @@ namespace WolfensteinInfinite.States
                 DynamicObjects.Add(new ProjectileObject(
                     Game.Player.PosX, Game.Player.PosY,
                     Game.Player.DirX, Game.Player.DirY,
-                    speed: 10f,
+                    speed: projectile.Speed,
                     damage: (int)Math.Ceiling(projectile.GetDamage(0, Game.Map.Difficulty)* diffPlayerBuff),
                     maxRange: projectile.RangeMod,
                     isEnemyProjectile: false,

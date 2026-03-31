@@ -9,19 +9,6 @@ using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.GameObjects
 {
-    public class EnemyWeaponObject(Weapon weapon, Projectile projectile)
-    {
-        public float AttackCooldownDuration { get; init; }
-        public float ShotInterval { get; init; }
-        public float MaxFireTime { get; init; }
-        //public bool IsSustainedFire { get; init; }
-        public bool IsRanged { get; init; }
-        public Weapon Weapon { get; init; } = weapon;
-        public Projectile Projectile { get; init; } = projectile;
-        public float AttackCooldown { get; set; }
-        public float FireTimer { get; set; } = 0f;   // total time spent firing (for sustained fire cutoff)        
-        public float FrameWait { get; set; } = 0f;
-    }
 
     public class EnemyObject : DynamicObject
     {
@@ -398,7 +385,7 @@ namespace WolfensteinInfinite.GameObjects
             var sprite = FindProjectileSprite(projectile, state);
             state.DynamicObjects.Add(new ProjectileObject(
                 X, Y, dx / dist, dy / dist,
-                speed: 8f, damage: damage,
+                speed: projectile.Speed, damage: damage,
                 maxRange: projectile.RangeMod,
                 isEnemyProjectile: true,
                 sprite: sprite));

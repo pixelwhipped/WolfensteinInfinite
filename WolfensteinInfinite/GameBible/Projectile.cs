@@ -1,8 +1,9 @@
 ﻿namespace WolfensteinInfinite.GameBible
 {
-    public class Projectile(string name, byte damageMod, byte rangeMod, AmmoType ammoType, ProjectileSpriteType spriteType, string? spritePath, int startSprite, string? hitSound, string? trailAnimation, string? impactAnimation)
+    public class Projectile(string name, byte damageMod, byte rangeMod, AmmoType ammoType, float speed, ProjectileSpriteType spriteType, string? spritePath, int startSprite, string? hitSound, string? trailAnimation, string? impactAnimation)
     {
         public string Name { get; init; } = name;
+        public float Speed { get; init; } = speed;
         public byte DamageMod { get; init; } = damageMod;
         public byte RangeMod { get; init; } = rangeMod;
         public ProjectileSpriteType SpriteType { get; init; } = spriteType;
