@@ -147,7 +147,7 @@ namespace WolfensteinInfinite.WolfMod
 
         public bool IsRotatable { get; set; } = false;
         public bool IsFlippable { get; set; } = false;
-        
+
         public int IntendedMinLevel { get; set; } = 1;
         [JsonIgnore]
         public bool IsFullMap => HasPlayerStart && HasPlayerExit &&
@@ -225,7 +225,7 @@ namespace WolfensteinInfinite.WolfMod
             }
 
             result.IntendedMinLevel = src.IntendedMinLevel;
-            result.IsRotatable = false;            
+            result.IsRotatable = false;
             return result;
         }
         public (int X, int Y)[] GetConnections(int xOffset = 0, int yOffset = 0)
@@ -365,7 +365,16 @@ namespace WolfensteinInfinite.WolfMod
 
                         foreach (var (ny, nx) in neighbors)
                         {
-                            if (!IsInBounds(ny, nx, height, width) || grid[ny][nx] == ClosedSectionNothing)
+                            // Only accept this door as the perimeter start if the empty neighbour is
+                            // genuinely exterior: out-of-bounds, or sitting on the grid boundary row/col.
+                            // Interior corridor cells next to interior doors must not qualify —
+                            // accepting them causes the trace to follow a tiny local loop instead of
+                            // the outer wall, leaving almost every wall flagged as an orphan.
+                            bool neighbourIsExteriorEdge = !IsInBounds(ny, nx, height, width)
+                                || ny == 0 || ny == height - 1 || nx == 0 || nx == width - 1;
+
+                            if (neighbourIsExteriorEdge &&
+                                (!IsInBounds(ny, nx, height, width) || grid[ny][nx] == ClosedSectionNothing))
                             {
                                 startY = y;
                                 startX = x;
@@ -726,9 +735,9 @@ namespace WolfensteinInfinite.WolfMod
             get
             {
                 var hash = 0;
-                foreach(var l in Layers)
+                foreach (var l in Layers)
                 {
-                    foreach(var r in l.Value)
+                    foreach (var r in l.Value)
                     {
                         foreach (var j in r)
                         {
