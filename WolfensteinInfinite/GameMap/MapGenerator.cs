@@ -744,6 +744,7 @@ namespace WolfensteinInfinite.GameMap
                         if (worldX < 0 || worldX >= Width) continue;
                         if (enemy[y][x] < 0) continue;
                         if (SkipSpecialChance(special, x, y)) continue;
+
                         var key = new ModKeyIndex(layer.Mod.Name, enemy[y][x]);
                         if (!enemyKeyIndicies.TryGetValue(key, out int index))
                         {
@@ -794,7 +795,7 @@ namespace WolfensteinInfinite.GameMap
                         {
                             if (!Wolfenstein.Mods.TryGetValue(layer.Mod.Name, out var rmod)) continue;
                             var candidates = rmod.Enemies
-                                .Where(e => (int)e.EnemyType < 5) // non-boss only
+                                .Where(e => (int)e.EnemyType < 5 && e.IntendedLevel <= Level) // non-boss only
                                 .ToArray();
                             if (candidates.Length == 0) continue;
                             var chosen = candidates[Random.Shared.Next(candidates.Length)];

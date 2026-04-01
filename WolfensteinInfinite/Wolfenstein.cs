@@ -262,8 +262,8 @@ namespace WolfensteinInfinite
 
             }
             Special.Add(0, GameResources.PlayerStart);
-            Special.Add(1, GameResources.EditRandomEnemy);
-            Special.Add(2, GameResources.EditExperimentEnemy);
+            Special.Add(1, GameResources.EditRandomEnemy); //Move to enemy 1001
+            Special.Add(2, GameResources.EditExperimentEnemy); //Move to enemy 1002
             Special.Add(3, GameResources.EditExit);
             Special.Add(4, GameResources.EditNorth);
             Special.Add(5, GameResources.EditEast);
@@ -274,7 +274,7 @@ namespace WolfensteinInfinite
             Special.Add(10, GameResources.Chance25);
             Special.Add(11, GameResources.Chance50);
             Special.Add(12, GameResources.Chance75);
-
+            
         }
 
         private static void Log(string message) => Logger.GetLogger().Log(message);
@@ -483,7 +483,6 @@ namespace WolfensteinInfinite
             CheckInfiniteMod();
             var mods = new Dictionary<string, Mod>();
             //Check original versions and export mod files
-            //foreach (var version in new Extractor(Debugger.IsAttached).GameVersions)
             foreach (var version in new Extractor(forceRebuild || Args.Rebuild || Args.RebuildWithMapImage).GameVersions)
             {
                 var map = $"WolfensteinInfinite.GameData.Mods.{version.Name}.map.json";
@@ -662,6 +661,10 @@ namespace WolfensteinInfinite
                 Config.Mods[fullIndex].Enabled = true;
             }
 
+            if (forceRebuild)
+            {
+                AddSpecialTextures();
+            }
             return mods;
         }
 
