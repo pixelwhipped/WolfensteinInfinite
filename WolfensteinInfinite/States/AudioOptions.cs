@@ -58,10 +58,6 @@ namespace WolfensteinInfinite.States
                 AudioPlaybackEngine.Instance.MusicOn = i.State;
                 if (i.State)
                     Wolfenstein.PlayTitleMusic(); // resume whatever was playing
-                /*
-                if (Wolfenstein.CurrentMusic != null)
-                    AudioPlaybackEngine.Instance.PlayMusic(Wolfenstein.CurrentMusic);
-                */
             }
         }
         public override GameState? Update(Texture32 buffer, float frameTime)

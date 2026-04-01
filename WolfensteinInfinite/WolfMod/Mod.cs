@@ -125,17 +125,6 @@ namespace WolfensteinInfinite.WolfMod
                 }
 
             }
-            /*Log("Checking Player Weapons");
-            foreach (var asset in PlayerWeapons)
-            {
-                if (!Projectiles.Any(p => p.Name == asset.Projectile)) return LogFail($"Weapon {asset.Name} missing {asset.Projectile}");
-                if (!string.IsNullOrEmpty(asset.Sound))
-                {
-                    if (!System.IO.File.Exists(FileHelpers.Shared.GetModDataFilePath(asset.Sound))) return LogFail($"Weapon {asset.Name} missing {asset.Sound}");
-                }
-                if (!ValidateNumberedFiles(asset.SpritePath, asset.StartSprite, asset.SpriteCount, "png")) return false;
-                if (asset.FireIndex > asset.SpriteCount-1) return false;
-            }*/
             Log("Checking Enemies");
             foreach (var asset in Enemies)
             {

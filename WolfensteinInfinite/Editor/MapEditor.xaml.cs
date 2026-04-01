@@ -170,11 +170,21 @@ namespace WolfensteinInfinite.Editor
                 }
                 else if (LayerControl.SelectedItem == LayerEnemiesControl)
                 {
-                    var diff = SelectedEnemyIndex < 0 ? 0 : SelectedDifficulty;
-                    ActiveSection.Enemy[y][x] = SelectedEnemyIndex < 0
-                        ? -1
-                        : Wolfenstein.Mods[ActiveMod.Name].Enemies[SelectedEnemyIndex].MapID;
-                    ActiveSection.Difficulty[y][x] = diff;
+                    if (SelectedEnemyIndex < 0)
+                    {
+                        ActiveSection.Enemy[y][x] = -1;
+                        ActiveSection.Difficulty[y][x] = 0;
+                    }
+                    else if (SelectedEnemyIndex >= 1000) // Virtual: Random Enemy (1001) or Experimental (1002)
+                    {
+                        ActiveSection.Enemy[y][x] = SelectedEnemyIndex;
+                        ActiveSection.Difficulty[y][x] = SelectedDifficulty;
+                    }
+                    else
+                    {
+                        ActiveSection.Enemy[y][x] = Wolfenstein.Mods[ActiveMod.Name].Enemies[SelectedEnemyIndex].MapID;
+                        ActiveSection.Difficulty[y][x] = SelectedDifficulty;
+                    }
                     changed = true;
                 }
                 else if (LayerControl.SelectedItem == LayerSpecialControl)
@@ -217,8 +227,6 @@ namespace WolfensteinInfinite.Editor
                     }
 
                     ActiveSection.Special[y][x] = SelectedSpecialIndex;
-                    if (SelectedSpecialIndex == 1 || SelectedSpecialIndex == 2)
-                        ActiveSection.Difficulty[y][x] = SelectedDifficulty;
                     changed = true;
                 }
             }
@@ -302,12 +310,6 @@ namespace WolfensteinInfinite.Editor
                 else
                 {
                     tile = GetSpecialBitmap(ActiveMod.Name, sp, ActiveSection.Walls[y][x]);
-                    if (sp == 1 || sp == 2)
-                    {
-                        BlitTile(_mapBitmap, tile, x * TileSize, y * TileSize);
-                        BlitDifficultyOverlay(_mapBitmap, ActiveSection.Difficulty[y][x], x * TileSize, y * TileSize);
-                        return;
-                    }
                 }
             }
             else if (ActiveSection.Decals[y][x] >= 0)
@@ -330,11 +332,41 @@ namespace WolfensteinInfinite.Editor
         private void BlitEnemyTile(int x, int y, int specialChance) //new
         {
             if (_mapBitmap == null || ActiveSection == null || ActiveMod == null) return;
-            var tile = specialChance >= 9 && specialChance <= 12
-                ? GetSpecialBitmapEnemy(ActiveMod.Name, specialChance, ActiveSection.Enemy[y][x])
-                : GetEnemyBitmap(ActiveMod.Name, ActiveSection.Enemy[y][x]);
+            var enemyId = ActiveSection.Enemy[y][x];
+            WriteableBitmap? tile;
+            if (enemyId >= 1000)
+                tile = specialChance >= 9 && specialChance <= 12
+                    ? GetSpecialBitmapVirtualEnemy(enemyId, specialChance)
+                    : GetVirtualEnemyBitmap(enemyId);
+            else
+                tile = specialChance >= 9 && specialChance <= 12
+                    ? GetSpecialBitmapEnemy(ActiveMod.Name, specialChance, enemyId)
+                    : GetEnemyBitmap(ActiveMod.Name, enemyId);
             BlitTile(_mapBitmap, tile, x * TileSize, y * TileSize);
             BlitDifficultyOverlay(_mapBitmap, ActiveSection.Difficulty[y][x], x * TileSize, y * TileSize);
+        }
+
+        // Uses the existing EditRandomEnemy / EditExperimentEnemy textures already in Wolfenstein.Special
+        private WriteableBitmap GetVirtualEnemyBitmap(int mapId)
+        {
+            // Special[1] = EditRandomEnemy, Special[2] = EditExperimentEnemy
+            int specialKey = mapId == 1001 ? 1 : 2;
+            if (Wolfenstein.Special.TryGetValue(specialKey, out var tex))
+                return GetBitmap(tex);
+            // Fallback: should never be reached after normal initialisation
+            var t = new Texture32(64, 64);
+            t.RectFill(0, 0, 64, 64, mapId == 1001 ? (byte)160 : (byte)0, 32, mapId == 1001 ? (byte)200 : (byte)180, 255);
+            return GetBitmap(t);
+        }
+
+        // Blends the chance % overlay onto a virtual enemy texture (1001/1002), cached like all other special blends
+        private WriteableBitmap? GetSpecialBitmapVirtualEnemy(int mapId, int specialChance)
+        {
+            int specialKey = mapId == 1001 ? 1 : 2;
+            if (!Wolfenstein.Special.TryGetValue(specialKey, out var tex)) return GetVirtualEnemyBitmap(mapId);
+            var key = $"virtual{mapId},{specialChance}";
+            if (SpecialMapCache.TryGetValue(key, out var bmp)) return bmp;
+            return BlendSpecialTexture(tex, specialChance, key);
         }
         private void DrawGridOverlay()
         {
@@ -444,7 +476,7 @@ namespace WolfensteinInfinite.Editor
             Wolfenstein = wolfenstein;
             InitializeComponent();
             InitializeOptions();
-            
+
         }
 
         // Colour per difficulty: 0=green, 1=yellow, 2=orange, 3=red
@@ -529,6 +561,7 @@ namespace WolfensteinInfinite.Editor
             SelectedDoorIndex = -1;
             SelectedEnemyIndex = -1;
             SelectedSpecialIndex = -1;
+            MigrateSpecialEnemiesToEnemyLayer(mod);
             SetMapSectionSelections();
             SetWallTextureImageGrid();
             SetDecalTextureImageGrid();
@@ -536,6 +569,50 @@ namespace WolfensteinInfinite.Editor
             SetEnemyTextureImageGrid();
             SetDoorTextureImageGrid();
             SetSpecialTextureImageGrid();
+        }
+
+        // One-time migration: moves Special layer IDs 1 (Random Enemy) and 2 (Experimental Enemy)
+        // to the Enemy layer as IDs 1001 and 1002, then clears them from Special.
+        // Marks the mod dirty so the next save persists the migration automatically.
+        private void MigrateSpecialEnemiesToEnemyLayer(Mod mod)
+        {
+            bool migrated = false;
+            foreach (var target in new[] { "map.json", "specialmap.json", "maptestlevel.json" })
+            {
+                var builder = target switch
+                {
+                    "specialmap.json" when Wolfenstein.SpecialMaps.TryGetValue(mod.Name, out var sm) => sm,
+                    "maptestlevel.json" when Wolfenstein.TestMaps.TryGetValue(mod.Name, out var tm) => tm,
+                    _ when Wolfenstein.BuilderMods.TryGetValue(mod.Name, out var bm) => bm,
+                    _ => null
+                };
+                if (builder == null) continue;
+
+                foreach (var section in builder.MapSections)
+                {
+                    var special = section.GetLayout(MapArrayLayouts.SPECIAL);
+                    var enemy = section.GetLayout(MapArrayLayouts.ENEMY);
+                    var diff = section.GetLayout(MapArrayLayouts.DIFFICULTY);
+                    for (int sy = 0; sy < special.Length; sy++)
+                    {
+                        for (int sx = 0; sx < special[sy].Length; sx++)
+                        {
+                            if (special[sy][sx] != 1 && special[sy][sx] != 2) continue;
+                            enemy[sy][sx] = special[sy][sx] + 1000; // 1 -> 1001, 2 -> 1002
+                            // difficulty was already stored on the special tile, preserve it
+                            // (diff[sy][sx] is already set; no change needed)
+                            special[sy][sx] = -1;
+                            migrated = true;
+                        }
+                    }
+                }
+            }
+
+            if (migrated)
+            {
+                ChangeStates[mod] = true;
+                SetSaveButtonStates();
+            }
         }
 
         private void SetMapSectionSelections()
@@ -729,8 +806,6 @@ namespace WolfensteinInfinite.Editor
         private static string GetNameForSpecial(int i) => i switch
         {
             0 => "Player Start",
-            1 => "Random Enemy",
-            2 => "Experiment Enemy",
             3 => "Exit",
             4 => "Secret North",
             5 => "Secret East",
@@ -751,6 +826,7 @@ namespace WolfensteinInfinite.Editor
             if (SelectedSpecialIndex == -1 && Wolfenstein.Special.Count > 0) SelectedSpecialIndex = 0;
             for (int i = 0; i < Wolfenstein.Special.Count; i++)
             {
+                if (i == 1 || i == 2) continue; // now live on the Enemy layer as 1001/1002
                 var j = i;
                 Image imageControl = new()
                 {
@@ -773,6 +849,26 @@ namespace WolfensteinInfinite.Editor
             if (ActiveMod == null) return;
             EnemyTextureImageGrid.Children.Clear();
             if (SelectedEnemyIndex == -1 && Wolfenstein.Mods[ActiveMod.Name].Enemies.Length > 0) SelectedEnemyIndex = 0;
+
+            // Virtual entries: Random Enemy (1001) and Experimental Enemy (1002)
+            foreach (var (virtualId, label) in new[] { (1001, "Random Enemy"), (1002, "Experimental Enemy") })
+            {
+                var vid = virtualId;
+                Image imageControl = new()
+                {
+                    Source = GetVirtualEnemyBitmap(vid),
+                    ToolTip = label,
+                    Stretch = Stretch.None
+                };
+                imageControl.MouseLeftButtonUp += (s, e) => { SelectedEnemyIndex = vid; SetEnemyTextureImageGrid(); };
+                EnemyTextureImageGrid.Children.Add(new Border()
+                {
+                    BorderThickness = new Thickness(5),
+                    BorderBrush = vid == SelectedEnemyIndex ? Brushes.Blue : Brushes.Gray,
+                    Child = imageControl
+                });
+            }
+
             for (int i = 0; i < Wolfenstein.Mods[ActiveMod.Name].Enemies.Length; i++)
             {
                 var j = i;
@@ -904,13 +1000,7 @@ namespace WolfensteinInfinite.Editor
         // Difficulty
         // ──────────────────────────────────────────────────────────────
 
-        private void DifficultySelection_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            SelectedDifficulty = DifficultySelection.SelectedIndex;/*
-            var dStr = DifficultySelection.SelectedItem.ToString()
-                ?? DifficultyHelpers.GetDifficultyString(Difficulties.CAN_I_PLAY_DADDY);
-            SelectedDifficulty = (int)(DifficultyHelpers.GetStringDifficulty(dStr) ?? Difficulties.CAN_I_PLAY_DADDY);*/
-        }
+        private void DifficultySelection_SelectionChanged(object sender, SelectionChangedEventArgs e) => SelectedDifficulty = DifficultySelection.SelectedIndex;
 
         // ──────────────────────────────────────────────────────────────
         // Bitmap helpers
@@ -1198,7 +1288,7 @@ namespace WolfensteinInfinite.Editor
                 if (ActiveSection != null) ActiveSection.Layers = MapSection.Expand(ActiveSection);
 
                 // Always reload the base mod (map pool, textures, etc.)
-                Wolfenstein.ReloadMod(mod.Name, [target]);                
+                Wolfenstein.ReloadMod(mod.Name, [target]);
 
                 return true;
             }
@@ -1340,7 +1430,7 @@ namespace WolfensteinInfinite.Editor
         private void IsFlippableChk_Changed(object sender, RoutedEventArgs e)
         {
             if (ActiveSection == null || ActiveMod == null) return;
-            ActiveSection.IsFlippable= IsFlippableChk.IsChecked == true;
+            ActiveSection.IsFlippable = IsFlippableChk.IsChecked == true;
             ChangeStates[ActiveMod] = true;
             SetSaveButtonStates();
         }

@@ -169,11 +169,6 @@ namespace WolfensteinInfinite.Engine.Graphics
                 }
                 Count = totalCount;
                 Children = new Node[8];
-                /*if (totalCount == 0)
-                {
-                    Color = new RGBA8 { R = 0, G = 0, B = 0, A = 255 };
-                    return;
-                }*/
 
                 Color = new RGBA8
                 {

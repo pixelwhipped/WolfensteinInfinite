@@ -482,29 +482,6 @@
                     // Always disconnect and try next candidate — the subtree failed
                     attemptedConnections.Add(attemptKey);
                     if (!TryDisconnect(openConnection.Key, currentNode, candidate)) return false;
-                    /*
-                    // Only disconnect and try next candidate if we're still trying to solve THIS node's connection
-                    // Don't disconnect if the failure was deeper in the tree
-                    var stillHasOpenConnections = currentNode.Connections.Any(c => c.Node == null);
-
-                    if (stillHasOpenConnections)
-                    {
-                        // Current node still has open connections, so the failure was with this specific candidate
-                        // Mark as attempted and disconnect to try next candidate
-                        attemptedConnections.Add(attemptKey);
-
-                        if (!TryDisconnect(openConnection.Key, currentNode, candidate))
-                        {
-                            return false; // Fatal error
-                        }
-                    }
-                    else
-                    {
-                        // Current node is fully closed, failure was elsewhere in the tree
-                        // DON'T disconnect - this connection is good, we just need to complete other parts
-                        // Return false to signal we need to try a different path elsewhere
-                        return false;
-                    }*/
                 }
                 else
                 {

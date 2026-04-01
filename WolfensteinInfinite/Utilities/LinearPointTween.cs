@@ -1,6 +1,6 @@
 ﻿namespace WolfensteinInfinite.Utilities
 {
-    public class LinearPointTween(float seconds, Action<ITween>? onFinish, float[] points) : ITween
+    public sealed class LinearPointTween(float seconds, Action<ITween>? onFinish, float[] points) : ITween
     {
         public float Seconds { get; init; } = seconds;
         public Action<ITween>? OnFinish { get; init; } = onFinish;
@@ -8,8 +8,6 @@
         private bool OnFinishCalled = false;
         private float CurrentFrameTime = 0f;
         private readonly float[] Points = points;
-        //private float avg = -1f;
-        //private float step = float.Epsilon;
         private readonly int numSegments = points.Length - 1;
         public float Value
         {

@@ -1,6 +1,6 @@
 ﻿namespace WolfensteinInfinite.Utilities
 {
-    public class Tween(float seconds, Action<ITween>? onFinish) : ITween
+    public sealed class Tween(float seconds, Action<ITween>? onFinish) : ITween
     {
         public float Seconds { get; init; } = seconds;
         public bool IsFinished => CurrentFrameTime == Seconds;
