@@ -4,14 +4,12 @@ using WolfensteinInfinite.States;
 
 namespace WolfensteinInfinite.GameObjects
 {
-    public class ExitWall : IInteractable
+    public sealed class ExitWall : IInteractable
     {
         public float X { get; set; }
         public float Y { get; set; }
         public bool IsActivated { get; private set; } = false;
-
         public bool CanInteract(InGameState state) => !IsActivated;
-
         public InteractResult Interact(InGameState state)
         {
             if (IsActivated) return InteractResult.Exited;

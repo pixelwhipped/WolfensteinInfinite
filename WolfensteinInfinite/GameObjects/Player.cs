@@ -2,7 +2,7 @@
 
 namespace WolfensteinInfinite.GameObjects
 {
-    public class Player(string name)
+    public sealed class Player(string name)
     {
         public string Name { get; init; } = name;
         public int Health { get; set; } = 100;

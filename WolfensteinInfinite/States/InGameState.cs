@@ -1138,6 +1138,7 @@ namespace WolfensteinInfinite.States
 
         private void UpdateDynamicObjects(float frameTime)
         {
+            //Must be to Arrat as collection can be modiified (added to)
             foreach (var obj in DynamicObjects.ToArray())
             {
                 if (Game.Player.Health > 0) obj.Update(frameTime, this); 

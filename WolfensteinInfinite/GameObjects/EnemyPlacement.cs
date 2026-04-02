@@ -3,7 +3,7 @@ using WolfensteinInfinite.GameGraphics;
 
 namespace WolfensteinInfinite.GameObjects
 {
-    public class EnemyPlacement
+    public sealed class EnemyPlacement
     {
         public int X { get; set; }
         public int Y { get; set; }

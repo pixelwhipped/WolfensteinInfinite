@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace WolfensteinInfinite.Engine.Graphics
 {
-    public class Texture8(int width, int height, byte[] pixels, byte[] pallet) : ISurface
+    public sealed class Texture8(int width, int height, byte[] pixels, byte[] pallet) : ISurface
     {
         public BitDepth Bits => BitDepth.BIT8;
         public byte[] Pallet { get; init; } = pallet;

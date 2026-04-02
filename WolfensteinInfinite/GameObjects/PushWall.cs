@@ -1,11 +1,9 @@
-using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.States;
 using WolfensteinInfinite.WolfMod;
-using static System.Windows.Forms.AxHost;
 
 namespace WolfensteinInfinite.GameObjects
 {
-    public class PushWall : IInteractable
+    public sealed class PushWall : IInteractable
     {
         public float X { get; set; }
         public float Y { get; set; }

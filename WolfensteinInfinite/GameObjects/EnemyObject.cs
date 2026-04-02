@@ -4,11 +4,9 @@ using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.States;
 using WolfensteinInfinite.WolfMod;
 
-
 namespace WolfensteinInfinite.GameObjects
 {
-
-    public class EnemyObject : DynamicObject
+    public sealed class EnemyObject : DynamicObject
     {
         public string Mod { get; }
         public Enemy Enemy { get; }
@@ -453,7 +451,7 @@ namespace WolfensteinInfinite.GameObjects
                 {
                     var option = dyingOptions[Random.Shared.Next(dyingOptions.Count)];
                     SetAnimation(option);
-                    _diedLeft = option == CharacterAnimationState.DYING_LEFT ? true : false;
+                    _diedLeft = option == CharacterAnimationState.DYING_LEFT;
                 }
                 else //Default to left will be the same as right
                 {

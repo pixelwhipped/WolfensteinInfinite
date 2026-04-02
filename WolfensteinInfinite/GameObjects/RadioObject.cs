@@ -1,5 +1,4 @@
-﻿using WolfensteinInfinite.GameBible;
-using WolfensteinInfinite.GameGraphics;
+﻿using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.GameMap;
 using WolfensteinInfinite.States;
 
@@ -8,7 +7,7 @@ namespace WolfensteinInfinite.GameObjects
     // -------------------------------------------------------------------------
     // RadioObject — stays on map, becomes interactable when player has secret
     // -------------------------------------------------------------------------
-    public class RadioObject(float x, float y, ISprite sprite) : DynamicObject(x, y, DynamicObjectType.PickupItem, sprite), IInteractable
+    public sealed class RadioObject(float x, float y, ISprite sprite) : DynamicObject(x, y, DynamicObjectType.PickupItem, sprite), IInteractable
     {
 
         public bool CanInteract(InGameState state) =>
@@ -27,9 +26,6 @@ namespace WolfensteinInfinite.GameObjects
             return InteractResult.None;
         }
 
-        public override void Update(float frameTime, InGameState state)
-        {
-            Sprite.Update(frameTime);
-        }
+        public override void Update(float frameTime, InGameState state) => Sprite?.Update(frameTime);
     }
 }

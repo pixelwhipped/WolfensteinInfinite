@@ -5,7 +5,7 @@ using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.GameObjects
 {
-    public class POWCompanionObject : DynamicObject
+    public sealed class POWCompanionObject : DynamicObject
     {
         private const float FollowRange = 10f;
         private const float MoveSpeed = 3.5f;
@@ -17,6 +17,7 @@ namespace WolfensteinInfinite.GameObjects
         public POWCompanionObject(float x, float y, Animation walkAnimation)
             : base(x, y, DynamicObjectType.Enemy, new AnimatedSprite(walkAnimation))
         {
+            if(Sprite==null) throw new ArgumentNullException(nameof(walkAnimation));
             _animatedSprite = (AnimatedSprite)Sprite;
             _animatedSprite.IsPlaying = false; // start idle until moving
         }
@@ -157,7 +158,7 @@ namespace WolfensteinInfinite.GameObjects
             // Drive animation from actual movement — plays walk cycle while moving,
             // freezes on current frame when standing still
             _animatedSprite.IsPlaying = moved;
-            Sprite.Update(frameTime);
+            Sprite?.Update(frameTime);
 
             CheckAtExit(state);
         }

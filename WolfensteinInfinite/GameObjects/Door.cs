@@ -4,7 +4,7 @@ using WolfensteinInfinite.States;
 
 namespace WolfensteinInfinite.GameObjects
 {
-    public class Door : IInteractable
+    public sealed class Door : IInteractable
     {
         public float X { get; set; }
         public float Y { get; set; }

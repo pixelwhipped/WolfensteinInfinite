@@ -3,12 +3,11 @@
 
 namespace WolfensteinInfinite.GameObjects
 {
-    public class EnemyWeaponObject(Weapon weapon, Projectile projectile)
+    public sealed class EnemyWeaponObject(Weapon weapon, Projectile projectile)
     {
         public float AttackCooldownDuration { get; init; }
         public float ShotInterval { get; init; }
         public float MaxFireTime { get; init; }
-        //public bool IsSustainedFire { get; init; }
         public bool IsRanged { get; init; }
         public Weapon Weapon { get; init; } = weapon;
         public Projectile Projectile { get; init; } = projectile;

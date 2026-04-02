@@ -1,6 +1,6 @@
 ﻿namespace WolfensteinInfinite.GameObjects
 {
-    public class Item
+    public sealed class Item
     {
         public int X { get; set; }
         public int Y { get; set; }

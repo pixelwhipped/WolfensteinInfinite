@@ -7,7 +7,7 @@ namespace WolfensteinInfinite.GameObjects
     // -------------------------------------------------------------------------
     // DecalObject
     // -------------------------------------------------------------------------
-    public class DecalObject(Decal decal, ISprite sprite) : DynamicObject(GetFaceX(decal), GetFaceY(decal), DynamicObjectType.Decal, sprite)
+    public sealed class DecalObject(Decal decal, ISprite sprite) : DynamicObject(GetFaceX(decal), GetFaceY(decal), DynamicObjectType.Decal, sprite)
     {
         public Decal Decal { get; } = decal;
 
@@ -25,9 +25,6 @@ namespace WolfensteinInfinite.GameObjects
             _ => d.Y + 0.5f
         };
 
-        public override void Update(float frameTime, InGameState state)
-        {
-            Sprite.Update(frameTime);
-        }
+        public override void Update(float frameTime, InGameState state) => Sprite.Update(frameTime);
     }
 }

@@ -3,7 +3,7 @@
 namespace WolfensteinInfinite.GameObjects
 {
 
-    public class Decal
+    public sealed class Decal
     {
         public int X { get; set; }
         public int Y { get; set; }

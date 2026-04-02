@@ -1,4 +1,5 @@
-﻿using WolfensteinInfinite.Engine.Graphics;
+﻿using System.Collections.Generic;
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.GameObjects;
@@ -558,6 +559,7 @@ namespace WolfensteinInfinite.GameMap
         }
         internal Map? ToGameMap(Player player, Difficulties difficulty, int Level)
         {
+            int objectiveCount = 0;
             var floor = new Texture32(64, 64);
             var playerX = -1;
             var playerY = -1;
@@ -567,12 +569,12 @@ namespace WolfensteinInfinite.GameMap
             var doorList = new List<(int x, int y, ModKeyIndex key, int textureIndex)>();
             var decalList = new List<Decal>();
             var itemList = new List<Item>();
-            var Map = new Map()
-            {
-                Difficulty = difficulty,
-                Level = Level
-            };
+            var exitList = new List<ExitWall>();
+            var doorsList = new List<Door>();
+            var pushWallList = new List<PushWall>();
+
             var enemyPlacements = new List<EnemyPlacement>();
+            var objectives = new Dictionary<MapFlags, bool>();
             var requiredMods = new List<string>();
             var wallKeyIndicies = new Dictionary<ModKeyIndex, int>();
             var doorKeyIndicies = new Dictionary<ModKeyIndex, int>();
@@ -847,7 +849,7 @@ namespace WolfensteinInfinite.GameMap
                             if (!Wolfenstein.Special.TryGetValue(key.Index, out Texture32? value)) return null;
 
                             texture?.Draw(worldX * 64, worldY * 64, value);
-                            Map.Exits.Add(new ExitWall() { X = worldX, Y = worldY });
+                            exitList.Add(new ExitWall() { X = worldX, Y = worldY });
                         }
                         else if (key.Index == 4) // Push North
                         {
@@ -863,7 +865,7 @@ namespace WolfensteinInfinite.GameMap
                                 TextureIndex = wallMap[worldY][worldX] >= 0 ? wallMap[worldY][worldX] : 0
                             };
                             pw.InitRenderPos();
-                            Map.PushWalls.Add(pw);
+                            pushWallList.Add(pw);
                             wallMap[worldY][worldX] = -1;
                         }
                         else if (key.Index == 5) // Push East
@@ -880,7 +882,7 @@ namespace WolfensteinInfinite.GameMap
                                 TextureIndex = wallMap[worldY][worldX] >= 0 ? wallMap[worldY][worldX] : 0
                             };
                             pw.InitRenderPos();
-                            Map.PushWalls.Add(pw);
+                            pushWallList.Add(pw);
                             wallMap[worldY][worldX] = -1;
                         }
                         else if (key.Index == 6) // Push South
@@ -897,7 +899,7 @@ namespace WolfensteinInfinite.GameMap
                                 TextureIndex = wallMap[worldY][worldX] >= 0 ? wallMap[worldY][worldX] : 0
                             };
                             pw.InitRenderPos();
-                            Map.PushWalls.Add(pw);
+                            pushWallList.Add(pw);
                             wallMap[worldY][worldX] = -1;
                         }
                         else if (key.Index == 7) // Push West
@@ -914,11 +916,67 @@ namespace WolfensteinInfinite.GameMap
                                 TextureIndex = wallMap[worldY][worldX] >= 0 ? wallMap[worldY][worldX] : 0
                             };
                             pw.InitRenderPos();
-                            Map.PushWalls.Add(pw);
+                            pushWallList.Add(pw);
                             wallMap[worldY][worldX] = -1;
                         }
                     }
                 }
+            }
+
+            foreach (var (x, y, key, textureIndex) in doorList)
+            {
+                if (!Wolfenstein.Doors.TryGetValue(key.Index, out DoorType? doorType)) continue;
+                doorsList.Add(new Door
+                {
+                    X = x,
+                    Y = y,
+                    OpenAmount = 0.0f,
+                    TextureIndex = textureIndex,
+                    IsLocked = doorType.Type == DoorTypes.LOCKED,
+                    IsVertical = DetermineDoorOrientation(x, y, wallMap)
+                });
+            }
+            // Pre-populate objectives based on what was actually placed in the map
+            objectiveCount = 0;
+            foreach (var layer in MapLayers.Values)
+            {
+                var items = layer.Section.GetLayout(MapArrayLayouts.ITEMS);
+                var doors = layer.Section.GetLayout(MapArrayLayouts.DOORS);
+
+                for (int y = 0; y < items.Length; y++)
+                    for (int x = 0; x < items[0].Length; x++)
+                    {
+                        if (items[y][x] < 0) continue;
+                        var key = new ModKeyIndex(layer.Mod.Name, items[y][x]);
+                        if (!Wolfenstein.PickupItemTypes.TryGetValue(key.Index, out var pickupItem)) continue;
+                        switch (pickupItem.Name)
+                        {
+                            case "Key": objectiveCount = CheckKeyDoorObjective(objectives, objectiveCount); break;
+                            case "Secret": objectiveCount = CheckSecretRadioObjective(objectives, objectiveCount); break;
+                            case "Dynamite": objectiveCount = CheckDynamiteObjective(objectives, objectiveCount); break;
+                            case "POW": objectiveCount = CheckPowObjective(objectives, objectiveCount); break;
+                        }
+                    }
+
+                // Boss objective — check enemy layer for boss-type enemies
+                var enemy = layer.Section.GetLayout(MapArrayLayouts.ENEMY);
+                var special = layer.Section.GetLayout(MapArrayLayouts.SPECIAL);
+                for (int y = 0; y < special.Length; y++)
+                    for (int x = 0; x < special[0].Length; x++)
+                        if (special[y][x] == 2) // Experiment enemy = boss
+                            objectives[MapFlags.HAS_BOSS] = true;
+
+                for (int y = 0; y < enemy.Length; y++)
+                    for (int x = 0; x < enemy[0].Length; x++)
+                    {
+                        if (enemy[y][x] < 0) continue;
+                        var modVal = Wolfenstein.Mods[layer.Mod.Name];
+                        var bossIds = modVal.Enemies
+                            .Where(p => (int)p.EnemyType >= 5 && (int)p.EnemyType <= 12)
+                            .Select(p => p.MapID);
+                        if (bossIds.Contains(enemy[y][x]))
+                            objectives[MapFlags.HAS_BOSS] = true;
+                    }
             }
 
             if (texture != null)
@@ -939,75 +997,29 @@ namespace WolfensteinInfinite.GameMap
             }
             else return null;
 
-
-            Map.WorldMap = wallMap;
-            Map.WallSourceIndicies = [.. wallKeyIndicies.Keys];
-            Map.DecalSourceIndicies = [.. decalKeyIndicies.Keys];
-            Map.DoorSourceIndicies = [.. doorKeyIndicies.Keys];
-            Map.ItemSourceIndicies = [.. itemsKeyIndicies.Keys];
-            Map.Decals = [.. decalList];
-            Map.Items = [.. itemList];
-            Map.Enemies = [.. enemyPlacements];
-            foreach (var (x, y, key, textureIndex) in doorList)
+            var Map = new Map()
             {
-                if (!Wolfenstein.Doors.TryGetValue(key.Index, out DoorType? doorType)) continue;
-                Map.Doors.Add(new Door
-                {
-                    X = x,
-                    Y = y,
-                    OpenAmount = 0.0f,
-                    TextureIndex = textureIndex,
-                    IsLocked = doorType.Type == DoorTypes.LOCKED,
-                    IsVertical = DetermineDoorOrientation(x, y, wallMap)
-                });
-            }
-            // Pre-populate objectives based on what was actually placed in the map
-            ObjectiveCount = 0;
-            foreach (var layer in MapLayers.Values)
-            {
-                var items = layer.Section.GetLayout(MapArrayLayouts.ITEMS);
-                var doors = layer.Section.GetLayout(MapArrayLayouts.DOORS);
+                Difficulty = difficulty,
+                Level = Level,
+                DecalSourceIndicies = [.. decalKeyIndicies.Keys],
+                WallSourceIndicies = [.. wallKeyIndicies.Keys],
+                DoorSourceIndicies = [.. doorKeyIndicies.Keys],
+                ItemSourceIndicies = [.. itemsKeyIndicies.Keys],
+                WorldMap = wallMap,
+                PushWalls = pushWallList,
+                Decals = [.. decalList],
+                Items = [.. itemList],
+                Enemies = [.. enemyPlacements],
+                Doors = doorsList,
+                Exits = exitList,
+                Objectives = objectives
+                
+            };
 
-                for (int y = 0; y < items.Length; y++)
-                    for (int x = 0; x < items[0].Length; x++)
-                    {
-                        if (items[y][x] < 0) continue;
-                        var key = new ModKeyIndex(layer.Mod.Name, items[y][x]);
-                        if (!Wolfenstein.PickupItemTypes.TryGetValue(key.Index, out var pickupItem)) continue;
-                        switch (pickupItem.Name)
-                        {
-                            case "Key": CheckKeyDoorObjective(Map); break;
-                            case "Secret": CheckSecretRadioObjective(Map); break;
-                            case "Dynamite": CheckDynamiteObjective(Map); break;
-                            case "POW": CheckPowObjective(Map); break;
-                        }
-                    }
-
-                // Boss objective — check enemy layer for boss-type enemies
-                var enemy = layer.Section.GetLayout(MapArrayLayouts.ENEMY);
-                var special = layer.Section.GetLayout(MapArrayLayouts.SPECIAL);
-                for (int y = 0; y < special.Length; y++)
-                    for (int x = 0; x < special[0].Length; x++)
-                        if (special[y][x] == 2) // Experiment enemy = boss
-                            Map.Objectives[MapFlags.HAS_BOSS] = true;
-
-                for (int y = 0; y < enemy.Length; y++)
-                    for (int x = 0; x < enemy[0].Length; x++)
-                    {
-                        if (enemy[y][x] < 0) continue;
-                        var modVal = Wolfenstein.Mods[layer.Mod.Name];
-                        var bossIds = modVal.Enemies
-                            .Where(p => (int)p.EnemyType >= 5 && (int)p.EnemyType <= 12)
-                            .Select(p => p.MapID);
-                        if (bossIds.Contains(enemy[y][x]))
-                            Map.Objectives[MapFlags.HAS_BOSS] = true;
-                    }
-            }
+            
             return Map;
-        }
-
-        private int ObjectiveCount = 0;
-        private void CheckKeyDoorObjective(Map map)
+        }        
+        private int CheckKeyDoorObjective(Dictionary<MapFlags, bool> objectives, int objectiveCount)
         {
             // PickupItemTypes 21 = Key, Doors 3 = locked
             // Both a key pickup AND a locked door must exist somewhere on the map
@@ -1034,7 +1046,7 @@ namespace WolfensteinInfinite.GameMap
             });
 
             var missingCounterPart = !hasKey || !hasLockedDoor;
-            if (ObjectiveCount >= 2 || missingCounterPart)
+            if (objectiveCount >= 2 || missingCounterPart)
             {
                 foreach (var layer in MapLayers.Values)
                 {
@@ -1059,12 +1071,13 @@ namespace WolfensteinInfinite.GameMap
                                     doors[ly][lx] = normalDoor.Key;
                             }
                 }
-                return;
+                return objectiveCount;
             }
-            ObjectiveCount++;
-            map.Objectives[MapFlags.HAS_LOCKED_DOOR] = true;
+            objectiveCount++;
+            objectives[MapFlags.HAS_LOCKED_DOOR] = true;
+            return objectiveCount;
         }
-        private void CheckSecretRadioObjective(Map map)
+        private int CheckSecretRadioObjective(Dictionary<MapFlags, bool> objectives, int objectiveCount)
         {
             // PickupItemTypes 16 = Secret, 17 = Radio
             // Both a secret pickup AND a radio decal must exist on the map
@@ -1091,7 +1104,7 @@ namespace WolfensteinInfinite.GameMap
             });
 
             var missingCounterPart = !hasSecret || !hasRadio;
-            if (ObjectiveCount >= 2 || missingCounterPart)
+            if (objectiveCount >= 2 || missingCounterPart)
             {
                 // Strip all secret pickups and radio pickups
                 foreach (var layer in MapLayers.Values)
@@ -1104,12 +1117,13 @@ namespace WolfensteinInfinite.GameMap
                                 (p.Name == "Secret" || p.Name == "Radio"))
                                 items[ly][lx] = -1;
                 }
-                return;
+                return objectiveCount;
             }
-            ObjectiveCount++;
-            map.Objectives[MapFlags.HAS_SECRET_MESSAGE] = true;
+            objectiveCount++;
+            objectives[MapFlags.HAS_SECRET_MESSAGE] = true;
+            return objectiveCount;
         }
-        private void CheckDynamiteObjective(Map map)
+        private int CheckDynamiteObjective(Dictionary<MapFlags, bool> objectives, int objectiveCount)
         {
             // PickupItemTypes 18 = Dynamite (pickup), 19 = DynamiteToPlace (placement target)
             // Both must exist on the map
@@ -1137,7 +1151,7 @@ namespace WolfensteinInfinite.GameMap
 
             var missingCounterPart = !hasDynamite || !hasPlacement;
 
-            if (ObjectiveCount >= 2 || missingCounterPart)
+            if (objectiveCount >= 2 || missingCounterPart)
             {
                 // Strip all dynamite pickups and placement targets
                 foreach (var layer in MapLayers.Values)
@@ -1150,15 +1164,16 @@ namespace WolfensteinInfinite.GameMap
                                 (p.Name == "Dynamite" || p.Name == "DynamiteToPlace"))
                                 items[ly][lx] = -1;
                 }
-                return;
+                return objectiveCount;
             }
-            ObjectiveCount++;
-            map.Objectives[MapFlags.HAS_BOOM] = true;
+            objectiveCount++;
+            objectives[MapFlags.HAS_BOOM] = true;
+            return objectiveCount;
         }
-        private void CheckPowObjective(Map map)
+        private int CheckPowObjective(Dictionary<MapFlags, bool> objectives, int objectiveCount)
         {
             //PickupItemTypes 15 = POW
-            if (ObjectiveCount >= 2)
+            if (objectiveCount >= 2)
             {
                 foreach (var layer in MapLayers.Values)
                 {
@@ -1170,9 +1185,11 @@ namespace WolfensteinInfinite.GameMap
                                 p.Name == "POW")
                                 items[ly][lx] = -1;
                 }
+                return objectiveCount;
             }
-            ObjectiveCount++;
-            map.Objectives[MapFlags.HAS_POW] = true;
+            objectiveCount++;
+            objectives[MapFlags.HAS_POW] = true;
+            return objectiveCount;
         }
 
         private static bool SkipSpecialChance(int[][] special, int x, int y) => special[y][x] switch //5%

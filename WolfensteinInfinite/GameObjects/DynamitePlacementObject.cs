@@ -8,7 +8,7 @@ namespace WolfensteinInfinite.GameObjects
     // -------------------------------------------------------------------------
     // DynamitePlacementObject — interactable spot, converts to placed on use
     // -------------------------------------------------------------------------
-    public class DynamitePlacementObject : DynamicObject, IInteractable
+    public sealed class DynamitePlacementObject : DynamicObject, IInteractable
     {
         public bool IsPlaced { get; private set; } = false;
 
@@ -36,7 +36,6 @@ namespace WolfensteinInfinite.GameObjects
         public override void Update(float frameTime, InGameState state)
         {
             Sprite.Update(frameTime);
-
             if (IsPlaced)
             {
                 // Check if all placement spots are filled
@@ -50,7 +49,6 @@ namespace WolfensteinInfinite.GameObjects
                     {
                         state.Game.Map.ObjectivesComplete[MapFlags.HAS_EXPLOSIVE_SET] = true;
                     }
-
                     state.StartDynamiteCountdown();
                 }
             }

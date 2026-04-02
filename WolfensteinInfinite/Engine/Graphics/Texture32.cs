@@ -4,7 +4,7 @@ using WolfensteinInfinite.Utilities;
 
 namespace WolfensteinInfinite.Engine.Graphics
 {
-    public class Texture32 : ISurface
+    public sealed class Texture32 : ISurface
     {
         public static readonly Texture32 NonNullTexture = new(1, 1, [0, 0, 0, 0]);
         public byte[] Pixels { get; init; }
