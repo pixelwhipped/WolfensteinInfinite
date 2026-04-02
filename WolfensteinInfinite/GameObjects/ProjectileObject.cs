@@ -46,8 +46,7 @@ namespace WolfensteinInfinite.GameObjects
             }
             if (tile == InGameState.DOOR_TILE)
             {
-                var door = state.Game.Map.Doors
-                    .FirstOrDefault(d => d.X == mx && d.Y == my);
+                state.DoorLookup.TryGetValue((mx, my), out var door);
                 if (door != null && door.OpenAmount < 0.5f)
                 {
                     IsAlive = false;

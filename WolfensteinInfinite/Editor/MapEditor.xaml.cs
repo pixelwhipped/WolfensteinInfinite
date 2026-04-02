@@ -662,7 +662,11 @@ namespace WolfensteinInfinite.Editor
                 var b = FileHelpers.Shared.Deserialize<MapBuilder>(file);
                 return b?.MapSections ?? [];
             }
-            catch { return []; }
+            catch 
+            { 
+                //Just dont add on fail.
+                return [];
+            }
         }
 
         private void SetMapSectionSelectionsOld()

@@ -103,6 +103,9 @@ namespace WolfensteinInfinite.States
         private string? _hudMessage = null;
         private float _hudMessageTimer = 0f;
         private const float HudMessageDuration = 3f;
+        public Dictionary<(int, int), Door>? DoorLookup { get; init; }
+        public Dictionary<(int, int), Decal>? DecalLookup { get; init; }
+        public Dictionary<(int, int), PushWall>? PushWallLookup { get; init; }
         public void OnEnemyKilled()
         {
             _enemiesKilled++;
@@ -141,7 +144,7 @@ namespace WolfensteinInfinite.States
             SpriteDistance = new float[Game.Map.Decals.Length];
             var fcMod = Game.Mods[Random.Shared.Next(0, Game.Mods.Length)];
             Floor = Wolfenstein.Floors[fcMod];
-            Ceiling = Wolfenstein.Ceilings[fcMod];;
+            Ceiling = Wolfenstein.Ceilings[fcMod]; ;
 
             RebuildDynamicObjects();
             _spawnX = game.Player.PosX;
@@ -152,9 +155,11 @@ namespace WolfensteinInfinite.States
             _visited = new bool[Game.Map.WorldMap.Length][];
             for (int i = 0; i < _visited.Length; i++)
                 _visited[i] = new bool[Game.Map.WorldMap[i].Length];
-            BuildDoorLookup();
+            //Build Lookups;
+            DoorLookup = Game.Map.Doors.ToDictionary(d => ((int)d.X, (int)d.Y));
+            DecalLookup = Game.Map.Decals.ToDictionary(d => ((int)d.X, (int)d.Y));
+            PushWallLookup = Game.Map.PushWalls.ToDictionary(w => ((int)w.X, (int)w.Y));
         }
-
         public void ShowHudMessage(string message)
         {
             _hudMessage = message;
@@ -176,7 +181,7 @@ namespace WolfensteinInfinite.States
             buffer.RectFill(x - 4, y - 4, w + 8, h + 8, 0, 0, 0, 64);
             buffer.DrawString(x, y, _hudMessage, Wolfenstein.GameResources.TinyFont, RGBA8.YELLOW);
         }
-        
+
         private void RebuildDynamicObjects()
         {
 
@@ -261,7 +266,7 @@ namespace WolfensteinInfinite.States
                 Wolfenstein.Config.HighScores[index] = newScore;
                 Wolfenstein.SaveConfig();
                 return;
-            }           
+            }
             var updated = Wolfenstein.Config.HighScores
                 .Append(newScore)
                 .OrderByDescending(s => s.Score)
@@ -364,7 +369,7 @@ namespace WolfensteinInfinite.States
                     var dist = MathF.Sqrt(dx * dx + dy * dy);
                     var dot = (dx / dist) * Game.Player.DirX + (dy / dist) * Game.Player.DirY;
                     if (dot > 0.5f) //If facing enemy
-                        obj.TakeDamage((int)Math.Ceiling(projectile.GetDamage((int)dist, Difficulties.CAN_I_PLAY_DADDY)* diffPlayerBuff), this);
+                        obj.TakeDamage((int)Math.Ceiling(projectile.GetDamage((int)dist, Difficulties.CAN_I_PLAY_DADDY) * diffPlayerBuff), this);
                 }
             }
             else if (weapon.AmmoType == AmmoType.BULLET)
@@ -398,7 +403,7 @@ namespace WolfensteinInfinite.States
                         var tileDist = (int)MathF.Sqrt(
                             MathF.Pow(rayX - Game.Player.PosX, 2) +
                             MathF.Pow(rayY - Game.Player.PosY, 2));
-                        hit.TakeDamage((int)Math.Ceiling(projectile.GetDamage(tileDist, Game.Map.Difficulty)* diffPlayerBuff), this);
+                        hit.TakeDamage((int)Math.Ceiling(projectile.GetDamage(tileDist, Game.Map.Difficulty) * diffPlayerBuff), this);
                         break;
                     }
                 }
@@ -426,21 +431,21 @@ namespace WolfensteinInfinite.States
                     Game.Player.PosX, Game.Player.PosY,
                     Game.Player.DirX, Game.Player.DirY,
                     speed: projectile.Speed,
-                    damage: (int)Math.Ceiling(projectile.GetDamage(0, Game.Map.Difficulty)* diffPlayerBuff),
+                    damage: (int)Math.Ceiling(projectile.GetDamage(0, Game.Map.Difficulty) * diffPlayerBuff),
                     maxRange: projectile.RangeMod,
                     isEnemyProjectile: false,
                     sprite: sprite));
             }
             if (transitionAfter) WeaponTransition(GetNextWeampon(weapon));
-            
+
         }
 
         private string GetNextWeampon(PlayerWeapon weapon)
         {
             if (weapon.AmmoType == AmmoType.MELEE) return weapon.Name;
             if (Game.Player.Ammo.TryGetValue(weapon.AmmoType, out int value))
-            { 
-                if(value!=0) return weapon.Name;
+            {
+                if (value != 0) return weapon.Name;
                 if (weapon.AmmoType != AmmoType.BULLET)
                 {
                     if (Game.Player.Ammo.TryGetValue(weapon.AmmoType, out int bammo))
@@ -911,7 +916,7 @@ namespace WolfensteinInfinite.States
             return true;
         }
 
-        
+
 
         public void AddToScore(int value)
         {
@@ -1124,7 +1129,6 @@ namespace WolfensteinInfinite.States
             }
             CastSprites(buffer);
             DrawMap(buffer);
-            //DrawZBuffer(buffer);
             UpdateInput(frameTime);
             UpdateDoors(frameTime);
             UpdatePushWalls(frameTime);
@@ -1141,9 +1145,9 @@ namespace WolfensteinInfinite.States
             //Must be to Arrat as collection can be modiified (added to)
             foreach (var obj in DynamicObjects.ToArray())
             {
-                if (Game.Player.Health > 0) obj.Update(frameTime, this); 
+                if (Game.Player.Health > 0) obj.Update(frameTime, this);
             }
-                
+
             DynamicObjects.RemoveAll(o => !o.IsAlive && o.ObjectType == DynamicObjectType.Projectile);
 
             // Boss objective — complete when all boss-type enemies are dead
@@ -1298,10 +1302,13 @@ namespace WolfensteinInfinite.States
         private bool IsDecalPassable(int x, int y)
         {
             // Pushwalls always block
+            if (PushWallLookup != null && PushWallLookup.ContainsKey((x, y))) return false;
+            if (DecalLookup != null && DecalLookup.TryGetValue((x, y), out var decal)) return decal.Passable;
+            return true;
+            /*
             if (Game.Map.PushWalls.Any(w => (int)w.X == x && (int)w.Y == y)) return false;
-
             var decal = Game.Map.Decals.FirstOrDefault(d => d.X == x && d.Y == y);
-            return decal == null || decal.Passable;
+            return decal == null || decal.Passable;*/
         }
 
         public void InvalidateLightMap()
@@ -2133,14 +2140,11 @@ namespace WolfensteinInfinite.States
                            rayDirX, rayDirY, s, door, mx, my, hitWallRenderedWidthFOV);
             }
         }
-        //private Door? GetDoorAt(int mapX, int mapY) => Game.Map.Doors.FirstOrDefault(d => d.X == mapX && d.Y == mapY);
-        private Dictionary<(int, int), Door>? _doorLookup;
 
-        private void BuildDoorLookup() =>
-            _doorLookup = Game.Map.Doors.ToDictionary(d => ((int)d.X, (int)d.Y));
+
 
         private Door? GetDoorAt(int x, int y) =>
-            _doorLookup != null && _doorLookup.TryGetValue((x, y), out var d) ? d : null;
+            DoorLookup != null && DoorLookup.TryGetValue((x, y), out var d) ? d : null;
         private float CalculateDoorIntersection(int mapX, int mapY, float rayDirX, float rayDirY, int side, int stepX, int stepY, Door door, out float adjustedPerpWallDist)
         {
             const float DOOR_INSET = 0.5f;// 0. 125f; // How far back the door is from the wall edge

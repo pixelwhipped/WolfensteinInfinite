@@ -115,7 +115,7 @@ namespace WolfensteinInfinite.GameObjects
             {
                 int nx = cx + dx[i];
                 int ny = cy + dy[i];
-                var door = state.Game.Map.Doors.FirstOrDefault(d => d.X == nx && d.Y == ny);
+                state.DoorLookup.TryGetValue((nx, ny), out var door);
                 if (door == null) continue;
                 if (door.IsFake) continue;
                 if (door.TextureIndex == 3) continue;

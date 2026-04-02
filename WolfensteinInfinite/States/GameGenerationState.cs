@@ -44,7 +44,7 @@ namespace WolfensteinInfinite.States
             foreach (var mod in modBuilders)
             {
                 var cm = Wolfenstein.Mods[mod.Key];
-                var cs = mod.Value.MapSections.OrderBy(x => Random.Shared.Next()).ToArray();
+                var cs = mod.Value.MapSections.ToArray();
                 sections.Add(cm, cs);
                 if (cs.Any(p => p.HasPlayerExit)) hasExit = true;
                 foreach (var section in cs.Where(p => p.HasPlayerStart))

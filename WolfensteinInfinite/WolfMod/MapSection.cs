@@ -150,8 +150,7 @@ namespace WolfensteinInfinite.WolfMod
 
         public int IntendedMinLevel { get; set; } = 1;
         [JsonIgnore]
-        public bool IsFullMap => HasPlayerStart && HasPlayerExit &&
-    GetClosedSection(out bool closed, out _, out _) != null && closed;
+        public bool IsFullMap => HasPlayerStart && HasPlayerExit && GetClosedSection(out bool closed, out _, out _) != null && closed;
         public MapSection() : this(64, 64) { }
 
         public KeyValuePair<MapArrayLayouts, int[][]>[] Layers { get; set; } = [
@@ -166,7 +165,12 @@ namespace WolfensteinInfinite.WolfMod
         public MapSection Clone() => Clone(this);
         public static MapSection Clone(MapSection section)
         {
-            var m = new MapSection(section.Width, section.Height);
+            var m = new MapSection(section.Width, section.Height)
+            {
+                IntendedMinLevel = section.IntendedMinLevel,
+                IsFlippable = section.IsFullMap,
+                IsRotatable = section.IsRotatable
+            };
             var layers = new Dictionary<MapArrayLayouts, int[][]>
             {
                 [MapArrayLayouts.WALLS] = CopyJaggedArray(section.GetLayout(MapArrayLayouts.WALLS)),

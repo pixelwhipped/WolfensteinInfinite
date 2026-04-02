@@ -154,8 +154,7 @@ namespace WolfensteinInfinite.GameObjects
                 if (tile >= 0) return false;
                 if (tile == InGameState.DOOR_TILE)
                 {
-                    var door = state.Game.Map.Doors
-                        .FirstOrDefault(d => d.X == mx && d.Y == my);
+                    state.DoorLookup.TryGetValue((mx, my), out var door);
                     if (door != null && door.OpenAmount < 0.5f) return false;
                 }
             }
@@ -240,7 +239,7 @@ namespace WolfensteinInfinite.GameObjects
 
             if (state.Game.Map.WorldMap[targetMapY][targetMapX] != InGameState.DOOR_TILE) return;
 
-            var door = state.Game.Map.Doors.FirstOrDefault(d => d.X == targetMapX && d.Y == targetMapY);
+            state.DoorLookup.TryGetValue((targetMapX, targetMapY), out var door);
             if (door == null) return;
             if (door.IsFake) return;
             if (door.TextureIndex == 3) return; // prison doors stay shut for enemies
@@ -317,13 +316,13 @@ namespace WolfensteinInfinite.GameObjects
             if (mapX < 0 || mapX >= state.Game.Map.WorldMap[0].Length) return false;
 
             // Pushwalls always block
-            if (state.Game.Map.PushWalls.Any(w => (int)w.X == mapX && (int)w.Y == mapY)) return false;
+            if (state.PushWallLookup.ContainsKey((mapX, mapY))) return false;
 
             var tile = state.Game.Map.WorldMap[mapY][mapX];
             if (tile == MapSection.ClosedSectionInterior) return true;
             if (tile == InGameState.DOOR_TILE)
             {
-                var door = state.Game.Map.Doors.FirstOrDefault(d => d.X == mapX && d.Y == mapY);
+                state.DoorLookup.TryGetValue((mapX, mapY), out var door);
                 return door != null && door.OpenAmount >= 0.5f;
             }
             return false;

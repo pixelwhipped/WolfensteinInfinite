@@ -69,7 +69,9 @@ namespace WolfensteinInfinite.GameMap
             }
 
             var starts = builder.Sections.Where(p => p.Section.HasPlayerStart && p.Section.IntendedMinLevel <= level).ToArray();
+            if(starts.Length==0) starts = [.. builder.Sections.Where(p => p.Section.HasPlayerStart)];
             var ends = builder.Sections.Where(p => p.Section.HasPlayerExit && p.Section.IntendedMinLevel <= level).ToArray();
+            if(ends.Length==0) ends = [.. builder.Sections.Where(p => p.Section.HasPlayerExit)];
             var keyLocations = builder.Sections.Where(p => p.Section.HasKeys && p.Section.IntendedMinLevel <= level).ToArray();
             var keyLockedDoors = builder.Sections.Where(p => p.Section.HasLockedDoor && p.Section.IntendedMinLevel <= level).ToArray();
             var boss = builder.Sections.Where(p => p.Section.HasBoss(p.Mod) && p.Section.IntendedMinLevel <= level).ToArray();
