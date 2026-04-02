@@ -1193,6 +1193,10 @@ namespace WolfensteinInfinite.States
                 var curX = (int)Game.Player.PosX;
                 var curY = (int)Game.Player.PosY;
 
+                if (curX < 0 || curY < 0 || nextX < 0 || nextY < 0 ||
+                    curX >= Game.Map.WorldMap[0].Length || curY >= Game.Map.WorldMap.Length ||
+                    nextX >= Game.Map.WorldMap[0].Length || nextY >= Game.Map.WorldMap.Length) return;
+
                 var tileX = Game.Map.WorldMap[curY][nextX];
                 if ((tileX == MapSection.ClosedSectionInterior && IsDecalPassable(nextX, curY)) ||
                     (tileX == DOOR_TILE && CanPassThroughDoor(nextX, curY)))
