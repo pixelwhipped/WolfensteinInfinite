@@ -4,7 +4,7 @@ using WolfensteinInfinite.Utilities;
 
 namespace WolfensteinInfinite.WolfMod
 {
-    public class Mod(string name)
+    public class    Mod(string name)
     {
         public RGBA8 FloorColor { get; set; } = new RGBA8() { R = 128, B = 128, G = 128, A = 255 };
         public string FloorTexture { get; set; } = string.Empty;

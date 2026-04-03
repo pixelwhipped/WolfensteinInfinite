@@ -1,5 +1,6 @@
 ﻿//Clean
 using WolfensteinInfinite.Engine.Graphics;
+using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.GameGraphics
 {
@@ -61,6 +62,14 @@ namespace WolfensteinInfinite.GameGraphics
                 Textures[d][f] = textures[i];
             }
         }
+        public Animation(Animation animation, bool? loop = null)
+        {
+            FramesPerSecond = animation.FramesPerSecond;
+            Directions = animation.Directions;
+            Frames = animation.Frames;
+            Textures = animation.Textures;
+            Loop = loop ?? false;
+        }
         public void Update(float frameTimeSeconds)
         {
             if (!Loop && CurrentFrame == Frames - 1) return;
@@ -90,5 +99,7 @@ namespace WolfensteinInfinite.GameGraphics
             CurrentFrame = 0;
             CurrentFrameTime = 0;
         }
+
+        public Animation Clone(bool? loop = null) => new(this, loop);
     }
 }

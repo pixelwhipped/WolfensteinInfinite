@@ -1,6 +1,5 @@
 ﻿//Clean
 using WolfensteinInfinite.GameBible;
-using WolfensteinInfinite.GameGraphics;
 
 namespace WolfensteinInfinite.GameHelpers
 {

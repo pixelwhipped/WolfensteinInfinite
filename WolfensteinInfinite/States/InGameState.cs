@@ -418,11 +418,13 @@ namespace WolfensteinInfinite.States
             {
                 // Physical projectile — SERUM, FLAME, ROCKET
                 ISprite? sprite = null;
+                string mod = string.Empty;
                 foreach (var modName in Game.Mods)
                 {
                     if (Wolfenstein.ProjectileSprites.TryGetValue(modName, out var sprites) &&
                         sprites.TryGetValue(projectile.Name, out var ps))
                     {
+                        mod = modName;
                         sprite = ps;
                         break;
                     }
@@ -436,11 +438,10 @@ namespace WolfensteinInfinite.States
                 DynamicObjects.Add(new ProjectileObject(
                     Game.Player.PosX, Game.Player.PosY,
                     Game.Player.DirX, Game.Player.DirY,
-                    speed: projectile.Speed,
-                    damage: (int)Math.Ceiling(projectile.GetDamage(0, Game.Map.Difficulty) * diffPlayerBuff),
-                    maxRange: projectile.RangeMod,
-                    isEnemyProjectile: false,
-                    sprite: sprite));
+                    mod, projectile,
+                    (int)Math.Ceiling(projectile.GetDamage(0, Game.Map.Difficulty) * diffPlayerBuff),
+                    false,
+                    sprite));
             }
             if (transitionAfter) WeaponTransition(GetNextWeampon(weapon));
 

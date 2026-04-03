@@ -5,7 +5,6 @@ using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.States;
 using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
-using static System.Windows.Forms.AxHost;
 
 namespace WolfensteinInfinite.GameObjects
 {
@@ -392,12 +391,7 @@ namespace WolfensteinInfinite.GameObjects
             if (dist <= 0) return;
 
             var sprite = FindProjectileSprite(projectile, state);
-            state.DynamicObjects.Add(new ProjectileObject(
-                X, Y, dx / dist, dy / dist,
-                speed: projectile.Speed, damage: damage,
-                maxRange: projectile.RangeMod,
-                isEnemyProjectile: true,
-                sprite: sprite));
+            state.DynamicObjects.Add(new ProjectileObject(X, Y, dx / dist, dy / dist,Mod, projectile, damage, true, sprite));
         }
         public void ResetTauntTimer()
         {

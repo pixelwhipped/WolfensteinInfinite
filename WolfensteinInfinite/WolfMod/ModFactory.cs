@@ -320,8 +320,8 @@ namespace WolfensteinInfinite.WolfMod
                     new(35, "WeedsWest", $"Wolfenstein3D\\Sprites\\49.png", true, false, Direction.WEST)
             ],
                 Animations = [
-                AnimationHelpers.Create("RocketTrail", $"Wolfenstein3D\\Sprites", 370, 4, 4),
-                    AnimationHelpers.Create("RocketImpact", $"Wolfenstein3D\\Sprites", 370, 4, 4)
+                AnimationHelpers.Create("RocketTrail", $"Wolfenstein3D\\Sprites", 378, 4, 8f),
+                    AnimationHelpers.Create("RocketImpact", $"Wolfenstein3D\\Sprites", 382, 3, 3f)
             ],
                 Projectiles =
             [
