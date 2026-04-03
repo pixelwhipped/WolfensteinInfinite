@@ -374,12 +374,12 @@ namespace WolfensteinInfinite
             var file = Path.Combine(FileHelpers.Shared.BaseDirectory, "config.json");
             FileHelpers.Shared.Serialize(Config, file);
         }
-        public static void CheckInfiniteMod()
+        public static void CheckInfiniteMod(bool rebuild)
         {
             var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\Infinite\mod.json");
             try
             {
-                if (File.Exists(file)) return;
+                if (!rebuild && File.Exists(file)) return;
                 var mod = ModFactory.CreateInfiniteMod();
                 if (mod != null)
                     FileHelpers.Shared.Serialize(mod, file);
@@ -483,7 +483,7 @@ namespace WolfensteinInfinite
                 ExperimentalEnemyTexture.Clear();
                 Special.Clear();
             }
-            CheckInfiniteMod();
+            CheckInfiniteMod(forceRebuild || Args.Rebuild || Args.RebuildWithMapImage);
             var mods = new Dictionary<string, Mod>();
             //Check original versions and export mod files
             foreach (var version in new Extractor(forceRebuild || Args.Rebuild || Args.RebuildWithMapImage).GameVersions)
@@ -859,6 +859,7 @@ namespace WolfensteinInfinite
 
         public void RebuildMods()
         {
+            CheckInfiniteMod(true);
             Mods = LoadMods(true);
             foreach (var mod in Mods)
             {

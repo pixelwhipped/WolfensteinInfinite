@@ -61,6 +61,8 @@ namespace WolfensteinInfinite.WolfMod
         {
             var mod = new Mod("Infinite")
             {
+                FloorTexture = "Infinite\\Textures\\Floor.png",
+                CeilingTexture = "Infinite\\Textures\\Ceiling.png",
                 ExperimentalEnemy = [
                     new("Experiment Alpha", "Infinite\\Sprites",
                     ["ExBottom01.png"],
