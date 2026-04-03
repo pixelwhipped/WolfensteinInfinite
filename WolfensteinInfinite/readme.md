@@ -1,15 +1,12 @@
 # Wolfenstein Infinite
 
-> ⚠️ **WORK IN PROGRESS**
-> This project is in active development. Expect bugs, missing features, incomplete systems, and frequent breaking changes. Contributions, feedback, and patience are all very welcome.
-
 ---
 💛 **Support on Patreon** — [patreon.com/pixelwhipped](https://www.patreon.com/15682673/join)  
 ---
 # Wolfenstein Infinite
 > *Get Psyched. Again. And Again.*
-[https://www.youtube.com/watch?v=BspJY3UB354&t=37s]
-[https://youtu.be/1GnoW3z4KBI]
+[https://youtu.be/_RcMwc3LSV4]
+
 ## What Is This?
 
 Wolfenstein Infinite is a fan-made, procedurally generated first-person shooter built in the spirit of the 1992 classic *Wolfenstein 3D* by id Software. Rather than fixed levels, each playthrough generates a unique map from composable sections, meaning no two runs are the same.
@@ -22,18 +19,9 @@ The game is built on a modular architecture — nearly everything from enemies a
 
 ## Status
 
-This is a beta release. Core systems are in place but some things are still being tuned. The list includes but is not limited to:
+Pre-Release
 
-- Enemy AI with alert chains and flee behavior
-- Map generation with modular section-based system
-- Experimental boss generation
-- Cheat codes for testing
-- Map editor for custom section authoring
-- Save/load system
-- Music and sound effects
 ![Experimental](https://github.com/pixelwhipped/WolfensteinInfinite/blob/master/WolfensteinInfinite/ScreenShots/Capture001.PNG)
-
-If you find bugs — and you will — please open an issue. If you want to contribute, read the modding section below.
 
 ---
 
@@ -133,6 +121,7 @@ While playing, type these codes to activate cheats:
 | `iddqd` | God mode — invincibility and full health |
 | `idkfa` | All weapons, max ammo, all objectives complete |
 | `iddt` | Reveal entire map |
+| `idclev` | Select Level |
 
 ---
 
