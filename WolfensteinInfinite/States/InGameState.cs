@@ -236,7 +236,15 @@ namespace WolfensteinInfinite.States
                 if (!Wolfenstein.Mods.TryGetValue(e.Mod, out var mod)) continue;
                 var enemy = mod.Enemies.FirstOrDefault(en => en.MapID == e.EnemyMapId);
                 if (enemy == null) continue;
-                DynamicObjects.Add(new EnemyObject(e.X + 0.5f, e.Y + 0.5f, sprite, enemy, Game.Map.Difficulty, e.Mod, Wolfenstein, Game.Map.Level));
+                var newEnemy = new EnemyObject(e.X + 0.5f, e.Y + 0.5f, sprite, enemy, Game.Map.Difficulty, e.Mod, Wolfenstein, Game.Map.Level);
+                if(newEnemy.Enemy.EnemyType == EnemyType.BLINKY ||
+                   newEnemy.Enemy.EnemyType == EnemyType.INKY ||
+                   newEnemy.Enemy.EnemyType == EnemyType.PINKY ||
+                   newEnemy.Enemy.EnemyType == EnemyType.CLYDE)
+                {
+                    newEnemy.Alert(this);
+                }
+                DynamicObjects.Add(newEnemy);
             }
 
             SpriteOrder = new int[DynamicObjects.Count];
