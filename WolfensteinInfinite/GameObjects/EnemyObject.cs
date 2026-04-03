@@ -43,7 +43,7 @@ namespace WolfensteinInfinite.GameObjects
             Difficulties difficulty, string mod, Wolfenstein wolfenstein, int level)
             : base(x, y, DynamicObjectType.Enemy, sprite.Clone())
         {
-            if (Sprite == null) throw new ArgumentNullException(nameof(sprite));
+            if (Sprite == null) throw new ArgumentNullException(nameof(sprite));            
             Enemy = enemy;
             BloodPool = new Tween(4, _ => { });
             var bloodHue = Enemy?.BloodColor.RGBA8ToHSL() ?? new HSL { H = 0f, L = 0f, S = 0f, A = 0f };

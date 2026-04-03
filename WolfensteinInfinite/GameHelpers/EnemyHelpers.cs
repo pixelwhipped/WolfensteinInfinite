@@ -112,7 +112,7 @@ namespace WolfensteinInfinite.GameHelpers
                 [Difficulties.BRING_EM_ON] = 1550,
                 [Difficulties.I_AM_DEATH_INCARNATE] = 2400
             }, ["KorpsokineticSerum"], []
-            , CharacterSpriteType.DOCTOR_SCHABBS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood, 21);
+            , CharacterSpriteType.DOCTOR_SCHABBS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood, 21);
         }
         public static Enemy CreateMechaHitler(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {

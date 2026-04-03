@@ -481,6 +481,7 @@ namespace WolfensteinInfinite
                 ProjectileSprites.Clear();
                 SpriteAnimations.Clear();
                 ExperimentalEnemyTexture.Clear();
+                Special.Clear();
             }
             CheckInfiniteMod();
             var mods = new Dictionary<string, Mod>();
