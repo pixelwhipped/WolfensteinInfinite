@@ -44,10 +44,11 @@ namespace WolfensteinInfinite.GameObjects
             : base(x, y, DynamicObjectType.Enemy, sprite.Clone())
         {
             if (Sprite == null) throw new ArgumentNullException(nameof(sprite));
+            Enemy = enemy;
             BloodPool = new Tween(4, _ => { });
             var bloodHue = Enemy?.BloodColor.RGBA8ToHSL() ?? new HSL { H = 0f, L = 0f, S = 0f, A = 0f };
             BloodPoolTexture = GraphicsHelpers.Colorize((float)bloodHue.H, wolfenstein.BloodPool);
-            Enemy = enemy;
+            
             Mod = mod;
             CharacterSprite = (CharacterSprite)Sprite;
             int baseHitPoints = enemy.HitPoints.TryGetValue(difficulty, out int hp)
