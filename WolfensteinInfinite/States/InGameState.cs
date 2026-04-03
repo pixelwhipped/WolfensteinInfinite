@@ -237,7 +237,7 @@ namespace WolfensteinInfinite.States
                 var enemy = mod.Enemies.FirstOrDefault(en => en.MapID == e.EnemyMapId);
                 if (enemy == null) continue;
                 var newEnemy = new EnemyObject(e.X + 0.5f, e.Y + 0.5f, sprite, enemy, Game.Map.Difficulty, e.Mod, Wolfenstein, Game.Map.Level);
-                if(newEnemy.Enemy.EnemyType == EnemyType.BLINKY ||
+                if (newEnemy.Enemy.EnemyType == EnemyType.BLINKY ||
                    newEnemy.Enemy.EnemyType == EnemyType.INKY ||
                    newEnemy.Enemy.EnemyType == EnemyType.PINKY ||
                    newEnemy.Enemy.EnemyType == EnemyType.CLYDE)
@@ -973,13 +973,13 @@ namespace WolfensteinInfinite.States
 
             if (HandleCheatCode(k.Code)) return;
 
-            if (k.Code == Wolfenstein.Config.KeyWeaponUp)
+            if (k.Code == Wolfenstein.Config.KeyWeaponDown)
             {
                 var wi = Game.Player.Weapons.IndexOf(WeaponTransitionState.TransitionWeapon.Name);
                 if (wi + 1 > Game.Player.Weapons.Count - 1) WeaponTransition(Game.Player.Weapons.First());
                 else WeaponTransition(Game.Player.Weapons[wi + 1]);
             }
-            else if (k.Code == Wolfenstein.Config.KeyWeaponDown)
+            else if (k.Code == Wolfenstein.Config.KeyWeaponUp)
             {
                 var wi = Game.Player.Weapons.IndexOf(WeaponTransitionState.TransitionWeapon.Name);
                 if (wi - 1 < 0) WeaponTransition(Game.Player.Weapons.Last());
@@ -997,7 +997,8 @@ namespace WolfensteinInfinite.States
 
             if (_cheatBuffer.EndsWith(CheatIDDQD, StringComparison.InvariantCultureIgnoreCase))
             {
-                ActivateCheatGodMode();
+                if (Game.Player.GodMode) Game.Player.GodMode = false;
+                else ActivateCheatGodMode();
                 return true;
             }
             if (_cheatBuffer.EndsWith(CheatIDKFA, StringComparison.InvariantCultureIgnoreCase))
@@ -1629,7 +1630,11 @@ namespace WolfensteinInfinite.States
                     bloodPoolTexture = enemyObj.BloodPoolTexture;
                     bloodPoolScale = enemyObj.BloodPoolScale;
                 }
-                    
+                else if (obj is ProjectileObject projectileObj)
+                {
+                    spriteAngle = (angleToPlayer - projectileObj.FacingAngle + 360f) % 360f;
+                }
+
                 if (obj.Sprite == null) continue;
                 var texture = obj.Sprite.GetTexture(spriteAngle);
 
@@ -1686,7 +1691,7 @@ namespace WolfensteinInfinite.States
                             float rawPoolTexX = (stripe - (-spriteWidth / 2 + spriteScreenX))
                                                 * bloodPoolTexture.Width / (float)spriteWidth;
 
-                            
+
                             int poolTexY = Math.Clamp(
                                 (int)((d * bloodPoolTexture.Height / (float)spriteHeight) / 256f),
                                 0, bloodPoolTexture.Height - 1);

@@ -5,6 +5,7 @@ using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.States;
 using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
+using static System.Windows.Forms.AxHost;
 
 namespace WolfensteinInfinite.GameObjects
 {
@@ -39,16 +40,17 @@ namespace WolfensteinInfinite.GameObjects
         public float BloodPoolScale => BloodPool.Value;
         public Texture32 BloodPoolTexture { get; init; }
         public CharacterSprite CharacterSprite { get; init; }
+        public Action<InGameState>? PlaceOnCorpse { get; set; }
         public EnemyObject(float x, float y, CharacterSprite sprite, Enemy enemy,
             Difficulties difficulty, string mod, Wolfenstein wolfenstein, int level)
             : base(x, y, DynamicObjectType.Enemy, sprite.Clone())
         {
-            if (Sprite == null) throw new ArgumentNullException(nameof(sprite));            
+            if (Sprite == null) throw new ArgumentNullException(nameof(sprite));
             Enemy = enemy;
             BloodPool = new Tween(4, _ => { });
             var bloodHue = Enemy?.BloodColor.RGBA8ToHSL() ?? new HSL { H = 0f, L = 0f, S = 0f, A = 0f };
             BloodPoolTexture = GraphicsHelpers.Colorize((float)bloodHue.H, wolfenstein.BloodPool);
-            
+
             Mod = mod;
             CharacterSprite = (CharacterSprite)Sprite;
             int baseHitPoints = enemy.HitPoints.TryGetValue(difficulty, out int hp)
@@ -83,7 +85,10 @@ namespace WolfensteinInfinite.GameObjects
             }
             Weapons = [.. weaponList];
             LineOfSightDistanceSquared = Enemy.LineOfSightDistance * Enemy.LineOfSightDistance;
+
         }
+
+
 
         private void PlaySound(string sounds, InGameState state)
         {
@@ -500,7 +505,7 @@ namespace WolfensteinInfinite.GameObjects
         {
             if (IsCorpse) BloodPool.Update(frameTime);
             if (!IsAlive)
-            {                
+            {
                 return;
             }
             Sprite?.Update(frameTime);
@@ -517,6 +522,7 @@ namespace WolfensteinInfinite.GameObjects
                     {
                         SetAnimation(CharacterAnimationState.DEAD_RIGHT);
                     }
+                    PlaceOnCorpse?.Invoke(state);
                 }
                 return;
             }
@@ -704,13 +710,34 @@ namespace WolfensteinInfinite.GameObjects
 
             foreach (var (itemName, probability) in Enemy.DropItemProbability)
             {
-                if (Random.Shared.Next(100) >= probability) continue;
+                if (Random.Shared.Next(99) >= probability) continue;
+                var espawn = state.Wolfenstein.Mods[Mod].Enemies.FirstOrDefault(p => p.Name == itemName);
+                if (espawn != null)
+                {
+                    if (!state.Wolfenstein.CharacterSprites.TryGetValue(Mod, out var modSprites)) continue;
+                    if (state.Game.Map.EnemyNamesKey.TryGetValue(itemName, out int key))
+                    {
+                        if (modSprites.TryGetValue(key, out var sprites))
+                        {
+                            PlaceOnCorpse = (s) =>
+                            {
+                                s.DynamicObjects.Add(new EnemyObject(X, Y, sprites, espawn, s.Game.Map.Difficulty, Mod, s.Wolfenstein, s.Game.Map.Level));
+                            };
+                            }
+                    }
+                    continue;
+                }
+
                 var kvp = state.Wolfenstein.PickupItemTypes
                     .FirstOrDefault(p => p.Value.Name == itemName);
-                if (kvp.Value == null) continue;
-                if (!state.Wolfenstein.PickupItems.TryGetValue(kvp.Key, out var texture)) continue;
-                state.DynamicObjects.Add(
-                    new PickupItemObject(dropX, dropY, new StaticSprite(texture), kvp.Value, true));
+                if (kvp.Value != null)
+                {
+                    if (!state.Wolfenstein.PickupItems.TryGetValue(kvp.Key, out var texture)) continue;
+                    state.DynamicObjects.Add(
+                        new PickupItemObject(dropX, dropY, new StaticSprite(texture), kvp.Value, true));
+                    return;
+                }
+
             }
         }
     }

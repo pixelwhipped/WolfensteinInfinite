@@ -15,6 +15,14 @@
     <None Remove="GameData\Mods\Demo\specialmap.json" />
     <None Remove="GameData\Mods\Wolfenstein3D\map.json" />
     <None Remove="GameData\Mods\Wolfenstein3D\specialmap.json" />
+    <None Remove="GameData\Mods\Wolfenstein3D\Sprites\1000.png" />
+    <None Remove="GameData\Mods\Wolfenstein3D\Sprites\1001.png" />
+    <None Remove="GameData\Mods\Wolfenstein3D\Sprites\1002.png" />
+    <None Remove="GameData\Mods\Wolfenstein3D\Sprites\1003.png" />
+    <None Remove="GameData\Mods\Wolfenstein3D\Sprites\1004.png" />
+    <None Remove="GameData\Mods\Wolfenstein3D\Sprites\1005.png" />
+    <None Remove="GameData\Mods\Wolfenstein3D\Sprites\1006.png" />
+    <None Remove="GameData\Mods\Wolfenstein3D\Sprites\1007.png" />
     <None Remove="Icon.ico" />
   </ItemGroup>
 
@@ -33,6 +41,30 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="GameData\Mods\Wolfenstein3D\specialmap.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GameData\Mods\Wolfenstein3D\Sprites\1000.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GameData\Mods\Wolfenstein3D\Sprites\1001.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GameData\Mods\Wolfenstein3D\Sprites\1002.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GameData\Mods\Wolfenstein3D\Sprites\1003.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GameData\Mods\Wolfenstein3D\Sprites\1004.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GameData\Mods\Wolfenstein3D\Sprites\1005.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GameData\Mods\Wolfenstein3D\Sprites\1006.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GameData\Mods\Wolfenstein3D\Sprites\1007.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
     <EmbeddedResource Include="Icon.ico" />
@@ -584,6 +616,9 @@
     <None Update="GameData\Base\Sprites\DynamiteToPlace.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="GameData\Base\Sprites\Empty.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="GameData\Base\Sprites\Food.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -831,6 +866,30 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="GameData\Mods\Wolfenstein3D\Sounds\ReadMe.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="GameData\Mods\Wolfenstein3D\Sprites\r0.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="GameData\Mods\Wolfenstein3D\Sprites\r1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="GameData\Mods\Wolfenstein3D\Sprites\r2.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="GameData\Mods\Wolfenstein3D\Sprites\r3.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="GameData\Mods\Wolfenstein3D\Sprites\r4.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="GameData\Mods\Wolfenstein3D\Sprites\r5.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="GameData\Mods\Wolfenstein3D\Sprites\r6.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="GameData\Mods\Wolfenstein3D\Sprites\r7.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="GameData\Mods\Wolfenstein3D\Sprites\ReadMe.txt">

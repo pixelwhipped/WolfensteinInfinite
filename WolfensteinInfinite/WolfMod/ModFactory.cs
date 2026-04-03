@@ -328,7 +328,8 @@ namespace WolfensteinInfinite.WolfMod
                 ProjectileHelpers.CreateBullet("Bullet", null, null, null),
                 ProjectileHelpers.CreateBite("Bite", null, null, null),
                 ProjectileHelpers.CreateDrain("DrainLife", null, null, null),
-                ProjectileHelpers.CreateRocket("Rocket", ProjectileSpriteType.ROCKET, $"Wolfenstein3D\\Sprites", 370, null, "RocketTrail", "RocketImpact"),
+                //ProjectileHelpers.CreateRocket("Rocket", ProjectileSpriteType.ROCKET, $"Wolfenstein3D\\Sprites", 370, null, "RocketTrail", "RocketImpact"),
+                ProjectileHelpers.CreateRocket("Rocket", ProjectileSpriteType.ROCKET, $"Wolfenstein3D\\Sprites", 1000, null, "RocketTrail", "RocketImpact"),
                 ProjectileHelpers.CreateSerum("KorpsokineticSerum", ProjectileSpriteType.SERUM, $"Wolfenstein3D\\Sprites", 317, null, null, null),
                 ProjectileHelpers.CreateFlame("Flame", ProjectileSpriteType.FLAME, $"Wolfenstein3D\\Sprites", 326, null, null, null)
             ],

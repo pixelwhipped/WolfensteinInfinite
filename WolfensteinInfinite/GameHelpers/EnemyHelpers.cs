@@ -123,10 +123,10 @@ namespace WolfensteinInfinite.GameHelpers
                 [Difficulties.DONT_HURT_ME] = 950,
                 [Difficulties.BRING_EM_ON] = 1050,
                 [Difficulties.I_AM_DEATH_INCARNATE] = 1200
-            }, ["ChainGun", "ChainGun", "ChainGun", "ChainGun"],
+            }, ["ChainGun", "ChainGun", "ChainGun"],
             new Dictionary<string, int>()
             {
-                ["AdolfHitler"] = 100
+                ["Adolf Hitler"] = 100
             }, CharacterSpriteType.MECHA_HITLER, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, new RGBA8() { R=0,G=0,B=0,A=0},39);
         }
         public static Enemy CreateAdolfHitler(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
@@ -151,7 +151,7 @@ namespace WolfensteinInfinite.GameHelpers
                 [Difficulties.BRING_EM_ON] = 1050,
                 [Difficulties.I_AM_DEATH_INCARNATE] = 1200
             }, ["RocketLauncher"],
-            [], CharacterSpriteType.BOSS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood,49);
+            [], CharacterSpriteType.OTTO_GIFTMACHERE, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood,49);
         }
         public static Enemy CreateGretelGross(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -175,7 +175,7 @@ namespace WolfensteinInfinite.GameHelpers
                 [Difficulties.BRING_EM_ON] = 1050,
                 [Difficulties.I_AM_DEATH_INCARNATE] = 1200
             }, ["RocketLauncher", "ChainGun"],
-            new Dictionary<string, int>() { ["ChainGun"] = 100 }, CharacterSpriteType.BOSS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood,69);
+            new Dictionary<string, int>() { ["ChainGun"] = 100 }, CharacterSpriteType.GENERAL_FETTGESICHTC, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood,69);
         }
         public static Enemy CreateHitlerGhost(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {

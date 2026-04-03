@@ -202,7 +202,7 @@ namespace WolfensteinInfinite
             PickupItemTypes.Add(19, new PickupItem("DynamiteToPlace", PickupItemType.MISSION_OBJECTIVE, 0, 0, "GameData\\Base\\Sprites\\DynamiteToPlace.png", null));
             PickupItemTypes.Add(20, new PickupItem("DynamitePlaced", PickupItemType.SPAWNER, 0, 0, "GameData\\Base\\Sprites\\DynamitePlaced.png", null));
             PickupItemTypes.Add(21, new PickupItem("Key", PickupItemType.MISSION_OBJECTIVE, 0, 0, "GameData\\Base\\Sprites\\Key.png", null));
-            PickupItemTypes.Add(22, new PickupItem("AdolfHitler", PickupItemType.SPAWNER, 0, 0, null, null));
+            PickupItemTypes.Add(22, new PickupItem("Adolf Hitler", PickupItemType.SPAWNER, 0, 0, "GameData\\Base\\Sprites\\Empty.png", null));
             PickupItemTypes.Add(23, new PickupItem("GodMode", PickupItemType.GODMODE, 1, 0, "GameData\\Base\\Sprites\\God.png", null));
 
 
@@ -499,7 +499,16 @@ namespace WolfensteinInfinite
                 if ((forceRebuild || !File.Exists(sFile)) && res.Any(p => p.Equals(special))) SaveEmbeddedResource(special, sFile);
                 if ((forceRebuild || !File.Exists(tFile)) && res.Any(p => p.Equals(test))) SaveEmbeddedResource(test, tFile);
 
-                //Needo to copy internal mod/map/test/special json file on rebuild requst
+                if(version.Name== "Wolfenstein3D") //Patched rockets
+                {
+                    for(var i = 0; i < 8; i++)
+                    {
+                        var rfile = FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\Sprites\100{i}.png");
+                        var efile = $"WolfensteinInfinite.GameData.Mods.{version.Name}.Sprites.100{i}.png";
+                        if ((forceRebuild || !File.Exists(rfile)) && res.Any(p => p.Equals(efile))) SaveEmbeddedResource(efile, rfile);
+                    }
+                }
+                //Need to copy internal mod/map/test/special json file on rebuild requst
                 var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\mod.json");
                 if (!File.Exists(file) || Debugger.IsAttached || forceRebuild)
                 {

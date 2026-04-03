@@ -1,5 +1,7 @@
 ﻿using SFML.Window;
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
@@ -7,6 +9,7 @@ using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.States;
 using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 
 namespace WolfensteinInfinite.GameMap
 {
@@ -179,7 +182,7 @@ namespace WolfensteinInfinite.GameMap
             {
                 return [];
             }
-                var nodes = new List<MapGeneratorSection>();
+            var nodes = new List<MapGeneratorSection>();
             // Count open connections in origin
             var openConnectionCount = origin.Connections.Count(c => c.Node == null);
 
@@ -594,6 +597,9 @@ namespace WolfensteinInfinite.GameMap
             var specialMap = MapSection.Empty(Width, Height);
             var wallSectionId = MapSection.Empty(Width, Height);
             var wallSourceIdMap = MapSection.Empty(Width, Height);
+            var itemNamesKey = new Dictionary<string,int>();
+            var enemyNamesKey = new Dictionary<string, int>();
+
             // Set wall map floors from FlatMap (already in world coords)
             for (int y = 0; y < FlatMap.Length; y++)
             {
@@ -690,6 +696,7 @@ namespace WolfensteinInfinite.GameMap
                         if (worldX < 0 || worldX >= Width) continue;
                         if (items[y][x] < 0) continue;
                         if (SkipSpecialChance(special, x, y)) continue;
+                        
                         var key = new ModKeyIndex(layer.Mod.Name, items[y][x]);
                         if (!itemsKeyIndicies.TryGetValue(key, out int index))
                         {
@@ -697,6 +704,8 @@ namespace WolfensteinInfinite.GameMap
                             itemsKeyIndicies.Add(key, index);
                         }
                         if (!Wolfenstein.PickupItems.TryGetValue(key.Index, out Texture32? value)) return null;
+                        if (!Wolfenstein.PickupItemTypes.TryGetValue(key.Index, out PickupItem? item)) return null;
+                        itemNamesKey.TryAdd(item.Name, index);
 
                         itemList.Add(new Item { X = worldX, Y = worldY, ItemType = key.Index, TextureIndex = index });
                         itemsMap[worldY][worldX] = index;
@@ -765,7 +774,8 @@ namespace WolfensteinInfinite.GameMap
                             {
                                 ridx = enemyKeyIndicies.Count;
                                 enemyKeyIndicies.Add(rkey, ridx);
-                            }
+                                itemNamesKey.TryAdd(chosen.Name, ridx);
+                            }                                                        
                             if (diff[y][x] >= (int)difficulty)
                             {
                                 var t = Wolfenstein.CharacterSprites[layer.Mod.Name][chosen.MapID].GetTexture(0);
@@ -801,11 +811,13 @@ namespace WolfensteinInfinite.GameMap
                         }
                         else // Normal enemy
                         {
+                            if (!Wolfenstein.Mods.TryGetValue(layer.Mod.Name, out var rmod)) continue;
                             var key = new ModKeyIndex(layer.Mod.Name, enemy[y][x]);
                             if (!enemyKeyIndicies.TryGetValue(key, out int index))
                             {
                                 index = enemyKeyIndicies.Count;
                                 enemyKeyIndicies.Add(key, index);
+                                itemNamesKey.TryAdd(rmod.Enemies[enemy[y][x]].Name, index);
                             }
                             if (diff[y][x] >= (int)difficulty)
                             {
@@ -984,6 +996,29 @@ namespace WolfensteinInfinite.GameMap
                     }
             }
 
+            // Register all remaining items and enemies from each mod so drops and
+            // random spawns always have valid indices regardless of what's on the map
+            foreach (var (modName, mod) in Wolfenstein.Mods)
+            {
+                // All pickup items
+                foreach (var (itemId, _) in Wolfenstein.PickupItemTypes)
+                {
+                    var key = new ModKeyIndex(modName, itemId);
+                    if (!itemsKeyIndicies.ContainsKey(key))
+                        itemsKeyIndicies.Add(key, itemsKeyIndicies.Count);
+                    if (!Wolfenstein.PickupItemTypes.TryGetValue(key.Index, out PickupItem? item)) return null;
+                    itemNamesKey.TryAdd(item.Name, key.Index);
+                }
+
+                // All enemies
+                foreach (var enemy in mod.Enemies)
+                {
+                    var key = new ModKeyIndex(modName, enemy.MapID);
+                    if (!enemyKeyIndicies.ContainsKey(key))
+                        enemyKeyIndicies.Add(key, enemyKeyIndicies.Count);
+                    enemyNamesKey.TryAdd(enemy.Name, key.Index);
+                }
+            }
             if (texture != null)
             {
                 var file = FileHelpers.Shared.GetDataFilePath("GeneratedMap.png");
@@ -1017,13 +1052,15 @@ namespace WolfensteinInfinite.GameMap
                 Enemies = [.. enemyPlacements],
                 Doors = doorsList,
                 Exits = exitList,
-                Objectives = objectives
-                
+                Objectives = objectives,
+                ItemNamesKey = itemNamesKey,
+                EnemyNamesKey = enemyNamesKey
+
             };
 
-            
+
             return Map;
-        }        
+        }
         private int CheckKeyDoorObjective(Dictionary<MapFlags, bool> objectives, int objectiveCount)
         {
             // PickupItemTypes 21 = Key, Doors 3 = locked

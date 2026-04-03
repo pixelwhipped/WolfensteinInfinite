@@ -1,4 +1,5 @@
-﻿using WolfensteinInfinite.GameGraphics;
+﻿using System.Runtime.CompilerServices;
+using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.States;
 
 namespace WolfensteinInfinite.GameObjects
@@ -16,16 +17,30 @@ namespace WolfensteinInfinite.GameObjects
         public bool IsEnemyProjectile { get; } = isEnemyProjectile;
         private float _distanceTravelled = 0;
         private readonly float _maxRange = maxRange;
+        public float FacingAngle { get; private set; } = 180f;
+        private float _smoothedFacingAngle = 180f;
         public override void Update(float frameTime, InGameState state)
         {
             if (!IsAlive) return;
             Sprite?.Update(frameTime);
 
-            var moveX = DirX * Speed * frameTime;
-            var moveY = DirY * Speed * frameTime;
-            X += moveX;
-            Y += moveY;
-            _distanceTravelled += MathF.Sqrt(moveX * moveX + moveY * moveY);
+            
+
+            var dx = DirX * Speed * frameTime;
+            var dy = DirY * Speed * frameTime;
+            X += dx;
+            Y += dy;
+            var dist = MathF.Sqrt(dx * dx + dy * dy);
+            _distanceTravelled += dist;
+            var nx = dx / dist;
+            var ny = dy / dist;
+
+            var targetAngle = MathF.Atan2(ny, nx) * (180f / MathF.PI);
+            targetAngle = (targetAngle + 360f) % 360f;
+            var angleDiff = MathF.Abs(targetAngle - _smoothedFacingAngle) % 360f;
+            if (angleDiff > 180f) angleDiff = 360f - angleDiff;
+            if (angleDiff > 15f) _smoothedFacingAngle = targetAngle;
+            FacingAngle = _smoothedFacingAngle;
 
             var mx = (int)X;
             var my = (int)Y;

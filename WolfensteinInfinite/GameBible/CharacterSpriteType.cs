@@ -17,7 +17,7 @@
         //Officer
         //  standing 1x8D, walking 4x8D, attack 3, Dying Flippable 5 right + 1 left(3 to flip) +1 right + dead
         OFFICER,
-        //(Boss) Hans Gross, Otto Giftmacher, General Fettgesicht,Gretel Grosse
+        //(Boss) Hans Gross,Gretel Grosse
         //  walking 4, attack 3 dying 3 dead 1  
         BOSS,
         //(Boss) Doctor Schabbs
@@ -29,6 +29,10 @@
         ADOLF_HITLER,
         //(Boss) Hitler Ghost
         //  walking 3, attack 2, dying 5, weapon 2
-        HITLER_GHOST
+        HITLER_GHOST,
+        //Otto Giftmacher
+        OTTO_GIFTMACHERE,
+        //General Fettgesicht
+        GENERAL_FETTGESICHTC
     }
 }

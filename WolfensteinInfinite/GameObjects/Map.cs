@@ -18,6 +18,8 @@ namespace WolfensteinInfinite.GameObjects
         public required Item[] Items { get; set; }
         public required int[][] WorldMap { get; set; }        
         public required EnemyPlacement[] Enemies { get; set; }
+        public required Dictionary<string, int> ItemNamesKey { get; set; }
+        public required Dictionary<string, int> EnemyNamesKey { get; set; }
 
         [Newtonsoft.Json.JsonIgnore]
         public ISurface[] WallTextures { get; set; } = [];
