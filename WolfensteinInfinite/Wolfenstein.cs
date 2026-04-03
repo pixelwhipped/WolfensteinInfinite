@@ -67,7 +67,8 @@ namespace WolfensteinInfinite
             Log("Remebering what I was doing");
             Config = LoadConfig();
             Log("Remebering who I am");
-            LoadBaseModItems(out Animation pow);
+            LoadBaseModItems(out Animation pow, out Texture32 bloodPool);
+            BloodPool = bloodPool;
             POWAnimation = pow;
             Mods = LoadMods(false);
             BuilderMods = LoadBuilderMods();
@@ -177,7 +178,7 @@ namespace WolfensteinInfinite
             return [.. t];
         }
 
-        private void LoadBaseModItems(out Animation pow)
+        private void LoadBaseModItems(out Animation pow, out Texture32 bloodPool)
         {
             PickupItemTypes.Add(0, new PickupItem("Clip", PickupItemType.AMMO, 8, 0, "GameData\\Base\\Sprites\\Ammo.png", AmmoType.BULLET));
             PickupItemTypes.Add(1, new PickupItem("UsedClip", PickupItemType.AMMO, 4, 0, "GameData\\Base\\Sprites\\Ammo.png", AmmoType.BULLET));
@@ -241,6 +242,8 @@ namespace WolfensteinInfinite
             Doors.Add(1, new DoorType(1, DoorTypes.ELEVATOR, FileHelpers.Shared.LoadSurface32("GameData\\Base\\Textures\\ElevatorDoor.png"), FileHelpers.Shared.LoadSurface32("GameData\\Base\\Textures\\LockedDoorSide.png")));
             Doors.Add(2, new DoorType(2, DoorTypes.LOCKED, FileHelpers.Shared.LoadSurface32("GameData\\Base\\Textures\\LockedDoor.png"), FileHelpers.Shared.LoadSurface32("GameData\\Base\\Textures\\LockedDoorSide.png")));
             Doors.Add(3, new DoorType(3, DoorTypes.PRISON, FileHelpers.Shared.LoadSurface32("GameData\\Base\\Textures\\CellDoor.png"), FileHelpers.Shared.LoadSurface32("GameData\\Base\\Textures\\LockedDoorSide.png")));
+
+            bloodPool = FileHelpers.Shared.LoadSurface32("GameData\\Base\\Sprites\\BloodPool.png");
 
         }
         private void AddSpecialTextures()
@@ -687,7 +690,7 @@ namespace WolfensteinInfinite
         }
         public RGBA8[]? PreserveColors { get; set; }
         public Animation POWAnimation { get; init; }
-
+        public Texture32 BloodPool { get; init; }
         private void RenderQuantize(int colors)
         {
             var originalPallet = Graphics.Pallet;

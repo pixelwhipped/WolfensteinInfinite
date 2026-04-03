@@ -1,6 +1,4 @@
-//WIP Work in progress
 using SFML.Window;
-using System.Diagnostics.Eventing.Reader;
 using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
@@ -103,9 +101,9 @@ namespace WolfensteinInfinite.States
         private string? _hudMessage = null;
         private float _hudMessageTimer = 0f;
         private const float HudMessageDuration = 3f;
-        public Dictionary<(int, int), Door>? DoorLookup { get; init; }
-        public Dictionary<(int, int), Decal>? DecalLookup { get; init; }
-        public Dictionary<(int, int), PushWall>? PushWallLookup { get; init; }
+        public Dictionary<(int, int), Door> DoorLookup { get; init; }
+        public Dictionary<(int, int), Decal> DecalLookup { get; init; }
+        public Dictionary<(int, int), PushWall> PushWallLookup { get; init; }
         public void OnEnemyKilled()
         {
             _enemiesKilled++;
@@ -1305,10 +1303,6 @@ namespace WolfensteinInfinite.States
             if (PushWallLookup != null && PushWallLookup.ContainsKey((x, y))) return false;
             if (DecalLookup != null && DecalLookup.TryGetValue((x, y), out var decal)) return decal.Passable;
             return true;
-            /*
-            if (Game.Map.PushWalls.Any(w => (int)w.X == x && (int)w.Y == y)) return false;
-            var decal = Game.Map.Decals.FirstOrDefault(d => d.X == x && d.Y == y);
-            return decal == null || decal.Passable;*/
         }
 
         public void InvalidateLightMap()
@@ -1617,8 +1611,17 @@ namespace WolfensteinInfinite.States
                 // For enemies, sprite frame is relative to their facing direction
                 // so walking toward player shows front sprite, away shows back sprite
                 float spriteAngle = angleToPlayer;
+                bool drawBloodPool = false;
+                float bloodPoolScale = 0f;
+                Texture32? bloodPoolTexture = null;
                 if (obj is EnemyObject enemyObj)
+                {
                     spriteAngle = (angleToPlayer - enemyObj.FacingAngle + 360f) % 360f;
+                    drawBloodPool = enemyObj.IsCorpse;
+                    bloodPoolTexture = enemyObj.BloodPoolTexture;
+                    bloodPoolScale = enemyObj.BloodPoolScale;
+                }
+                    
                 if (obj.Sprite == null) continue;
                 var texture = obj.Sprite.GetTexture(spriteAngle);
 
@@ -1670,6 +1673,31 @@ namespace WolfensteinInfinite.States
                     {
                         int d = (y - screenYOffset) * 256 - buffer.Height * 128 + spriteHeight * 128;
                         int texY = Math.Clamp(((d * texHeight) / spriteHeight) / 256, 0, texHeight - 1);
+                        if (drawBloodPool && bloodPoolTexture != null && bloodPoolScale > 0f)
+                        {
+                            float rawPoolTexX = (stripe - (-spriteWidth / 2 + spriteScreenX))
+                                                * bloodPoolTexture.Width / (float)spriteWidth;
+
+                            
+                            int poolTexY = Math.Clamp(
+                                (int)((d * bloodPoolTexture.Height / (float)spriteHeight) / 256f),
+                                0, bloodPoolTexture.Height - 1);
+
+                            // Scale only on X axis, centered on texture midpoint
+                            int poolTexX = (int)(bloodPoolTexture.Width / 2f + (rawPoolTexX - bloodPoolTexture.Width / 2f) / bloodPoolScale);
+
+                            if (poolTexX >= 0 && poolTexX < bloodPoolTexture.Width)
+                            {
+                                bloodPoolTexture.GetPixel(poolTexX, poolTexY, out byte pr, out byte pg, out byte pb, out byte pa);
+                                if (pa != 0)
+                                {
+                                    buffer.PutPixel(stripe, y,
+                                        (byte)(pr * finalBrightness),
+                                        (byte)(pg * finalBrightness),
+                                        (byte)(pb * finalBrightness), pa);
+                                }
+                            }
+                        }
                         texture.GetPixel(texX, texY, out byte r, out byte g, out byte b, out byte a);
                         if (a == 0) continue;
                         buffer.PutPixel(stripe, y,

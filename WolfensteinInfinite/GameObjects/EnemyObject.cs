@@ -1,7 +1,9 @@
 ﻿using WolfensteinInfinite.Engine.Audio;
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.States;
+using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
 
 namespace WolfensteinInfinite.GameObjects
@@ -33,12 +35,18 @@ namespace WolfensteinInfinite.GameObjects
         private float _fleeTimer = 0f;
         private float _smoothedFacingAngle = 180f;
         private float _tauntTimer = 0f;
-        
+        private Tween BloodPool { get; init; }
+        public float BloodPoolScale => BloodPool.Value;
+        public Texture32 BloodPoolTexture { get; init; }
         public CharacterSprite CharacterSprite { get; init; }
         public EnemyObject(float x, float y, CharacterSprite sprite, Enemy enemy,
             Difficulties difficulty, string mod, Wolfenstein wolfenstein, int level)
             : base(x, y, DynamicObjectType.Enemy, sprite.Clone())
         {
+            if (Sprite == null) throw new ArgumentNullException(nameof(sprite));
+            BloodPool = new Tween(4, _ => { });
+            var bloodHue = Enemy?.BloodColor.RGBA8ToHSL() ?? new HSL { H = 0f, L = 0f, S = 0f, A = 0f };
+            BloodPoolTexture = GraphicsHelpers.Colorize((float)bloodHue.H, wolfenstein.BloodPool);
             Enemy = enemy;
             Mod = mod;
             CharacterSprite = (CharacterSprite)Sprite;
@@ -359,7 +367,7 @@ namespace WolfensteinInfinite.GameObjects
                 if (w.AttackCooldown > 0f) w.AttackCooldown -= frameTime;
         }
         private void FireShot(Projectile projectile, Weapon weapon, float distToPlayer, InGameState state)
-        {            
+        {
             if (!string.IsNullOrEmpty(weapon.Sound)) PlaySound($"{Mod}:{weapon.Sound}", state);
 
             var tileDist = projectile.AmmoType == AmmoType.MELEE ? 0 : (int)distToPlayer;
@@ -388,11 +396,11 @@ namespace WolfensteinInfinite.GameObjects
         public void ResetTauntTimer()
         {
             IsAlerted = true;
-            _tauntTimer = 2f;            
+            _tauntTimer = 2f;
         }
         public void UpdateTauntTimer(float frameTime, InGameState state)
         {
-            if (IsDying || IsCorpse || !IsAlerted) return;            
+            if (IsDying || IsCorpse || !IsAlerted) return;
             _tauntTimer -= frameTime;
             if (_tauntTimer < 0)
             {
@@ -405,7 +413,7 @@ namespace WolfensteinInfinite.GameObjects
             if (AIState != EnemyAIState.Idle) return;
             ResetTauntTimer();
             AIState = EnemyAIState.Alert;
-            _alertTimer = Enemy.AlertPauseDuration;            
+            _alertTimer = Enemy.AlertPauseDuration;
             _reactionTimer = Enemy.ReactionDelay;
             SetAnimation(CharacterAnimationState.STANDING);
             PlaySound(Enemy.AlertSounds, state);
@@ -432,7 +440,7 @@ namespace WolfensteinInfinite.GameObjects
         }
         public void TakeDamage(int amount, InGameState state)
         {
-            if (IsDying || IsCorpse) return;            
+            if (IsDying || IsCorpse) return;
             Alert(state);
             HitPoints -= amount;
             if (HitPoints <= 0)
@@ -489,10 +497,13 @@ namespace WolfensteinInfinite.GameObjects
 
         public override void Update(float frameTime, InGameState state)
         {
-            if (!IsAlive) return;
-            Sprite.Update(frameTime);
-            
-            
+            if (IsCorpse) BloodPool.Update(frameTime);
+            if (!IsAlive)
+            {                
+                return;
+            }
+            Sprite?.Update(frameTime);
+
             if (IsDying)
             {
                 if (CharacterSprite.IsDeathAnimationComplete)
@@ -514,7 +525,7 @@ namespace WolfensteinInfinite.GameObjects
             UpdateTauntTimer(frameTime, state);
 
             if (IsHit && CharacterSprite.IsHitAnimationComplete)
-            {                
+            {
                 AIState = EnemyAIState.Chase;
                 _lastAIState = EnemyAIState.Idle; // Force animation update
                 SetAnimationForState(AIState);
@@ -543,7 +554,7 @@ namespace WolfensteinInfinite.GameObjects
                 case EnemyAIState.Chase:
                     if (!IsAlerted) ResetTauntTimer();
                     if (Weapons.All(w => w.AttackCooldown > 0f)) break;
-                    IsAlerted = true;                    
+                    IsAlerted = true;
                     SetAnimationForState(EnemyAIState.Chase);
                     if (IsRanged)
                     {
@@ -561,7 +572,7 @@ namespace WolfensteinInfinite.GameObjects
                     }
                     break;
 
-                case EnemyAIState.Attack:                    
+                case EnemyAIState.Attack:
                     if (IsRanged)
                     {
                         if (!IsFacingPlayer(state) || !HasLineOfSight(state))
@@ -609,7 +620,7 @@ namespace WolfensteinInfinite.GameObjects
             foreach (var w in Weapons)
             {
                 w.FrameWait = MathF.Max(w.FrameWait - frameTime, 0);
-            }           
+            }
 
             // Keep facing the player while attacking
             UpdateFacingAngleTowardPlayer(state);
@@ -617,7 +628,7 @@ namespace WolfensteinInfinite.GameObjects
             // All weapons still cooling down — wait
             if (Weapons.All(w => w.AttackCooldown > 0f))
             {
-                AIState = EnemyAIState.Chase;   
+                AIState = EnemyAIState.Chase;
                 return;
             }
 
@@ -637,8 +648,8 @@ namespace WolfensteinInfinite.GameObjects
             }
 
             bool inFireFrame = CharacterSprite.IsInAttackFireFrames(Enemy.FireFrames);
-            
-            
+
+
             foreach (var w in Weapons)
             {
                 if (w.AttackCooldown > 0f) continue;
@@ -670,7 +681,7 @@ namespace WolfensteinInfinite.GameObjects
                         w.FrameWait = CharacterSprite.CurrentFrameTimeInSecond();
                     }
                 }
-                
+
             }
         }
         private void SpawnDrops(InGameState state)

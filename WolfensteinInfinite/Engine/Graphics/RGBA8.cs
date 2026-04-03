@@ -19,7 +19,7 @@ namespace WolfensteinInfinite.Engine.Graphics
         public static readonly RGBA8 BLUE = new() { R = 0, G = 0, B = 255, A = 255 };
         public static readonly RGBA8 STEEL_BLUE = new() { R = 60, G = 60, B = 140, A = 255 };
         public static readonly RGBA8 DARK_PURPLE = new() { R = 208, G = 0, B = 62, A = 255 };
-
+        public static readonly RGBA8 TRANSPARENT = new() { R = 0, G = 0, B = 0, A = 0 };
         /// <summary>
         /// The Alpha/opacity.
         /// </summary>

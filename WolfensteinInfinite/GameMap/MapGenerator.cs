@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using SFML.Window;
+using System.Collections.Generic;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
@@ -174,7 +175,11 @@ namespace WolfensteinInfinite.GameMap
         private readonly Dictionary<int, int> _sectionUsageCount = [];
         private MapGeneratorSection[] GetNodes(MapGeneratorSection origin)
         {
-            var nodes = new List<MapGeneratorSection>();
+            if (Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Escape) || Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyPause))
+            {
+                return [];
+            }
+                var nodes = new List<MapGeneratorSection>();
             // Count open connections in origin
             var openConnectionCount = origin.Connections.Count(c => c.Node == null);
 
