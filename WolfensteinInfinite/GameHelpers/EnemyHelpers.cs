@@ -151,7 +151,7 @@ namespace WolfensteinInfinite.GameHelpers
                 [Difficulties.BRING_EM_ON] = 1050,
                 [Difficulties.I_AM_DEATH_INCARNATE] = 1200
             }, ["RocketLauncher"],
-            [], CharacterSpriteType.OTTO_GIFTMACHERE, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood,49);
+            new Dictionary<string, int>() { ["RocketLauncher"] = 100 }, CharacterSpriteType.OTTO_GIFTMACHERE, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood,49);
         }
         public static Enemy CreateGretelGross(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -175,7 +175,7 @@ namespace WolfensteinInfinite.GameHelpers
                 [Difficulties.BRING_EM_ON] = 1050,
                 [Difficulties.I_AM_DEATH_INCARNATE] = 1200
             }, ["RocketLauncher", "ChainGun"],
-            new Dictionary<string, int>() { ["ChainGun"] = 100 }, CharacterSpriteType.GENERAL_FETTGESICHTC, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood,69);
+            new Dictionary<string, int>() { ["ChainGun"] = 50, ["RocketLauncher"] = 50 }, CharacterSpriteType.GENERAL_FETTGESICHTC, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood,69);
         }
         public static Enemy CreateHitlerGhost(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -187,7 +187,7 @@ namespace WolfensteinInfinite.GameHelpers
                 [Difficulties.BRING_EM_ON] = 400,
                 [Difficulties.I_AM_DEATH_INCARNATE] = 500
             }, ["FlameThrower"],
-            [], CharacterSpriteType.HITLER_GHOST, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f,new RGBA8() { R = 0, G = 0, B = 0, A = 0 },40);
+            new Dictionary<string, int>() { ["FlameThrower"] = 100 }, CharacterSpriteType.HITLER_GHOST, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f,new RGBA8() { R = 0, G = 0, B = 0, A = 0 },40);
         }
         public static Enemy CreatePacManGhost(int id, string name, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {

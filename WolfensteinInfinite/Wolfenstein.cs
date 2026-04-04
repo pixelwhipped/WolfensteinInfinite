@@ -207,8 +207,8 @@ namespace WolfensteinInfinite
             PickupItemTypes.Add(24, new PickupItem("Gas", PickupItemType.AMMO, 25, 0, "GameData\\Base\\Sprites\\Gas.png", null));
             PickupItemTypes.Add(25, new PickupItem("Rockets", PickupItemType.AMMO, 3, 0, "GameData\\Base\\Sprites\\Rockets.png", null));
             PickupItemTypes.Add(26, new PickupItem("Backpack", PickupItemType.BACKPACK, 3, 0, "GameData\\Base\\Sprites\\Backpack.png", null));
-            PickupItemTypes.Add(27, new PickupItem("RocketLauncher", PickupItemType.WEAPON, 1, 0, "GameData\\Base\\Sprites\\RocketLauncher.png", null));
-            PickupItemTypes.Add(28, new PickupItem("FlameThrower", PickupItemType.WEAPON, 1, 0, "GameData\\Base\\Sprites\\FlameThrower.png", null));
+            PickupItemTypes.Add(27, new PickupItem("RocketLauncher", PickupItemType.WEAPON, 1, 3, "GameData\\Base\\Sprites\\RocketLauncher.png", null));
+            PickupItemTypes.Add(28, new PickupItem("FlameThrower", PickupItemType.WEAPON, 1, 25, "GameData\\Base\\Sprites\\FlameThrower.png", null));
             PickupItemTypes.Add(29, new PickupItem("RandomItem", PickupItemType.SPECIAL, 1, 0, "GameData\\Base\\Pictures\\RandomItem.png", null));
             PickupItemTypes.Add(30, new PickupItem("RandomWeapon", PickupItemType.SPECIAL, 1, 0, "GameData\\Base\\Pictures\\RandomWeapon.png", null));
 
