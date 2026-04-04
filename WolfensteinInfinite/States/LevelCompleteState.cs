@@ -50,6 +50,7 @@ namespace WolfensteinInfinite.States
                     nextLevel = new SpecialLevelState(
                                 Wolfenstein,
                                 Game.Player,
+                                Game.GameId,
                                 Difficulties.CAN_I_PLAY_DADDY,
                                 Game.Map.Level,
                                 tmods[Game.Map.Level - 1].mod,
@@ -70,7 +71,7 @@ namespace WolfensteinInfinite.States
                     {
                         var chosen = specials[Random.Shared.Next(specials.Count)];
                         nextLevel = new SpecialLevelState(
-                        Wolfenstein, Game.Player, Game.Map.Difficulty,
+                        Wolfenstein, Game.Player, Game.GameId, Game.Map.Difficulty,
                         Game.Map.Level, chosen.Mod, chosen.Section);
                     }
                     else

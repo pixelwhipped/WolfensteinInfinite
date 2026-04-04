@@ -828,13 +828,13 @@ namespace WolfensteinInfinite.States
                 PickupItemType.LIFE => ApplyLife(item),
                 PickupItemType.GODMODE => ActivateCheatGodMode(),
                 PickupItemType.MISSION_OBJECTIVE => ApplyObjective(item),
-                PickupItemType.BACKPACK => ApplyBackPack(item),
+                PickupItemType.BACKPACK => ApplyBackPack(),
                 PickupItemType.SPAWNER => false,
                 _ => false,
             };
         }
 
-        private bool ApplyBackPack(PickupItem item)
+        private bool ApplyBackPack()
         {
             bool addedAmmo= false;
             bool addedHealth = false;

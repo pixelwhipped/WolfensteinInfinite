@@ -13,12 +13,14 @@ namespace WolfensteinInfinite.States
         public readonly Player Player;
         public readonly Difficulties Difficulty;
         public readonly int Level;
+        private readonly Guid GameGuild;
         public const string FailedString = "Defeated by map generation.\nPress Y to try again.\nPress N to give up.";
-        public GameGenerationRetryState(Wolfenstein wolfenstein, Player player, Difficulties difficulty, int level) : base(wolfenstein)
+        public GameGenerationRetryState(Wolfenstein wolfenstein, Player player, Guid gameGuild, Difficulties difficulty, int level) : base(wolfenstein)
         {
             Player = player;
             Difficulty = difficulty;
             Level = level;
+            GameGuild = gameGuild;
             ReturnState = this;
             NextState = this;
             AudioPlaybackEngine.Instance.PlayMusic(Wolfenstein.LevelCompleteMusic);
@@ -51,7 +53,7 @@ namespace WolfensteinInfinite.States
 
             if (k.Code == Keyboard.Key.Y)
             {
-                NextState = new GameGenerationState(Wolfenstein, Player, Difficulty, Level);
+                NextState = new GameGenerationState(Wolfenstein, Player, GameGuild,  Difficulty, Level);
                 return;
             }
             if (k.Code == Keyboard.Key.N)

@@ -68,7 +68,7 @@ namespace WolfensteinInfinite.States
             {
                 var chosen = fullMaps[(Level - 1) % fullMaps.Length];
                 NextState = new SpecialLevelState(
-                    Wolfenstein, Player, Difficulty, Level,
+                    Wolfenstein, Player, GameGuid, Difficulty, Level,
                     chosen.Mod.Name, chosen.Section);
                 return;
             }
@@ -78,7 +78,7 @@ namespace WolfensteinInfinite.States
             {
                 var chosen = fullMaps[Random.Shared.Next(fullMaps.Length)];
                 NextState = new SpecialLevelState(
-                    Wolfenstein, Player, Difficulty, Level,
+                    Wolfenstein, Player, GameGuid, Difficulty, Level,
                     chosen.Mod.Name, chosen.Section);
                 return;
             }
@@ -94,7 +94,7 @@ namespace WolfensteinInfinite.States
                     rootOptions.Add((kvp.Key, section));
             if (rootOptions.Count == 0)
             {
-                NextState = new GameGenerationRetryState(Wolfenstein, Player, Difficulty, Level);
+                NextState = new GameGenerationRetryState(Wolfenstein, Player, GameGuid, Difficulty, Level);
                 return;
             }
 
@@ -121,7 +121,7 @@ namespace WolfensteinInfinite.States
 
             if (!builder.Success)
             {
-                NextState = new GameGenerationRetryState(Wolfenstein, Player, Difficulty, Level);
+                NextState = new GameGenerationRetryState(Wolfenstein, Player, GameGuid,Difficulty, Level);
                 return;
             }
             Progress = 60;
@@ -130,7 +130,7 @@ namespace WolfensteinInfinite.States
             var map = builder.ToGameMap(Player, Difficulty, Level);
             if (map == null)
             {
-                NextState = new GameGenerationRetryState(Wolfenstein, Player, Difficulty, Level);
+                NextState = new GameGenerationRetryState(Wolfenstein, Player, GameGuid, Difficulty, Level);
                 return;
             }
             Progress = 80;

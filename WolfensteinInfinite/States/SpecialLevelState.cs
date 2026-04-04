@@ -13,15 +13,17 @@ namespace WolfensteinInfinite.States
         public readonly Player Player;
         public readonly Difficulties Difficulty;
         public readonly int Level;
+        public readonly Guid GameGuid;
         public int Progress = 0;
 
-        public SpecialLevelState(Wolfenstein wolfenstein, Player player,
+        public SpecialLevelState(Wolfenstein wolfenstein, Player player, Guid gameGuid,
             Difficulties difficulty, int level, string modName, MapSection section)
             : base(wolfenstein)
         {
             Player = player;
             Difficulty = difficulty;
             Level = level;
+            GameGuid = gameGuid;
             ReturnState = this;
             NextState = this;
 
@@ -36,7 +38,7 @@ namespace WolfensteinInfinite.States
             if (!Wolfenstein.Mods.TryGetValue(modName, out var mod))
             {
                 NextState = new GameGenerationState(
-                    Wolfenstein, Player, Difficulty, Level);
+                    Wolfenstein, Player, GameGuid, Difficulty, Level);
                 return;
             }
 
@@ -65,7 +67,7 @@ namespace WolfensteinInfinite.States
             if (!builder.Success)
             {
                 NextState = new GameGenerationState(
-                    Wolfenstein, Player, Difficulty, Level);
+                    Wolfenstein, Player, GameGuid, Difficulty, Level);
                 return;
             }
 
@@ -73,7 +75,7 @@ namespace WolfensteinInfinite.States
             if (map == null)
             {
                 NextState = new GameGenerationState(
-                    Wolfenstein, Player, Difficulty, Level);
+                    Wolfenstein, Player, GameGuid, Difficulty, Level);
                 return;
             }
 
