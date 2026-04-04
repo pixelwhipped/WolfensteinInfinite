@@ -14,14 +14,15 @@ namespace WolfensteinInfinite.States
         public readonly Difficulties Difficulty;
         public readonly int Level;
         public int Progress = 0;
-
-        public GameGenerationState(Wolfenstein wolfenstein, Player player, Difficulties difficulty, int level) : base(wolfenstein)
+        public readonly Guid GameGuid;
+        public GameGenerationState(Wolfenstein wolfenstein, Player player, Guid gameGuid, Difficulties difficulty, int level) : base(wolfenstein)
         {
             Player = player;
             Difficulty = difficulty;
             Level = level;
             ReturnState = this;
             NextState = this;
+            GameGuid = gameGuid;
             new Thread(new ThreadStart(() => { GenerateMap(); })).Start();
         }
         public void GenerateMap()
@@ -139,7 +140,7 @@ namespace WolfensteinInfinite.States
             Progress = 100;
             Thread.Sleep(50);
 
-            var game = new Game(Guid.NewGuid(), map, Player, [.. mods.Select(p => p.Name)]);
+            var game = new Game(GameGuid, map, Player, [.. mods.Select(p => p.Name)]);
             NextState = new InGameState(Wolfenstein, game);
         }
 

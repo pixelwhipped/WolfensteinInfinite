@@ -76,13 +76,13 @@ namespace WolfensteinInfinite.States
                     else
                     {
                         nextLevel = new GameGenerationState(
-                            Wolfenstein, Game.Player, Game.Map.Difficulty, Game.Map.Level);
+                            Wolfenstein, Game.Player,Game.GameId, Game.Map.Difficulty, Game.Map.Level);
                     }
                 }
                 else
                 {
                     nextLevel = new GameGenerationState(
-                        Wolfenstein, Game.Player, Game.Map.Difficulty, Game.Map.Level);
+                        Wolfenstein, Game.Player, Game.GameId, Game.Map.Difficulty, Game.Map.Level);
                 }
                 return nextLevel;
             }

@@ -828,9 +828,32 @@ namespace WolfensteinInfinite.States
                 PickupItemType.LIFE => ApplyLife(item),
                 PickupItemType.GODMODE => ActivateCheatGodMode(),
                 PickupItemType.MISSION_OBJECTIVE => ApplyObjective(item),
+                PickupItemType.BACKPACK => ApplyBackPack(item),
                 PickupItemType.SPAWNER => false,
                 _ => false,
             };
+        }
+
+        private bool ApplyBackPack(PickupItem item)
+        {
+            bool addedAmmo= false;
+            bool addedHealth = false;
+            if (Game.Player.Ammo[AmmoType.BULLET] + 25 < 999)
+            {
+                Game.Player.Ammo[AmmoType.BULLET] = Game.Player.Ammo[AmmoType.BULLET] + 25;
+                addedAmmo = true;
+            }
+            if (Game.Player.Health + 25 < 100)
+            {
+                Game.Player.Health += 25;
+                addedHealth = true;
+            }
+            if(addedHealth || addedAmmo)
+            {
+                PickupTween.Reset();
+                return true;
+            }
+            return false;
         }
 
         public void ApplyDamage(int damage)

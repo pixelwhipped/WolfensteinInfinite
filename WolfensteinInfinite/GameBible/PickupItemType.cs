@@ -9,6 +9,7 @@
         LIFE,
         MISSION_OBJECTIVE,
         SPAWNER,
-        GODMODE
+        GODMODE,
+        BACKPACK
     }
 }
