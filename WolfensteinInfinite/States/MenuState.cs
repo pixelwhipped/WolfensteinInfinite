@@ -33,7 +33,7 @@ namespace WolfensteinInfinite.States
             "I'm thinkin' that\nyou might wanna press N\nto play more. You do it.",
             "Sure. Fine. Quit.\nSee if we care.\nGet it over with.\nPress Y."
         ];
-        public const string WarningString = RebuildState.WarningString;
+        public const string WarningString = $"First Run Build.\n{RebuildState.WarningString}";
         public bool ConfirmExit = false;
         public bool ConfirmRebuild = false;
         public string ExitString = ExitStrings[Random.Shared.Next(ExitStrings.Length)];

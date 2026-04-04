@@ -15,13 +15,14 @@ namespace WolfensteinInfinite.GameObjects
         public string Weapon { get; set; } = "Pistol";
         public List<string> Weapons { get; set; } = ["Knife", "Pistol"];
         public bool GodMode { get; set; } = false;
-
+        public bool HasBackpack { get; set; } = false;
         public float PosX { get; set; }
         public float PosY { get; set; }
         public float DirX { get; set; }
         public float DirY { get; set; }
         public float PlaneX { get; set; }
         public float PlaneY { get; set; }
+        
     }
 }
 

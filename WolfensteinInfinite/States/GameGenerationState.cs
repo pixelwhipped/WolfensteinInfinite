@@ -28,14 +28,14 @@ namespace WolfensteinInfinite.States
         public void GenerateMap()
         {
             MapFlags[] attemptObjectives = [];
-            var mods = Wolfenstein.Config.Mods.Where(p => p.Enabled);
+            var mods = Wolfenstein.ActiveMods;
             var modBuilders = Wolfenstein.BuilderMods
-                .Where(p => mods.Any(mo => mo.Name == p.Key) && p.Value.MapSections.Length > 0)
+                .Where(p => mods.Any(mo => mo == p.Key) && p.Value.MapSections.Length > 0)
                 .ToArray();
             if (modBuilders.Length == 0) throw new Exception("No Mods with Level Sections");
             
 
-            Wolfenstein.PlayLevelMusic(mods.Select(m => m.Name));
+            Wolfenstein.PlayLevelMusic(mods.Select(m => m));
             Progress = 10;
             Thread.Sleep(50);
 
@@ -140,7 +140,7 @@ namespace WolfensteinInfinite.States
             Progress = 100;
             Thread.Sleep(50);
 
-            var game = new Game(GameGuid, map, Player, [.. mods.Select(p => p.Name)]);
+            var game = new Game(GameGuid, map, Player, mods);
             NextState = new InGameState(Wolfenstein, game);
         }
 

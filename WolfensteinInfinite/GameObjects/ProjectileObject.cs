@@ -1,41 +1,28 @@
-﻿using System.Runtime.CompilerServices;
-using System.Windows.Media.Animation;
-using WolfensteinInfinite.GameBible;
+﻿using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
 using WolfensteinInfinite.States;
-using WolfensteinInfinite.WolfMod;
-using static System.Windows.Forms.AxHost;
 
 namespace WolfensteinInfinite.GameObjects
 {
     // -------------------------------------------------------------------------
     // ProjectileObject
     // -------------------------------------------------------------------------
-    public sealed class ProjectileObject : DynamicObject
+    public sealed class ProjectileObject(float x, float y, float dirX, float dirY,
+    string mod, Projectile projectile, int damage, bool isEnemyProjectile, ISprite? sprite) : DynamicObject(x, y, DynamicObjectType.Projectile, sprite)
     {
-        public float DirX { get; init; } 
-        public float DirY { get; init; } 
-        public Projectile Projectile { get; init; }
-        public string Mod { get; init; }
-        public int Damage { get; init; }
-        public bool IsEnemyProjectile { get; init; }
+        public float DirX { get; init; } = dirX;
+        public float DirY { get; init; } = dirY;
+        public Projectile Projectile { get; init; } = projectile;
+        public string Mod { get; init; } = mod;
+        public int Damage { get; init; } = damage;
+        public bool IsEnemyProjectile { get; init; } = isEnemyProjectile;
         private float _distanceTravelled = 0;        
         public float FacingAngle { get; private set; } = 180f;
         private float _smoothedFacingAngle = 180f;
         private bool ExplsionAdded = false;
         private bool TrailAdded = false;
         private Animation? TrailAnimation = null;
-        public ProjectileObject(float x, float y, float dirX, float dirY,
-        string mod, Projectile projectile, int damage, bool isEnemyProjectile, ISprite? sprite) : base(x, y, DynamicObjectType.Projectile, sprite)
-        {
-            DirX = dirX;
-            DirY = dirY;
-            Mod = mod;
-            Projectile = projectile;
-            Damage = damage;
-            IsEnemyProjectile = isEnemyProjectile;
-            
-        }
+
         private void AddExplosion(InGameState state)
         {
             if (ExplsionAdded) return;
@@ -46,7 +33,7 @@ namespace WolfensteinInfinite.GameObjects
             }
         }
 
-        private void AddTrail(InGameState state, ProjectileObject projectileObject)
+        private static void AddTrail(InGameState state, ProjectileObject projectileObject)
         {
             if (!projectileObject.IsAlive || projectileObject.TrailAnimation == null) return;
             state.DynamicObjects.Add(new ParticleObject(projectileObject.X, projectileObject.Y, projectileObject.DirX, projectileObject.DirY, projectileObject.Projectile.Speed*0.75f, projectileObject.Mod, projectileObject.TrailAnimation.Clone(), (_)=> { AddTrail(state, projectileObject); }));

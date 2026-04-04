@@ -567,6 +567,8 @@ namespace WolfensteinInfinite.GameMap
         }
         internal Map? ToGameMap(Player player, Difficulties difficulty, int Level)
         {
+            var randomWeapons = Wolfenstein.PickupItemTypes.Where(p => p.Value.ItemType == PickupItemType.WEAPON).Select(p => p.Key).ToArray();
+            var randomItem= Wolfenstein.PickupItemTypes.Where(p => p.Value.ItemType == PickupItemType.AMMO || p.Value.ItemType == PickupItemType.BACKPACK || p.Value.ItemType == PickupItemType.HEALTH).Select(p=>p.Key).ToArray();
             int objectiveCount = 0;
             var floor = new Texture32(64, 64);
             var playerX = -1;
@@ -695,8 +697,11 @@ namespace WolfensteinInfinite.GameMap
                         var worldX = layer.X + x;
                         if (worldX < 0 || worldX >= Width) continue;
                         if (items[y][x] < 0) continue;
+                        //29 is random item 30 is random weapon
                         if (SkipSpecialChance(special, x, y)) continue;
-                        
+                        if (items[y][x] == 29) items[y][x] = randomItem[Random.Shared.Next(randomItem.Length)];
+                        if (items[y][x] == 30) items[y][x] = randomWeapons[Random.Shared.Next(randomItem.Length)];
+
                         var key = new ModKeyIndex(layer.Mod.Name, items[y][x]);
                         if (!itemsKeyIndicies.TryGetValue(key, out int index))
                         {

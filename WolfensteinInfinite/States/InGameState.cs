@@ -321,13 +321,13 @@ namespace WolfensteinInfinite.States
             Wolfenstein.WeaponAnimations[Game.Player.Weapon].OnFire = new Action(DoAttack);
         }
 
-        //Handled slightly different thatn EnemyObject FireShot Aim Assist
+        //Handled slightly different that EnemyObject FireShot Aim Assist
         private void DoAttack()
         {
             var weapon = WeaponTransitionState.TransitionWeapon;
             var transitionAfter = false;
             var t = weapon.AmmoType;
-            if (Game.Player.Ammo.TryGetValue(t, out int value))
+            if (t != AmmoType.MELEE && Game.Player.Ammo.TryGetValue(t, out int value))
             {
                 if (value == 0) return;
                 Game.Player.Ammo[t] = Math.Max(value - 1, 0);
@@ -551,7 +551,6 @@ namespace WolfensteinInfinite.States
         public void UpdateWeapon(Texture32 buffer, float frameTime)
         {
             WeaponTransitionState.Update(frameTime);
-
             // Update weapon cooldown
             if (_weaponCooldown > 0)
                 _weaponCooldown -= frameTime;
@@ -686,7 +685,7 @@ namespace WolfensteinInfinite.States
             {
                 { AmmoType.BULLET, 16 }
             };
-
+            Game.Player.HasBackpack = false;
             // Restore spawn position and direction
             Game.Player.PosX = _spawnX;
             Game.Player.PosY = _spawnY;
@@ -836,9 +835,10 @@ namespace WolfensteinInfinite.States
 
         private bool ApplyBackPack()
         {
+            Game.Player.HasBackpack = true;
             bool addedAmmo= false;
             bool addedHealth = false;
-            if (Game.Player.Ammo[AmmoType.BULLET] + 25 < 999)
+            if (Game.Player.Ammo[AmmoType.BULLET] + 25 < MaxAmmo(AmmoType.BULLET))
             {
                 Game.Player.Ammo[AmmoType.BULLET] = Game.Player.Ammo[AmmoType.BULLET] + 25;
                 addedAmmo = true;
@@ -967,12 +967,24 @@ namespace WolfensteinInfinite.States
             return true;
         }
 
+        public int MaxAmmo(AmmoType ammoType)
+        {
+            return ammoType switch
+            {
+                AmmoType.MELEE => 0,
+                AmmoType.BULLET => Game.Player.HasBackpack ? 99 : 999,
+                AmmoType.SERUM => 100,
+                AmmoType.FLAME => Game.Player.HasBackpack ? 250 : 999,
+                AmmoType.ROCKET => Game.Player.HasBackpack ? 50 : 250,
+                _ => 99,
+            };
+        }
         private bool ApplyAmmo(PickupItem item)
         {
             if (item.AmmoType is null) return false;
             var t = (AmmoType)item.AmmoType;
-            if (Game.Player.Ammo[t] >= 999) return false;
-            Game.Player.Ammo[t] = Math.Min(Game.Player.Ammo[t] + item.Value, 999);
+            if (Game.Player.Ammo[t] >= MaxAmmo(t)) return false;
+            Game.Player.Ammo[t] = Math.Min(Game.Player.Ammo[t] + item.Value, MaxAmmo(t));
             PickupTween.Reset();
             return true;
         }
@@ -1059,14 +1071,14 @@ namespace WolfensteinInfinite.States
             Game.Player.Weapons = [.. Wolfenstein.PlayerWeapons.Keys];
             Game.Player.Weapons.Sort((a, b) =>
                 Wolfenstein.PlayerWeapons[a].PreferedOrder.CompareTo(Wolfenstein.PlayerWeapons[b].PreferedOrder));
-
+            Game.Player.HasBackpack = true;
             foreach (var flag in Enum.GetValues<MapFlags>())
                 Game.Map.ObjectivesComplete[flag] = true;
 
             foreach (var ammoType in Enum.GetValues<AmmoType>())
-                Game.Player.Ammo[ammoType] = 999;
+                Game.Player.Ammo[ammoType] = MaxAmmo(ammoType);
 
-            WeaponTransition("ChainGun");
+            WeaponTransition(Game.Player.Weapons.Last());
             ShowHudMessage("ALL WEAPONS & MAX AMMO");
         }
 

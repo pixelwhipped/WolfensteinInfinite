@@ -10,6 +10,7 @@
         MISSION_OBJECTIVE,
         SPAWNER,
         GODMODE,
-        BACKPACK
+        BACKPACK,
+        SPECIAL
     }
 }

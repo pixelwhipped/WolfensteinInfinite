@@ -58,7 +58,7 @@ namespace WolfensteinInfinite.WolfMod
         }
 
         public static Mod CreateInfiniteMod()
-        {
+          {
             var mod = new Mod("Infinite")
             {
                 FloorTexture = "Infinite\\Textures\\Floor.png",
@@ -86,6 +86,14 @@ namespace WolfensteinInfinite.WolfMod
                             ["MachineGun","ChainGun"])
                     ]
                     )
+                ],
+                Animations = [
+                    AnimationHelpers.Create("RocketTrail", $"Infinite\\Sprites", 378, 4, 8f),
+                    AnimationHelpers.Create("RocketImpact", $"Infinite\\Sprites", 382, 3, 3f)
+                ],
+                Projectiles = [
+                    ProjectileHelpers.CreateRocket("Rocket", ProjectileSpriteType.ROCKET, $"Infinite\\Sprites", 1000, null, "RocketTrail", "RocketImpact"),                
+                    ProjectileHelpers.CreateFlame("Flame", ProjectileSpriteType.FLAME, $"Infinite\\Sprites", 326, null, null, null)
                 ]
             };
             return mod;

@@ -209,6 +209,8 @@ namespace WolfensteinInfinite
             PickupItemTypes.Add(26, new PickupItem("Backpack", PickupItemType.BACKPACK, 3, 0, "GameData\\Base\\Sprites\\Backpack.png", null));
             PickupItemTypes.Add(27, new PickupItem("RocketLauncher", PickupItemType.WEAPON, 1, 0, "GameData\\Base\\Sprites\\RocketLauncher.png", null));
             PickupItemTypes.Add(28, new PickupItem("FlameThrower", PickupItemType.WEAPON, 1, 0, "GameData\\Base\\Sprites\\FlameThrower.png", null));
+            PickupItemTypes.Add(29, new PickupItem("RandomItem", PickupItemType.SPECIAL, 1, 0, "GameData\\Base\\Pictures\\RandomItem.png", null));
+            PickupItemTypes.Add(30, new PickupItem("RandomWeapon", PickupItemType.SPECIAL, 1, 0, "GameData\\Base\\Pictures\\RandomWeapon.png", null));
 
 
             foreach (var i in PickupItemTypes)
@@ -217,13 +219,13 @@ namespace WolfensteinInfinite
                     PickupItems.Add(i.Key, FileHelpers.Shared.LoadSurface32(i.Value.SpritePath));
             }
 
-
-            PlayerWeapons.Add("Knife", new PlayerWeapon("Knife", 0, WeaponType.KNIFE, AmmoType.MELEE, null, 9, 1, 0, 0f, "GameData\\Base\\Pictures\\HudKnife.png", "GameData\\Base\\Sprites", 416, 5, 2, 1, 4));
-            PlayerWeapons.Add("Pistol", new PlayerWeapon("Pistol", 10, WeaponType.PISTOL, AmmoType.BULLET, "GameData\\Base\\Sounds\\Pistol.wav", 18, 1, 0, 0f, "GameData\\Base\\Pictures\\HudPistol.png", "GameData\\Base\\Sprites", 421, 5, 2, 1, 4));
-            PlayerWeapons.Add("MachineGun", new PlayerWeapon("MachineGun", 20, WeaponType.MACHINE_GUN, AmmoType.BULLET, "GameData\\Base\\Sounds\\MachineGun.wav", 12, 1, 1f, 4f, "GameData\\Base\\Pictures\\HudMachineGun.png", "GameData\\Base\\Sprites", 426, 5, 2, 2, 3));
-            PlayerWeapons.Add("ChainGun", new PlayerWeapon("ChainGun", 30, WeaponType.CHAIN_GUN, AmmoType.BULLET, "GameData\\Base\\Sounds\\ChainGun.wav", 11, 2, 1f, 3f, "GameData\\Base\\Pictures\\HudChainGun.png", "GameData\\Base\\Sprites", 431, 5, 2, 2, 3));
-            PlayerWeapons.Add("RocketLauncher", new PlayerWeapon("RocketLauncher", 40, WeaponType.ROCKET_LAUNCHER, AmmoType.ROCKET, null, 11, 1, 2f, 0f, "GameData\\Base\\Pictures\\HudRocketLauncher.png", "GameData\\Base\\Sprites", 1105, 4, 2, 2, 3));
-            PlayerWeapons.Add("FlameThrower", new PlayerWeapon("FlameThrower", 50, WeaponType.FLAME_THROWER, AmmoType.FLAME, null, 11, 2, 1f, 3f, "GameData\\Base\\Pictures\\HudFlameThrower.png", "GameData\\Base\\Sprites", 1100, 5, 3, 3, 3));
+            // maxFireTime=0 makes it single-shot
+            PlayerWeapons.Add("Knife", new PlayerWeapon("Knife", 0, WeaponType.KNIFE, AmmoType.MELEE, null, 9, 3, 0, 0f, "GameData\\Base\\Pictures\\HudKnife.png", "GameData\\Base\\Sprites", 416, 5, 2, 1, 4));
+            PlayerWeapons.Add("Pistol", new PlayerWeapon("Pistol", 10, WeaponType.PISTOL, AmmoType.BULLET, "GameData\\Base\\Sounds\\Pistol.wav", 18, 3, 0, 0f, "GameData\\Base\\Pictures\\HudPistol.png", "GameData\\Base\\Sprites", 421, 5, 2, 1, 4));
+            PlayerWeapons.Add("MachineGun", new PlayerWeapon("MachineGun", 20, WeaponType.MACHINE_GUN, AmmoType.BULLET, "GameData\\Base\\Sounds\\MachineGun.wav", 12, 3, 1f, 4f, "GameData\\Base\\Pictures\\HudMachineGun.png", "GameData\\Base\\Sprites", 426, 5, 2, 2, 3));
+            PlayerWeapons.Add("ChainGun", new PlayerWeapon("ChainGun", 30, WeaponType.CHAIN_GUN, AmmoType.BULLET, "GameData\\Base\\Sounds\\ChainGun.wav", 11, 4, 1f, 3f, "GameData\\Base\\Pictures\\HudChainGun.png", "GameData\\Base\\Sprites", 431, 5, 2, 2, 3));            
+            PlayerWeapons.Add("RocketLauncher", new PlayerWeapon("RocketLauncher", 40, WeaponType.ROCKET_LAUNCHER, AmmoType.ROCKET, "GameData\\Base\\Sounds\\Rocket.wav", 11, 3, 2f, 1f, "GameData\\Base\\Pictures\\HudRocketLauncher.png", "GameData\\Base\\Sprites", 1105, 4, 2, 1, 3));
+            PlayerWeapons.Add("FlameThrower", new PlayerWeapon("FlameThrower", 50, WeaponType.FLAME_THROWER, AmmoType.FLAME, "GameData\\Base\\Sounds\\Flame.wav", 11, 8, 1f, 4f, "GameData\\Base\\Pictures\\HudFlameThrower.png", "GameData\\Base\\Sprites", 1100, 5, 2, 1, 4));
 
             WeaponAnimations.Add("Knife", AnimationHelpers.Create(PlayerWeapons["Knife"]));
             WeaponAnimations.Add("Pistol", AnimationHelpers.Create(PlayerWeapons["Pistol"]));
@@ -710,6 +712,8 @@ namespace WolfensteinInfinite
         public RGBA8[]? PreserveColors { get; set; }
         public Animation POWAnimation { get; init; }
         public Texture32 BloodPool { get; init; }
+        public string[] ActiveMods => [.. Config.Mods.Where(p => p.Enabled).Select(p=>p.Name)];
+
         private void RenderQuantize(int colors)
         {
             var originalPallet = Graphics.Pallet;

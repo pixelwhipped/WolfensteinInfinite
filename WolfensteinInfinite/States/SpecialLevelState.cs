@@ -84,10 +84,8 @@ namespace WolfensteinInfinite.States
 
             map.LoadResources(Wolfenstein);
             Progress = 100;
-            Thread.Sleep(50);
-
-            var game = new Game(Guid.NewGuid(), map, Player,
-                [.. Wolfenstein.Mods.Keys]);
+            Thread.Sleep(50);            
+            var game = new Game(Guid.NewGuid(), map, Player, Wolfenstein.ActiveMods);
             NextState = new InGameState(Wolfenstein, game);
         }
 
