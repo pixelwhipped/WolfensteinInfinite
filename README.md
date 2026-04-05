@@ -7,19 +7,48 @@
 > *Get Psyched. Again. And Again.*
 [https://youtu.be/_RcMwc3LSV4]
 
-## What Is This?
-
 Wolfenstein Infinite is a fan-made, procedurally generated first-person shooter built in the spirit of the 1992 classic *Wolfenstein 3D* by id Software. Rather than fixed levels, each playthrough generates a unique map from composable sections, meaning no two runs are the same.
 
 The game is built on a modular architecture — nearly everything from enemies and weapons to map sections and music is defined by mod files, meaning the game can be extended or reskinned without touching the engine.
 
-**This project exists as a love letter to id Software and the game that defined a genre. Much love and respect to John Carmack, Adrian Carmack, John Romero, Tom Hall, Kevin Cloud, Jay Wilbur, and the entire id Software team.**
 ![Preview](https://github.com/pixelwhipped/WolfensteinInfinite/blob/master/WolfensteinInfinite/ScreenShots/Capture002.PNG)
----
 
-## Status
+## What's new?
+### New weapons
+ - Rocket Laucher 
+ - Flame Thrower
+### New items
+ - Backpack, increase max ammo holding capcity
+ - Rockets, for the Rocket Launcher
+ - Gas, for the Flame Thrower
+ - God Mode
+### Mission objectives
+ - Prisoner of War, Find him imprisoned and guide hime to the exit
+ - Dynamite, find the dynamite and place a specific locations and run to the exit
+ - Secret Message, Find the top secret information and transmite it from the Radio
+### Other
+ - Map size now 128x128 vs max prior of 64x64
+ - Moddable, Simple to add/build new mods with a built in map editor 
+ - Experimatal Bosses, these are generated on the fly based of sets of body parts assembled and colorized to create unique endless bosses
+ - Prison doors, transparent doors
+ - Blood Pools, enimies will pool blood on death
+ - Dying directions, enimies can either die falling to left or right for slight variations
+ - Floor and Ceiling Textures
+ - More
 
-Pre-Release
+## Road Map
+
+Release 1.0.0.0 (done)
+Inlcudes mod definitions for the shareware and full release version of Wolfenstein3D
+
+Release 1.1.0.0
+Add Spear of Destiny mod definition.
+
+Release 1.2.0.0
+Add Return to Danger mod definition.
+
+Release 1.2.0.0
+Add Ultimate Challenge mod definition.
 
 ![Experimental](https://github.com/pixelwhipped/WolfensteinInfinite/blob/master/WolfensteinInfinite/ScreenShots/Capture001.PNG)
 
@@ -45,7 +74,7 @@ The repository ships with the **Demo mod** which uses the original Wolfenstein 3
 If you own a copy of Wolfenstein 3D you can add the full game data for a richer experience:
 
 1. Locate your Wolfenstein 3D game files and place in `GameData\`
-2. Launch the game — the full mod will be detected automatically
+2. Launch the game — and in mods select rebuild to generate the mod data
 
 > The original game files are **not included** in this repository and cannot be distributed here. You must own a legitimate copy.
 
@@ -102,7 +131,9 @@ GameData/
 
 Maps are built from composable `MapSection` tiles defined in `map.json`. Each section is a small hand-crafted room or corridor with connection points (doors) on its edges. The generator stitches these together at runtime.
 
-Sections can carry objectives, enemy placements, items, decals, and special tiles. Full documentation on section authoring is in the Map Editor.
+It is recommended sections are in multiples of 5x5
+
+Sections can carry objectives, enemy placements, items, decals, and special tiles. Mod levels and sections can be authored in the Map Editor.
 
 ### Running in Test Mode
 
@@ -162,16 +193,13 @@ This project is free and open source. If you enjoy it or find it useful:
 - 🐛 **Report bugs** — open an issue with as much detail as you can
 - 🔧 **Contribute** — PRs are welcome, especially for polish, optimization, and mod content
 - 💬 **Spread the word** — tell other Wolf3D fans about it
-
-💛 **Support the developer** — if you'd like to support Ben's work financially, a donation link is coming soon. Watch this space.
+- 💛 **Support on Patreon** — [patreon.com/pixelwhipped](https://www.patreon.com/15682673/join) 
 
 ---
 
 ## Credits
 
 **Wolfenstein Infinite** is developed by **Ben Tarrant** ([@pixelwhipped](https://github.com/pixelwhipped)).
-
-A significant portion of the engine architecture, game systems, and code in this project was designed and written in collaboration with **Claude** (Anthropic's AI assistant). Claude contributed across nearly every system — from the raycaster and enemy AI to map generation(Ah-hem claude. ya know I wrote the underlying game engine, though you helped wit quantization a bit well quite a bit), mission objectives, and save systems. This project is an experiment in what human creativity and AI collaboration can build together.
 
 **Wolfenstein 3D** was created by id Software in 1992.
 Much love to **John Carmack, Adrian Carmack, John Romero, Tom Hall, Kevin Cloud, and Jay Wilbur** — thank you for making something that still inspires people more than 30 years later.
