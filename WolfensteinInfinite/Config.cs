@@ -44,7 +44,7 @@ namespace WolfensteinInfinite
                     new(Guid.Empty, "Jay Wilbur", 1, 10000)
                 ],true,100,true,100, Keyboard.Key.Up, Keyboard.Key.Down, Keyboard.Key.Left, Keyboard.Key.Right,
                 Keyboard.Key.LControl, Keyboard.Key.Space, Keyboard.Key.LAlt, Keyboard.Key.Comma, Keyboard.Key.Period,
-                Keyboard.Key.Tab, Keyboard.Key.Pause, 2, 0, 2, false, 128, [], false
+                Keyboard.Key.Tab, Keyboard.Key.Pause, 2, 0, 2, false, 64, [], false
                 );
         }
     }

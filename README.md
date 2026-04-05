@@ -27,7 +27,6 @@ The game is built on a modular architecture — nearly everything from enemies a
  - Dynamite, find the dynamite and place a specific locations and run to the exit
  - Secret Message, Find the top secret information and transmite it from the Radio
 ### Other
- - Map size now 128x128 vs max prior of 64x64
  - Moddable, Simple to add/build new mods with a built in map editor 
  - Experimatal Bosses, these are generated on the fly based of sets of body parts assembled and colorized to create unique endless bosses
  - Prison doors, transparent doors
