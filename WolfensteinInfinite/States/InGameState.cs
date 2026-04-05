@@ -983,7 +983,7 @@ namespace WolfensteinInfinite.States
         {
             if (item.AmmoType is null) return false;
             var t = (AmmoType)item.AmmoType;
-            if (!Game.Player.Ammo.ContainsKey(t)) Game.Player.Ammo.Add(t, 0);
+            Game.Player.Ammo.TryAdd(t, 0);
             if (Game.Player.Ammo[t] >= MaxAmmo(t)) return false;
             Game.Player.Ammo[t] = Math.Min(Game.Player.Ammo[t] + item.Value, MaxAmmo(t));
             PickupTween.Reset();
@@ -1077,7 +1077,10 @@ namespace WolfensteinInfinite.States
                 Game.Map.ObjectivesComplete[flag] = true;
 
             foreach (var ammoType in Enum.GetValues<AmmoType>())
+            {
+                Game.Player.Ammo.TryAdd(ammoType, 0);
                 Game.Player.Ammo[ammoType] = MaxAmmo(ammoType);
+            }
 
             WeaponTransition(Game.Player.Weapons.Last());
             ShowHudMessage("ALL WEAPONS & MAX AMMO");
