@@ -854,8 +854,7 @@ namespace WolfensteinInfinite
                     drop[wl] = Math.Min(value * 2, 100);                
                 else                
                     drop.Add(wl, Random.Shared.Next(0, 50));                
-            }
-            //todo add randomness and possible weapon drop
+            }            
             var eTypes = new[] { EnemyType.ADOLF_HITLER, EnemyType.HITLER_GHOST, EnemyType.DOCTOR_SCHABBS, EnemyType.GENERAL_FETTGESICHT, EnemyType.GRETEL_GROSSE, EnemyType.HANS_GROSS, EnemyType.MECHA_HITLER, EnemyType.OTTO_GIFTMACHER };
             var bosses = new List<Enemy>();
             foreach (var m in Mods.Values)
@@ -874,8 +873,7 @@ namespace WolfensteinInfinite
                     [Difficulties.BRING_EM_ON] = 1050 + addPoint,
                     [Difficulties.I_AM_DEATH_INCARNATE] = 1200 + addPoint
                 }, [wr, wl],
-                []  //Drop was gold key but irrelevent now
-                , CharacterSpriteType.BOSS, e.SpritePath, 0,
+                drop, CharacterSpriteType.BOSS, e.SpritePath, 0,
                 bosses.Count != 0 ? bosses[Random.Shared.Next(0, bosses.Count)].AlertSounds : [],
                 bosses.Count != 0 ? bosses[Random.Shared.Next(0, bosses.Count)].DeathSounds : [],
                 bosses.Count != 0 ? bosses[Random.Shared.Next(0, bosses.Count)].TauntSounds : [], [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, blood,0);
