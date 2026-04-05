@@ -374,7 +374,7 @@ namespace WolfensteinInfinite.States
                     var dy = obj.Y - Game.Player.PosY;
                     var dist = MathF.Sqrt(dx * dx + dy * dy);
                     var dot = (dx / dist) * Game.Player.DirX + (dy / dist) * Game.Player.DirY;
-                    if (dot > 0.5f) //If facing enemy
+                    if (dist<1.5f &&  dot > 0.5f) //If facing enemy
                         obj.TakeDamage((int)Math.Ceiling(projectile.GetDamage((int)dist, Difficulties.CAN_I_PLAY_DADDY) * diffPlayerBuff), this);
                 }
             }
