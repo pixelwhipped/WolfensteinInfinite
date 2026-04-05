@@ -348,8 +348,6 @@ namespace WolfensteinInfinite.GameMap
                 .ToList();
             return [.. usageSorted];
         }
-
-        private int _lastPlacedDoorCount = 1;
         private IEnumerable<int> GetDoorPriority(Dictionary<int, List<int>> sectionsByDoorCount, float roomsLeftPercent, int useDoors, int minDoors)
         {
             var priority = GetDoorPriorityBiased(sectionsByDoorCount, roomsLeftPercent);
@@ -553,7 +551,6 @@ namespace WolfensteinInfinite.GameMap
         {
             _recentDoorCounts.Enqueue(section.Connections.Length);
             if (_recentDoorCounts.Count > 3) _recentDoorCounts.Dequeue();
-            _lastPlacedDoorCount = section.Connections.Length;
 
             // Store the small section at its world position — no expansion needed
             var gm = new MapGeneratorSection(x, y, section.Mod, section.Section, section.Section.GetConnections(x, y));

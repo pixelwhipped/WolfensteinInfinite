@@ -830,19 +830,31 @@ namespace WolfensteinInfinite
                 tex.Draw(i * -64, 0, composit);
                 animation.Add(tex);
             }
-            Animations.Add(CharacterAnimationState.DYING_LEFT, new GameGraphics.Animation([.. animation], 1, 3, 3.5f, loop: false));
-            Animations.Add(CharacterAnimationState.DYING_RIGHT, new GameGraphics.Animation([.. animation], 1, 3, 3.5f, loop: false));
+            Animations.Add(CharacterAnimationState.DYING_LEFT, new Animation([.. animation], 1, 3, 3.5f, loop: false));
+            Animations.Add(CharacterAnimationState.DYING_RIGHT, new Animation([.. animation], 1, 3, 3.5f, loop: false));
 
             animation.Clear();
             var hitTex = new Texture32(64, 64);
             hitTex.Draw(8 * -64, 0, composit);
             animation.Add(hitTex);
-            Animations.Add(CharacterAnimationState.HIT, new GameGraphics.Animation([.. animation], 1, 2, 8f, loop: false));
+            Animations.Add(CharacterAnimationState.HIT, new Animation([.. animation], 1, 2, 8f, loop: false));
 
             experimentSprite = new CharacterSprite(Animations);
 
             var wr = wro.WeaponsOptions[Random.Shared.Next(0, wro.WeaponsOptions.Length)];
             var wl = wro.WeaponsOptions[Random.Shared.Next(0, wro.WeaponsOptions.Length)];
+            var drop = new Dictionary<string, int>();
+            if (PickupItemTypes.Any(p => p.Value.Name == wr))
+            {
+                drop.Add(wr, Random.Shared.Next(0, 50));
+            }
+            if (PickupItemTypes.Any(p => p.Value.Name == wl))
+            {
+                if (drop.TryGetValue(wl, out int value))                
+                    drop[wl] = Math.Min(value * 2, 100);                
+                else                
+                    drop.Add(wl, Random.Shared.Next(0, 50));                
+            }
             //todo add randomness and possible weapon drop
             var eTypes = new[] { EnemyType.ADOLF_HITLER, EnemyType.HITLER_GHOST, EnemyType.DOCTOR_SCHABBS, EnemyType.GENERAL_FETTGESICHT, EnemyType.GRETEL_GROSSE, EnemyType.HANS_GROSS, EnemyType.MECHA_HITLER, EnemyType.OTTO_GIFTMACHER };
             var bosses = new List<Enemy>();
