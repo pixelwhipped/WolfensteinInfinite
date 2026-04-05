@@ -69,12 +69,12 @@ namespace WolfensteinInfinite.GameMap
         private static bool CheckObjectives(MapSection section)
         {
             var c = 0;
-            c += section.HasKeys ? 1 : 0;
-            c += section.HasLockedDoor ? 1 : 0;
-            c += section.HasSecret ? 1 : 0;
-            c += section.HasRadio ? 1 : 0;
-            c += section.HasDynamite ? 1 : 0;
-            c += section.HasDynamitePlacement ? 1 : 0;
+            c += section.HasKeys ? section.HasLockedDoor ? 0 : 1 : 0;
+            c += section.HasLockedDoor ? section.HasKeys ? 0 : 1 : 0;
+            c += section.HasSecret ? section.HasRadio ? 0 : 1 : 0;
+            c += section.HasRadio ? section.HasSecret ? 0 : 1 : 0;
+            c += section.HasDynamite ? section.HasDynamitePlacement ? 0 : 1 : 0;
+            c += section.HasDynamitePlacement ? section.HasDynamite ? 0 : 1 : 0;
             c += section.HasPow ? 1 : 0;
             return c <= 1;
         }

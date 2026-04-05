@@ -983,6 +983,7 @@ namespace WolfensteinInfinite.States
         {
             if (item.AmmoType is null) return false;
             var t = (AmmoType)item.AmmoType;
+            if (!Game.Player.Ammo.ContainsKey(t)) Game.Player.Ammo.Add(t, 0);
             if (Game.Player.Ammo[t] >= MaxAmmo(t)) return false;
             Game.Player.Ammo[t] = Math.Min(Game.Player.Ammo[t] + item.Value, MaxAmmo(t));
             PickupTween.Reset();

@@ -204,8 +204,8 @@ namespace WolfensteinInfinite
             PickupItemTypes.Add(21, new PickupItem("Key", PickupItemType.MISSION_OBJECTIVE, 0, 0, "GameData\\Base\\Sprites\\Key.png", null));
             PickupItemTypes.Add(22, new PickupItem("Adolf Hitler", PickupItemType.SPAWNER, 0, 0, "GameData\\Base\\Sprites\\Empty.png", null));
             PickupItemTypes.Add(23, new PickupItem("GodMode", PickupItemType.GODMODE, 1, 0, "GameData\\Base\\Sprites\\God.png", null));
-            PickupItemTypes.Add(24, new PickupItem("Gas", PickupItemType.AMMO, 25, 0, "GameData\\Base\\Sprites\\Gas.png", null));
-            PickupItemTypes.Add(25, new PickupItem("Rockets", PickupItemType.AMMO, 3, 0, "GameData\\Base\\Sprites\\Rockets.png", null));
+            PickupItemTypes.Add(24, new PickupItem("Gas", PickupItemType.AMMO, 25, 0, "GameData\\Base\\Sprites\\Gas.png", AmmoType.FLAME));
+            PickupItemTypes.Add(25, new PickupItem("Rockets", PickupItemType.AMMO, 3, 0, "GameData\\Base\\Sprites\\Rockets.png", AmmoType.ROCKET));
             PickupItemTypes.Add(26, new PickupItem("Backpack", PickupItemType.BACKPACK, 3, 0, "GameData\\Base\\Sprites\\Backpack.png", null));
             PickupItemTypes.Add(27, new PickupItem("RocketLauncher", PickupItemType.WEAPON, 1, 3, "GameData\\Base\\Sprites\\RocketLauncher.png", null));
             PickupItemTypes.Add(28, new PickupItem("FlameThrower", PickupItemType.WEAPON, 1, 25, "GameData\\Base\\Sprites\\FlameThrower.png", null));
