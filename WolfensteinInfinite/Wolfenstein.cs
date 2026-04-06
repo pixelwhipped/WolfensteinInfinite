@@ -717,7 +717,7 @@ namespace WolfensteinInfinite
         {
             var originalPallet = Graphics.Pallet;
             (byte[] pixels, byte[] pallet) = PreserveColors == null ? Quantization.Quantize32BitAI(Buffer.Pixels, colors) : Quantization.Quantize32BitAI(Buffer.Pixels, colors, PreserveColors);
-            //Dithering.Dither(Buffer.Pixels, ref pixels, pallet, Buffer.Width);
+            Dithering.Dither(Buffer.Pixels, ref pixels, pallet, Buffer.Width, Config.Dithering );
             Graphics.Pallet = pallet;
             Graphics.Blit(0, 0, new Texture8(Buffer.Width, Buffer.Height, pixels, pallet));
             Graphics.Render();

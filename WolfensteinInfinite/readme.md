@@ -166,6 +166,7 @@ The game supports the following command line arguments:
 | `-g` | Generate map Image |
 | `-t` | Load `maptestlevel.json` instead of generating a map |
 | `-e` | Enable the built-in map editor |
+| `-fps` | Show fps |
 
 Examples:
 ```

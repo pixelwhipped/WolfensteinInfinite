@@ -1,11 +1,13 @@
 ﻿using SFML.Window;
+using WolfensteinInfinite.Engine.Graphics;
+using static WolfensteinInfinite.Engine.Graphics.Dithering;
 
 namespace WolfensteinInfinite
 {
     public class Config(HighScore[] highScores,bool sound, int soundVolume, bool music, int musicVolume,
         Keyboard.Key keyUp, Keyboard.Key keyDown, Keyboard.Key keyLeft, Keyboard.Key keyRight,
         Keyboard.Key keyFire, Keyboard.Key keyOpen, Keyboard.Key keyStafe, Keyboard.Key keyWeaponUp, Keyboard.Key keyWeaponDown,
-        Keyboard.Key keyMap, Keyboard.Key keyPause, int windowSize, int resolution, int quantization, bool lightBlur, int maxMapSize, ModConfig[] mods, bool weaponBob)
+        Keyboard.Key keyMap, Keyboard.Key keyPause, int windowSize, int resolution, int quantization, DitheringMethod dithering, bool lightBlur, int maxMapSize, ModConfig[] mods, bool weaponBob, bool extraGore)
     {
         public bool LightBlur { get; set; } = lightBlur;
         //needs to be name/level/score
@@ -28,8 +30,10 @@ namespace WolfensteinInfinite
         public int WindowSize { get; set; } = windowSize;
         public int Resolution { get; set; } = resolution;
         public int Quantization { get; set; } = quantization;
+        public DitheringMethod Dithering { get; set; } = dithering;
         public int MaxMapSize { get; set; } = maxMapSize;
         public bool WeaponBob { get; set; } = weaponBob;
+        public bool ExtraGore { get; set; } = extraGore;
         public ModConfig[] Mods { get; set; } = mods;
         public static Config GetDefault()
         {
@@ -44,7 +48,7 @@ namespace WolfensteinInfinite
                     new(Guid.Empty, "Jay Wilbur", 1, 10000)
                 ],true,100,true,100, Keyboard.Key.Up, Keyboard.Key.Down, Keyboard.Key.Left, Keyboard.Key.Right,
                 Keyboard.Key.LControl, Keyboard.Key.Space, Keyboard.Key.LAlt, Keyboard.Key.Comma, Keyboard.Key.Period,
-                Keyboard.Key.Tab, Keyboard.Key.Pause, 2, 0, 2, false, 64, [], false
+                Keyboard.Key.Tab, Keyboard.Key.Pause, 2, 0, 2, DitheringMethod.None, false, 64, [], true,true
                 );
         }
     }

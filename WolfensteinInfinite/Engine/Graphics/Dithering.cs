@@ -17,11 +17,24 @@ namespace WolfensteinInfinite.Engine.Graphics
             JarvisJudiceNinke
         }
 
-        public static void Dither(byte[] pixelsHi, ref byte[] pixelsLo, byte[] pal, int width, DitheringMethod mode = DitheringMethod.FloydSteinberg) => Dither(MemoryMarshal.Cast<byte, RGBA8>(pixelsHi).ToArray(), ref pixelsLo, pal, width, mode);
-        public static void Dither(byte[] pixelsHi, ref byte[] pixelsLo, RGBA8[] pal, int width, DitheringMethod mode = DitheringMethod.FloydSteinberg) => Dither(MemoryMarshal.Cast<byte, RGBA8>(pixelsHi).ToArray(), ref pixelsLo, MemoryMarshal.Cast<RGBA8, byte>(pal).ToArray(), width, mode);
-        public static void Dither(RGBA8[] pixelsHi, ref byte[] pixelsLo, RGBA8[] pal, int width, DitheringMethod mode = DitheringMethod.FloydSteinberg) => Dither(pixelsHi, ref pixelsLo, MemoryMarshal.Cast<RGBA8, byte>(pal).ToArray(), width, mode);
+        public static void Dither(byte[] pixelsHi, ref byte[] pixelsLo, byte[] pal, int width, DitheringMethod mode = DitheringMethod.FloydSteinberg)
+        {
+            if (mode == DitheringMethod.None) return;
+            Dither(MemoryMarshal.Cast<byte, RGBA8>(pixelsHi).ToArray(), ref pixelsLo, pal, width, mode);
+        }
+        public static void Dither(byte[] pixelsHi, ref byte[] pixelsLo, RGBA8[] pal, int width, DitheringMethod mode = DitheringMethod.FloydSteinberg)
+        {
+            if (mode == DitheringMethod.None) return;
+            Dither(MemoryMarshal.Cast<byte, RGBA8>(pixelsHi).ToArray(), ref pixelsLo, MemoryMarshal.Cast<RGBA8, byte>(pal).ToArray(), width, mode);
+        }
+        public static void Dither(RGBA8[] pixelsHi, ref byte[] pixelsLo, RGBA8[] pal, int width, DitheringMethod mode = DitheringMethod.FloydSteinberg)
+        {
+            if (mode == DitheringMethod.None) return;
+            Dither(pixelsHi, ref pixelsLo, MemoryMarshal.Cast<RGBA8, byte>(pal).ToArray(), width, mode);
+        }
         public static void Dither(RGBA8[] pixelsHi, ref byte[] pixelsLo, byte[] pal, int width, DitheringMethod mode = DitheringMethod.FloydSteinberg)
         {
+            if (mode == DitheringMethod.None) return;
             static RGBA8 ClampColor(int r, int g, int b)
             {
                 return new RGBA8

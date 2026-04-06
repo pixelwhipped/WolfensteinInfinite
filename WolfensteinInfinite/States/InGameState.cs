@@ -1726,12 +1726,10 @@ namespace WolfensteinInfinite.States
                     {
                         int d = (y - screenYOffset) * 256 - buffer.Height * 128 + spriteHeight * 128;
                         int texY = Math.Clamp(((d * texHeight) / spriteHeight) / 256, 0, texHeight - 1);
-                        if (drawBloodPool && bloodPoolTexture != null && bloodPoolScale > 0f)
+                        if (Wolfenstein.Config.ExtraGore && drawBloodPool && bloodPoolTexture != null && bloodPoolScale > 0f)
                         {
                             float rawPoolTexX = (stripe - (-spriteWidth / 2 + spriteScreenX))
                                                 * bloodPoolTexture.Width / (float)spriteWidth;
-
-
                             int poolTexY = Math.Clamp(
                                 (int)((d * bloodPoolTexture.Height / (float)spriteHeight) / 256f),
                                 0, bloodPoolTexture.Height - 1);
