@@ -173,7 +173,9 @@ namespace WolfensteinInfinite.States
             const float BossNonLevelWeight = 1.5f;
             const float TextureConsistencyMax = 2f;
             const float TextureConsistencyPenalty = 0.25f;
-
+            const float DoorRoomRatioMaxWeight = 3f;
+            const float DoorRoomRatioTarget = 2f; // ideal average doors per room
+   
             bool isBossLevel = Level % BossLevelInterval == 0;
 
             var scored = PreGenerated
@@ -235,6 +237,15 @@ namespace WolfensteinInfinite.States
                         ? TextureConsistencyMax
                         : MathF.Max(0f, TextureConsistencyMax - (groupIds - 1) * TextureConsistencyPenalty);
 
+                    // --- Door to room ratio weight ---
+                    // Scores highest when average doors per room is near DoorRoomRatioTarget
+                    int totalDoors = g.MapLayers.Values.Sum(layer =>
+                        layer.Section.GetLayout(MapArrayLayouts.DOORS)
+                            .Sum(row => row.Count(d => d >= 0)));
+                    float avgDoorsPerRoom = g.MapLayers.Count > 0
+                        ? (float)totalDoors / g.MapLayers.Count : 0f;
+                    float ratioDiff = MathF.Abs(avgDoorsPerRoom - DoorRoomRatioTarget);
+                    score += MathF.Max(0f, DoorRoomRatioMaxWeight - ratioDiff * DoorRoomRatioMaxWeight);
                     return (Generator: g, Score: score);
                 })
                 .OrderByDescending(x => x.Score)
