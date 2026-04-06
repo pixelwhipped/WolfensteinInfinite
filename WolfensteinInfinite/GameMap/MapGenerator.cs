@@ -29,7 +29,7 @@ namespace WolfensteinInfinite.GameMap
         public Wolfenstein Wolfenstein { get; init; }
         public int[][] FlatMap { get; set; }
         public bool Bail { get; internal set; }
-
+        public int Sleep { get; init; }
         public static MapSection[] FlipSection(MapSection section)
         {
             var flip = new List<MapSection>
@@ -76,10 +76,10 @@ namespace WolfensteinInfinite.GameMap
             }
             return [.. flip];
         }
-        public MapGenerator(Wolfenstein wolf, int width, int height, Mod rootNodeMod, MapSection rootNode, Dictionary<Mod, MapSection[]> sections, int level, int targetRooms, MapFlags[] attemptObjectives, out string[] finalPassErrors)
+        public MapGenerator(Wolfenstein wolf, int width, int height, Mod rootNodeMod, MapSection rootNode, Dictionary<Mod, MapSection[]> sections, int level, int targetRooms, MapFlags[] attemptObjectives, int sleep, out string[] finalPassErrors)
         {
             var errors = new List<string>();
-
+            Sleep = sleep;
             Wolfenstein = wolf;
             Width = width;
             Height = height;
@@ -179,6 +179,7 @@ namespace WolfensteinInfinite.GameMap
         private readonly Dictionary<int, int> _sectionUsageCount = [];
         private MapGeneratorSection[] GetNodes(MapGeneratorSection origin)
         {
+            if (Sleep > 0) Thread.Sleep(Sleep);
             if (Bail || Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Escape) || Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyPause))
             {
                 return [];
@@ -526,6 +527,7 @@ namespace WolfensteinInfinite.GameMap
             FlatMap = MapSection.Empty(Width, Height, MapSection.ClosedSectionNothing);
             foreach (var l in MapLayers.Values)
             {
+                if (Sleep > 0) Thread.Sleep(Sleep);
                 var cs = l.GetOrComputeClosedSection();
                 if (cs == null) continue;
                 for (int i = 0; i < l.Section.Height; i++)

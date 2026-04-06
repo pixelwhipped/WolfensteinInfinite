@@ -30,6 +30,7 @@ namespace WolfensteinInfinite.States
             Game = game;
             _completedLevel = game.Map.Level - 1;
             _stats = stats;
+            PreGenerated = preGenerated;
             ReturnState = this;
             NextState = this;
             Wolfenstein.PlayMusic(Wolfenstein.LevelCompleteMusic);

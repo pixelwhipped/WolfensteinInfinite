@@ -219,10 +219,10 @@ namespace WolfensteinInfinite.States
                     (int)Math.Ceiling((Math.Clamp(Game.Map.Level + 1, 1, 100) / 100f) * maxRooms), 15);
                 CurrentGenerator = new(
                 Wolfenstein, size, size,
-                m, s, sections, Game.Map.Level + 1, targetRooms, attemptObjectives, out string[] finalPassErrors);
+                m, s, sections, Game.Map.Level + 1, targetRooms, attemptObjectives, 100, out string[] finalPassErrors);
                 if (finalPassErrors.Length > 0) return;
                 if (!CurrentGenerator.Success) return;
-                PreGenerated.Add(CurrentGenerator);
+                 PreGenerated.Add(CurrentGenerator);
             }
         }
 
@@ -1238,7 +1238,7 @@ namespace WolfensteinInfinite.States
             BuildLightMapIfNeeded();
             UpdateDynamicObjects(frameTime);
 
-            Parallel.For(0, buffer.Width, x =>
+            for(int x=0;x< buffer.Width; x++) // caused to much stutter Parallel.For(0, buffer.Width, x =>
             {
                 float cameraX = 2f * x / buffer.Width - 1f;
                 float rayDirX = Game.Player.DirX + PlaneX * cameraX;
@@ -1248,7 +1248,7 @@ namespace WolfensteinInfinite.States
                 CastPushWalls(buffer, x, rayDirX, rayDirY);
                 CastDoors(buffer, x, rayDirX, rayDirY);
                 CastDirectionalDecals(buffer, x, rayDirX, rayDirY);
-            });
+            }//);
 
             CastSprites(buffer);
             DrawMap(buffer);

@@ -60,7 +60,7 @@ namespace WolfensteinInfinite.States
                 genWidth,
                 genHeight,
                 mod, section, sections,
-                Level, 1, [], out _);
+                Level, 1, [], 0, out _);
 
             Progress = 60;
             Thread.Sleep(50);

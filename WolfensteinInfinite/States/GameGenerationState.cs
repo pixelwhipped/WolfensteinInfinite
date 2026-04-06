@@ -121,7 +121,7 @@ namespace WolfensteinInfinite.States
             Progress = 20;
             Thread.Sleep(50);
             
-            if (PreGenerated.Length > 0)
+            if (PreGenerated!=null && PreGenerated.Length > 0)
             {
                 Builder = SelectBestPreGenerated(targetRooms);
             }
@@ -129,7 +129,7 @@ namespace WolfensteinInfinite.States
             {
                 Builder = new(
                 Wolfenstein, 64, 64,
-                m, s, sections, Level, targetRooms, attemptObjectives, out string[] finalPassErrors);
+                m, s, sections, Level, targetRooms, attemptObjectives, 0, out string[] finalPassErrors);
             }
             if (!Builder.Success)
             {
@@ -158,7 +158,23 @@ namespace WolfensteinInfinite.States
 
         private MapGenerator SelectBestPreGenerated(int targetRooms)
         {
-            bool isBossLevel = Level % 9 == 0;
+            const int BossLevelInterval = 9;
+            const float SizeSmallMaxArea = 65 * 65;
+            const float SizeLargeMaxArea = 129 * 129;
+            const float SizeSmallWeight = 1f;
+            const float SizeMediumWeight = 2f;
+            const float SizeLargeWeight = 3f;
+            const float RoomProximityMaxWeight = 3f;
+            const float ObjectiveZeroWeight = 1f;
+            const float ObjectiveOneWeight = 2f;
+            const float ObjectiveTwoWeight = 2.5f;
+            const float ObjectiveThreePlusWeight = 3f;
+            const float BossLevelWeight = 10f;
+            const float BossNonLevelWeight = 1.5f;
+            const float TextureConsistencyMax = 2f;
+            const float TextureConsistencyPenalty = 0.25f;
+
+            bool isBossLevel = Level % BossLevelInterval == 0;
 
             var scored = PreGenerated
                 .Where(g => g.Success)
@@ -168,13 +184,12 @@ namespace WolfensteinInfinite.States
 
                     // --- Size weight ---
                     int area = g.Width * g.Height;
-                    score += area < 65 * 65 ? 1f :
-                             area < 129 * 129 ? 2f : 3f;
+                    score += area < SizeSmallMaxArea ? SizeSmallWeight :
+                             area < SizeLargeMaxArea ? SizeMediumWeight : SizeLargeWeight;
 
                     // --- Room count proximity weight ---
-                    // Closest to targetRooms scores 3, linearly dropping to 0 at 2x distance
                     float roomDiff = MathF.Abs(g.MapLayers.Count - targetRooms);
-                    score += MathF.Max(0f, 3f - (roomDiff / targetRooms) * 3f);
+                    score += MathF.Max(0f, RoomProximityMaxWeight - (roomDiff / targetRooms) * RoomProximityMaxWeight);
 
                     // --- Objective weight ---
                     int objCount = 0;
@@ -182,13 +197,19 @@ namespace WolfensteinInfinite.States
                     if (g.HasPlaced.Secret && g.HasPlaced.Radio) objCount++;
                     if (g.HasPlaced.Dynamite) objCount++;
                     if (g.HasPlaced.Pow) objCount++;
-                    score += objCount switch { 0 => 1f, 1 => 2f, 2 => 2.5f, _ => 3f };
+                    score += objCount switch
+                    {
+                        0 => ObjectiveZeroWeight,
+                        1 => ObjectiveOneWeight,
+                        2 => ObjectiveTwoWeight,
+                        _ => ObjectiveThreePlusWeight
+                    };
 
                     // --- Boss weight ---
                     if (isBossLevel && g.HasPlaced.Boss)
-                        score += 10f;
+                        score += BossLevelWeight;
                     else if (g.HasPlaced.Boss)
-                        score += 1.5f;
+                        score += BossNonLevelWeight;
 
                     // --- Texture group consistency ---
                     var groupIds = g.MapLayers.Values
@@ -210,7 +231,9 @@ namespace WolfensteinInfinite.States
                         .Distinct()
                         .Count();
 
-                    score += groupIds <= 1 ? 2f : MathF.Max(0f, 2f - (groupIds - 1) * 0.5f);
+                    score += groupIds <= 1
+                        ? TextureConsistencyMax
+                        : MathF.Max(0f, TextureConsistencyMax - (groupIds - 1) * TextureConsistencyPenalty);
 
                     return (Generator: g, Score: score);
                 })
