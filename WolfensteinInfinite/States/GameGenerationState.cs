@@ -15,14 +15,19 @@ namespace WolfensteinInfinite.States
         public readonly int Level;
         public int Progress = 0;
         public readonly Guid GameGuid;
-        public GameGenerationState(Wolfenstein wolfenstein, Player player, Guid gameGuid, Difficulties difficulty, int level) : base(wolfenstein)
+        public readonly MapGenerator[] PreGenerated;
+        private MapGenerator? Builder;
+        public readonly int Size;
+        public GameGenerationState(Wolfenstein wolfenstein, Player player, Guid gameGuid, Difficulties difficulty, int level, int size, MapGenerator[] preGenerated) : base(wolfenstein)
         {
             Player = player;
             Difficulty = difficulty;
             Level = level;
+            Size = size;
             ReturnState = this;
             NextState = this;
             GameGuid = gameGuid;
+            PreGenerated = preGenerated;
             new Thread(new ThreadStart(() => { GenerateMap(); })).Start();
         }
         public void GenerateMap()
@@ -69,7 +74,7 @@ namespace WolfensteinInfinite.States
                 var chosen = fullMaps[(Level - 1) % fullMaps.Length];
                 NextState = new SpecialLevelState(
                     Wolfenstein, Player, GameGuid, Difficulty, Level,
-                    chosen.Mod.Name, chosen.Section);
+                    chosen.Mod.Name, chosen.Section, PreGenerated);
                 return;
             }
 
@@ -79,7 +84,7 @@ namespace WolfensteinInfinite.States
                 var chosen = fullMaps[Random.Shared.Next(fullMaps.Length)];
                 NextState = new SpecialLevelState(
                     Wolfenstein, Player, GameGuid, Difficulty, Level,
-                    chosen.Mod.Name, chosen.Section);
+                    chosen.Mod.Name, chosen.Section, PreGenerated);
                 return;
             }
 
@@ -108,18 +113,24 @@ namespace WolfensteinInfinite.States
 
 
             var maxRooms = Math.Ceiling(
-                (Wolfenstein.Config.MaxMapSize * Wolfenstein.Config.MaxMapSize) / avgRoomDim);
+                (Size * Size) / avgRoomDim);
             var targetRooms = Math.Max(
                 (int)Math.Ceiling((Math.Clamp(Level, 1, 100) / 100f) * maxRooms), 15);
 
             Progress = 20;
             Thread.Sleep(50);
-
-            MapGenerator builder = new(
-                Wolfenstein, Wolfenstein.Config.MaxMapSize, Wolfenstein.Config.MaxMapSize,
+            
+            if (PreGenerated.Length > 0)
+            {
+                Builder = SelectBestPreGenerated();
+            }
+            else
+            {
+                Builder = new(
+                Wolfenstein, 64, 64,
                 m, s, sections, Level, targetRooms, attemptObjectives, out string[] finalPassErrors);
-
-            if (!builder.Success)
+            }
+            if (!Builder.Success)
             {
                 NextState = new GameGenerationRetryState(Wolfenstein, Player, GameGuid,Difficulty, Level);
                 return;
@@ -127,7 +138,7 @@ namespace WolfensteinInfinite.States
             Progress = 60;
             Thread.Sleep(50);
 
-            var map = builder.ToGameMap(Player, Difficulty, Level);
+            var map = Builder.ToGameMap(Player, Difficulty, Level);
             if (map == null)
             {
                 NextState = new GameGenerationRetryState(Wolfenstein, Player, GameGuid, Difficulty, Level);
@@ -142,6 +153,13 @@ namespace WolfensteinInfinite.States
 
             var game = new Game(GameGuid, map, Player, mods);
             NextState = new InGameState(Wolfenstein, game);
+        }
+
+        private MapGenerator SelectBestPreGenerated()
+        {
+            //Add weighted prefernce, Size, Objectives, Consitancy of Texture Groups.
+            //Bosses Highest Priorority
+            return PreGenerated[Random.Shared.Next(PreGenerated.Length)];
         }
 
         public override GameState? Update(Texture32 buffer, float frameTime)
@@ -161,6 +179,7 @@ namespace WolfensteinInfinite.States
         {
             if (k.Code == Keyboard.Key.Escape)
             {
+                if (Builder != null) Builder.Bail = true;
                 return;
             }
         }

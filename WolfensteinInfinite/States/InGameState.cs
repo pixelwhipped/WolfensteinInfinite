@@ -110,6 +110,11 @@ namespace WolfensteinInfinite.States
             _activeEnemies.RemoveAll(e => !e.IsAlive);
         }
         public void OnItemCollected() => _itemsCollected++;
+
+        public List<MapGenerator> PreGenerated = [];
+        public readonly Thread GeneratorThread;
+        public bool StopGeneration = false;
+        private MapGenerator CurrentGenerator;
         public InGameState(Wolfenstein wolfenstein, Game game) : base(wolfenstein)
         {
             Game = game;
@@ -157,6 +162,74 @@ namespace WolfensteinInfinite.States
             DoorLookup = Game.Map.Doors.ToDictionary(d => ((int)d.X, (int)d.Y));
             DecalLookup = Game.Map.Decals.ToDictionary(d => ((int)d.X, (int)d.Y));
             PushWallLookup = Game.Map.PushWalls.ToDictionary(w => ((int)w.X, (int)w.Y));
+
+            GeneratorThread = new Thread(GenerateNextMaps)
+            {
+                // Set the priority to Lowest or BelowNormal
+                Priority = ThreadPriority.Lowest
+            };
+            GeneratorThread.Start();
+        }
+
+        private void GenerateNextMaps()
+        {
+            var sizes = new int[] { 64, 64, 128, 64, 128, 64, 128, 256, 128, 256 };
+            MapFlags[] attemptObjectives = [];
+            var mods = Wolfenstein.ActiveMods;
+            var modBuilders = Wolfenstein.BuilderMods
+                .Where(p => mods.Any(mo => mo == p.Key) && p.Value.MapSections.Length > 0)
+                .ToArray();
+            if (modBuilders.Length == 0) return;
+            bool hasExit = false;
+            var sections = new Dictionary<Mod, MapSection[]>();
+            var rootOptions = new List<(Mod m, MapSection s)>();
+            foreach (var mod in modBuilders)
+            {
+                var cm = Wolfenstein.Mods[mod.Key];
+                var cs = mod.Value.MapSections.ToArray();
+                sections.Add(cm, cs);
+                if (cs.Any(p => p.HasPlayerExit)) hasExit = true;
+                foreach (var section in cs.Where(p => p.HasPlayerStart))
+                    rootOptions.Add((cm, section));
+            }
+            if (rootOptions.Count == 0) return;
+            if (!hasExit) return;
+            foreach (var key in sections.Keys.ToArray())
+                sections[key] = [.. sections[key].Where(s => !s.IsFullMap)];
+            rootOptions.Clear();
+            foreach (var kvp in sections)
+                foreach (var section in kvp.Value.Where(p => p.HasPlayerStart))
+                    rootOptions.Add((kvp.Key, section));
+            if (rootOptions.Count == 0) return;
+            var (m, s) = rootOptions[Random.Shared.Next(0, rootOptions.Count)];
+            double avgRoomDim = Math.Ceiling(sections.Average(p =>
+            {
+                static int selector(MapSection k) => k.Width * k.Height;
+                return p.Value.Average(selector);
+            }));
+
+
+
+            foreach (var size in sizes)
+            {
+                if (StopGeneration) return;
+                var maxRooms = Math.Ceiling(
+                (size * size) / avgRoomDim);
+                var targetRooms = Math.Max(
+                    (int)Math.Ceiling((Math.Clamp(Game.Map.Level + 1, 1, 100) / 100f) * maxRooms), 15);
+                CurrentGenerator = new(
+                Wolfenstein, size, size,
+                m, s, sections, Game.Map.Level + 1, targetRooms, attemptObjectives, out string[] finalPassErrors);
+                if (finalPassErrors.Length > 0) return;
+                if (!CurrentGenerator.Success) return;
+                PreGenerated.Add(CurrentGenerator);
+            }
+        }
+
+        private void StopGenerator()
+        {
+            if (CurrentGenerator != null) CurrentGenerator.Bail = true;
+            StopGeneration = true;
         }
         public void ShowHudMessage(string message)
         {
@@ -545,7 +618,7 @@ namespace WolfensteinInfinite.States
             AutoSave();
             Game.Map.Level++;
 
-            return new LevelCompleteState(Wolfenstein, Game, BuildLevelStats());
+            return new LevelCompleteState(Wolfenstein, Game, BuildLevelStats(), [.. PreGenerated]);
         }
 
         public void UpdateWeapon(Texture32 buffer, float frameTime)
@@ -671,6 +744,7 @@ namespace WolfensteinInfinite.States
         {
             RecordHighScore();
             SaveGame.Delete();
+            StopGenerator();
             NextState = new HighScores(Wolfenstein, new MenuState(Wolfenstein, null));
         }
         public void ResetGame()
@@ -1004,7 +1078,7 @@ namespace WolfensteinInfinite.States
         {
             if (k.Code == Keyboard.Key.Escape || k.Code == Wolfenstein.Config.KeyPause)
             {
-                NextState = new PauseState(Wolfenstein, this);
+                NextState = new PauseState(Wolfenstein, this, StopGenerator);
                 return;
             }
 
@@ -1057,7 +1131,8 @@ namespace WolfensteinInfinite.States
         }
         public void ActivateCheatSelectLevel()
         {
-            NextState = new LevelSelectState(Wolfenstein, this);
+            StopGenerator();
+            NextState = new LevelSelectState(Wolfenstein, this, StopGenerator);
         }
         private bool ActivateCheatGodMode()
         {
@@ -1577,9 +1652,9 @@ namespace WolfensteinInfinite.States
         {
             if (!_mapVisible) return;
 
-            var size = 1;
+            
             var mapWidth = Game.Map.WorldMap[0].Length;
-
+            var size = mapWidth == 128 ? 2 : mapWidth == 256 ? 1 : 3;
             for (int y = 0; y < Game.Map.WorldMap.Length; y++)
                 for (int x = 0; x < Game.Map.WorldMap[y].Length; x++)
                 {

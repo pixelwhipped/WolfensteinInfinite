@@ -28,6 +28,7 @@ namespace WolfensteinInfinite.GameMap
         public bool Success { get; init; }
         public Wolfenstein Wolfenstein { get; init; }
         public int[][] FlatMap { get; set; }
+        public bool Bail { get; internal set; }
 
         public static MapSection[] FlipSection(MapSection section)
         {
@@ -178,7 +179,7 @@ namespace WolfensteinInfinite.GameMap
         private readonly Dictionary<int, int> _sectionUsageCount = [];
         private MapGeneratorSection[] GetNodes(MapGeneratorSection origin)
         {
-            if (Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Escape) || Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyPause))
+            if (Bail || Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Escape) || Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyPause))
             {
                 return [];
             }

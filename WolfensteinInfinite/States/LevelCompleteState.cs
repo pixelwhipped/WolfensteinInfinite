@@ -5,6 +5,7 @@ using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
+using WolfensteinInfinite.GameMap;
 using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
@@ -22,8 +23,9 @@ namespace WolfensteinInfinite.States
         //Score, Enemy, Items, Secrets
         private readonly Tween[] Tweens = [new(0.75f, null), new(0.75f, null), new(0.75f, null), new(0.75f, null)];
         private readonly Tween FireSound = new(0.05f, null);
+        private readonly MapGenerator[] PreGenerated;
         public LevelCompleteState(Wolfenstein wolfenstein, Game game,
-            LevelStats stats) : base(wolfenstein)
+            LevelStats stats, MapGenerator[] preGenerated) : base(wolfenstein)
         {
             Game = game;
             _completedLevel = game.Map.Level - 1;
@@ -54,7 +56,7 @@ namespace WolfensteinInfinite.States
                                 Difficulties.CAN_I_PLAY_DADDY,
                                 Game.Map.Level,
                                 tmods[Game.Map.Level - 1].mod,
-                                tmods[Game.Map.Level - 1].section);
+                                tmods[Game.Map.Level - 1].section, PreGenerated);
                 }
                 else if (Game.Map.Level % 10 == 0)
                 {
@@ -72,18 +74,18 @@ namespace WolfensteinInfinite.States
                         var chosen = specials[Random.Shared.Next(specials.Count)];
                         nextLevel = new SpecialLevelState(
                         Wolfenstein, Game.Player, Game.GameId, Game.Map.Difficulty,
-                        Game.Map.Level, chosen.Mod, chosen.Section);
+                        Game.Map.Level, chosen.Mod, chosen.Section, PreGenerated);
                     }
                     else
                     {
                         nextLevel = new GameGenerationState(
-                            Wolfenstein, Game.Player,Game.GameId, Game.Map.Difficulty, Game.Map.Level);
+                            Wolfenstein, Game.Player,Game.GameId, Game.Map.Difficulty, Game.Map.Level,64, PreGenerated);
                     }
                 }
                 else
                 {
                     nextLevel = new GameGenerationState(
-                        Wolfenstein, Game.Player, Game.GameId, Game.Map.Difficulty, Game.Map.Level);
+                        Wolfenstein, Game.Player, Game.GameId, Game.Map.Difficulty, Game.Map.Level,64, PreGenerated);
                 }
                 return nextLevel;
             }

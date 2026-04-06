@@ -12,13 +12,13 @@ namespace WolfensteinInfinite.States
         private string? _statusMessage = null;
         private float _statusTimer = 0f;
         private const float StatusDuration = 2f;
-
-        public PauseState(Wolfenstein wolfenstein, InGameState inGameState) : base(wolfenstein)
+        private readonly Action StopGenerator;
+        public PauseState(Wolfenstein wolfenstein, InGameState inGameState, Action stopGenerator) : base(wolfenstein)
         {
             InGameState = inGameState;
             ReturnState = inGameState;
             NextState = this;
-
+            StopGenerator = stopGenerator;
             Menu = new Menu(null,
                 wolfenstein.GameResources.MenuCommands,
                 wolfenstein.GameResources.MenuSelect1,
@@ -44,6 +44,7 @@ namespace WolfensteinInfinite.States
                     break;
 
                 case "Exit to Menu":
+                    StopGenerator();
                     InGameState.RecordHighScore();
                     InGameState.AutoSave();
                     // Fresh MenuState so Continue is enabled with the new save

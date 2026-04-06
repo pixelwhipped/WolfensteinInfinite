@@ -53,7 +53,7 @@ namespace WolfensteinInfinite.States
 
             if (k.Code == Keyboard.Key.Y)
             {
-                NextState = new GameGenerationState(Wolfenstein, Player, GameGuild,  Difficulty, Level);
+                NextState = new GameGenerationState(Wolfenstein, Player, GameGuild,  Difficulty, Level,64, []);
                 return;
             }
             if (k.Code == Keyboard.Key.N)

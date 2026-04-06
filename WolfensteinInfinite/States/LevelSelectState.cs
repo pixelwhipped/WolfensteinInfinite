@@ -1,12 +1,5 @@
 ﻿using SFML.Window;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WolfensteinInfinite.Engine.Graphics;
-using WolfensteinInfinite.GameObjects;
-using WolfensteinInfinite.MenuUI;
 
 namespace WolfensteinInfinite.States
 {
@@ -14,12 +7,13 @@ namespace WolfensteinInfinite.States
     {
         private readonly InGameState InGameState;
         private string _charBuffer = string.Empty;
-        public LevelSelectState(Wolfenstein wolfenstein, InGameState inGameState) : base(wolfenstein)
+        private readonly Action StopGenerator;
+        public LevelSelectState(Wolfenstein wolfenstein, InGameState inGameState, Action stopGenerator) : base(wolfenstein)
         {
             InGameState = inGameState;
             ReturnState = inGameState;
             NextState = this;
-
+            StopGenerator = stopGenerator;
         }
 
         private void Resume()
@@ -72,7 +66,8 @@ namespace WolfensteinInfinite.States
                     return;
                 }
                 InGameState.Game.Map.Level = Math.Max(level,1); //Pretend where we were to allow specials 
-                NextState = new LevelCompleteState(Wolfenstein, InGameState.Game, InGameState.BuildLevelStats());
+                StopGenerator();
+                NextState = new LevelCompleteState(Wolfenstein, InGameState.Game, InGameState.BuildLevelStats(), []);
             }
             var keyChar = k.Code switch
             {

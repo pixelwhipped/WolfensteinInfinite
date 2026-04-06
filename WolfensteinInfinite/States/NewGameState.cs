@@ -49,7 +49,7 @@ namespace WolfensteinInfinite.States
                 if (t == DifficultyHelpers.GetDifficultyString(d))
                 {
                     var player = new Player(Menu.InputString);
-                    NextState = new GameGenerationState(Wolfenstein,player, Guid.NewGuid(), d,1);
+                    NextState = new GameGenerationState(Wolfenstein,player, Guid.NewGuid(), d,1,64, []);
                     break;
                 }
             }

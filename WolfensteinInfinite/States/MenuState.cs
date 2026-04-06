@@ -97,7 +97,7 @@ namespace WolfensteinInfinite.States
                             Difficulties.CAN_I_PLAY_DADDY,
                             1,
                             Wolfenstein.TestMapSections[0].mod,
-                            Wolfenstein.TestMapSections[0].section);
+                            Wolfenstein.TestMapSections[0].section, []);
                 }
                 else
                 {
