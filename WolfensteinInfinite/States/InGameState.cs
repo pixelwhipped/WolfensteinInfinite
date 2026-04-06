@@ -374,7 +374,7 @@ namespace WolfensteinInfinite.States
                     var dy = obj.Y - Game.Player.PosY;
                     var dist = MathF.Sqrt(dx * dx + dy * dy);
                     var dot = (dx / dist) * Game.Player.DirX + (dy / dist) * Game.Player.DirY;
-                    if (dist<1.5f &&  dot > 0.5f) //If facing enemy
+                    if (dist < 1.5f && dot > 0.5f) //If facing enemy
                         obj.TakeDamage((int)Math.Ceiling(projectile.GetDamage((int)dist, Difficulties.CAN_I_PLAY_DADDY) * diffPlayerBuff), this);
                 }
             }
@@ -836,7 +836,7 @@ namespace WolfensteinInfinite.States
         private bool ApplyBackPack()
         {
             Game.Player.HasBackpack = true;
-            bool addedAmmo= false;
+            bool addedAmmo = false;
             bool addedHealth = false;
             if (Game.Player.Ammo[AmmoType.BULLET] + 25 < MaxAmmo(AmmoType.BULLET))
             {
@@ -848,7 +848,7 @@ namespace WolfensteinInfinite.States
                 Game.Player.Health += 25;
                 addedHealth = true;
             }
-            if(addedHealth || addedAmmo)
+            if (addedHealth || addedAmmo)
             {
                 PickupTween.Reset();
                 return true;
@@ -1162,8 +1162,8 @@ namespace WolfensteinInfinite.States
 
             BuildLightMapIfNeeded();
             UpdateDynamicObjects(frameTime);
-            //Casting Slower but trying to make more managable chunks of code..
-            for (int x = 0; x < buffer.Width; x++)
+
+            Parallel.For(0, buffer.Width, x =>
             {
                 float cameraX = 2f * x / buffer.Width - 1f;
                 float rayDirX = Game.Player.DirX + PlaneX * cameraX;
@@ -1173,7 +1173,8 @@ namespace WolfensteinInfinite.States
                 CastPushWalls(buffer, x, rayDirX, rayDirY);
                 CastDoors(buffer, x, rayDirX, rayDirY);
                 CastDirectionalDecals(buffer, x, rayDirX, rayDirY);
-            }
+            });
+
             CastSprites(buffer);
             DrawMap(buffer);
             UpdateInput(frameTime);
@@ -1572,17 +1573,6 @@ namespace WolfensteinInfinite.States
             return true;
         }
 
-        public void DrawZBuffer(Texture32 buffer)
-        {
-            var min = ZBuffer.Min();
-            var max = ZBuffer.Max();
-            for (var i = 0; i < ZBuffer.Length; i++)
-            {
-                var x = (byte)(((ZBuffer[i] - min) / (max - min)) * 255);
-                buffer.Line(i, 180, i, 200, x, x, x);
-            }
-        }
-
         public void DrawMap(Texture32 buffer)
         {
             if (!_mapVisible) return;
@@ -1627,6 +1617,7 @@ namespace WolfensteinInfinite.States
                 if (dx * dx + dy * dy <= RenderDistance * RenderDistance)
                     _livingSprites.Add(o);
             }
+
             if (SpriteOrder.Length < _livingSprites.Count)
             {
                 SpriteOrder = new int[_livingSprites.Count];
