@@ -1,7 +1,6 @@
 ﻿using Melanchall.DryWetMidi.Core;
 using SFML.System;
 using SFML.Window;
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -362,7 +361,7 @@ namespace WolfensteinInfinite
             Graphics?.ShutDown();
             graphics = Graphics = new Graphics(parameters, GameResources.WindowIcon, "Wolfenstein 3D Infinite", GameResources.DebugFont, pallet)
             {
-                ShowFPS = false
+                ShowFPS = Args.ShowFPS
             };
 
             buffer = Buffer = new Texture32(Graphics.Width, Graphics.Height);

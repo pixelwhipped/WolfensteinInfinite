@@ -20,5 +20,8 @@ namespace WolfensteinInfinite
 
         public static bool GenerateMapImage =>
            _args.Any(a => a.Equals("-g", StringComparison.OrdinalIgnoreCase));
+
+        public static bool ShowFPS =>
+           _args.Any(a => a.Equals("-fps", StringComparison.OrdinalIgnoreCase));
     }
 }
