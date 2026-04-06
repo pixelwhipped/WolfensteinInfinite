@@ -1,5 +1,6 @@
 ﻿//Clean
 using SFML.Window;
+using System.ComponentModel;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameMap;
@@ -122,7 +123,7 @@ namespace WolfensteinInfinite.States
             
             if (PreGenerated.Length > 0)
             {
-                Builder = SelectBestPreGenerated();
+                Builder = SelectBestPreGenerated(targetRooms);
             }
             else
             {
@@ -155,11 +156,70 @@ namespace WolfensteinInfinite.States
             NextState = new InGameState(Wolfenstein, game);
         }
 
-        private MapGenerator SelectBestPreGenerated()
+        private MapGenerator SelectBestPreGenerated(int targetRooms)
         {
-            //Add weighted prefernce, Size, Objectives, Consitancy of Texture Groups.
-            //Bosses Highest Priorority
-            return PreGenerated[Random.Shared.Next(PreGenerated.Length)];
+            bool isBossLevel = Level % 9 == 0;
+
+            var scored = PreGenerated
+                .Where(g => g.Success)
+                .Select(g =>
+                {
+                    float score = 0f;
+
+                    // --- Size weight ---
+                    int area = g.Width * g.Height;
+                    score += area < 65 * 65 ? 1f :
+                             area < 129 * 129 ? 2f : 3f;
+
+                    // --- Room count proximity weight ---
+                    // Closest to targetRooms scores 3, linearly dropping to 0 at 2x distance
+                    float roomDiff = MathF.Abs(g.MapLayers.Count - targetRooms);
+                    score += MathF.Max(0f, 3f - (roomDiff / targetRooms) * 3f);
+
+                    // --- Objective weight ---
+                    int objCount = 0;
+                    if (g.HasPlaced.Key && g.HasPlaced.LockedDoor) objCount++;
+                    if (g.HasPlaced.Secret && g.HasPlaced.Radio) objCount++;
+                    if (g.HasPlaced.Dynamite) objCount++;
+                    if (g.HasPlaced.Pow) objCount++;
+                    score += objCount switch { 0 => 1f, 1 => 2f, 2 => 2.5f, _ => 3f };
+
+                    // --- Boss weight ---
+                    if (isBossLevel && g.HasPlaced.Boss)
+                        score += 10f;
+                    else if (g.HasPlaced.Boss)
+                        score += 1.5f;
+
+                    // --- Texture group consistency ---
+                    var groupIds = g.MapLayers.Values
+                        .SelectMany(layer =>
+                        {
+                            var walls = layer.Section.GetLayout(MapArrayLayouts.WALLS);
+                            var results = new List<int>();
+                            if (!Wolfenstein.Mods.TryGetValue(layer.Mod.Name, out var mod)) return results;
+                            for (int y = 0; y < walls.Length; y++)
+                                for (int x = 0; x < walls[0].Length; x++)
+                                {
+                                    if (walls[y][x] < 0) continue;
+                                    var tex = mod.Textures.FirstOrDefault(t => t.MapID == walls[y][x]);
+                                    if (tex != null && tex.GroupId > 0)
+                                        results.Add(tex.GroupId);
+                                }
+                            return results;
+                        })
+                        .Distinct()
+                        .Count();
+
+                    score += groupIds <= 1 ? 2f : MathF.Max(0f, 2f - (groupIds - 1) * 0.5f);
+
+                    return (Generator: g, Score: score);
+                })
+                .OrderByDescending(x => x.Score)
+                .ToArray();
+
+            return scored.Length > 0
+                ? scored[0].Generator
+                : PreGenerated[Random.Shared.Next(PreGenerated.Length)];
         }
 
         public override GameState? Update(Texture32 buffer, float frameTime)
