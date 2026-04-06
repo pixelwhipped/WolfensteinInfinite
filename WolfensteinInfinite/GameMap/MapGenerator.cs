@@ -698,7 +698,7 @@ namespace WolfensteinInfinite.GameMap
                         //29 is random item 30 is random weapon
                         if (SkipSpecialChance(special, x, y)) continue;
                         if (items[y][x] == 29) items[y][x] = randomItem[Random.Shared.Next(randomItem.Length)];
-                        if (items[y][x] == 30) items[y][x] = randomWeapons[Random.Shared.Next(randomItem.Length)];
+                        if (items[y][x] == 30) items[y][x] = randomWeapons[Random.Shared.Next(randomWeapons.Length)];
 
                         var key = new ModKeyIndex(layer.Mod.Name, items[y][x]);
                         if (!itemsKeyIndicies.TryGetValue(key, out int index))
