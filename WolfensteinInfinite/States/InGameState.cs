@@ -173,7 +173,7 @@ namespace WolfensteinInfinite.States
 
         private void GenerateNextMaps()
         {
-            var sizes = new int[] { 64, 64, 128, 64, 128, 64, 128, 256, 128, 256 };
+            var sizes = new int[] { 64, 64, 96, 64, 96, 64, 96, 128, 96, 128 };
             MapFlags[] attemptObjectives = [];
             var mods = Wolfenstein.ActiveMods;
             var modBuilders = Wolfenstein.BuilderMods
@@ -219,7 +219,7 @@ namespace WolfensteinInfinite.States
                     (int)Math.Ceiling((Math.Clamp(Game.Map.Level + 1, 1, 100) / 100f) * maxRooms), 15);
                 CurrentGenerator = new(
                 Wolfenstein, size, size,
-                m, s, sections, Game.Map.Level + 1, targetRooms, attemptObjectives, 100, out string[] finalPassErrors);
+                m, s, sections, Game.Map.Level + 1, targetRooms, attemptObjectives, 20, out string[] finalPassErrors);
                 if (finalPassErrors.Length > 0) return;
                 if (!CurrentGenerator.Success) return;
                  PreGenerated.Add(CurrentGenerator);
@@ -1652,9 +1652,9 @@ namespace WolfensteinInfinite.States
         {
             if (!_mapVisible) return;
 
-            
+            //todo offset map by max 128
             var mapWidth = Game.Map.WorldMap[0].Length;
-            var size = mapWidth == 128 ? 2 : mapWidth == 256 ? 1 : 3;
+            var size = 1;
             for (int y = 0; y < Game.Map.WorldMap.Length; y++)
                 for (int x = 0; x < Game.Map.WorldMap[y].Length; x++)
                 {

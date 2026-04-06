@@ -639,7 +639,7 @@ namespace WolfensteinInfinite.WolfMod
             int maxSteps = height * width * 4;
 
             do
-            {
+            {                
                 perimeter.Add((currentY, currentX));
                 steps++;
 

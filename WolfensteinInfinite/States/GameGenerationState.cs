@@ -160,7 +160,7 @@ namespace WolfensteinInfinite.States
         {
             const int BossLevelInterval = 9;
             const float SizeSmallMaxArea = 65 * 65;
-            const float SizeLargeMaxArea = 129 * 129;
+            const float SizeLargeMaxArea = 97 * 97;
             const float SizeSmallWeight = 1f;
             const float SizeMediumWeight = 2f;
             const float SizeLargeWeight = 3f;
