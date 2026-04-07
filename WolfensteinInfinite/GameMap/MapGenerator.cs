@@ -1,7 +1,5 @@
 ﻿using SFML.Window;
-using System;
-using System.Collections.Generic;
-using System.Reflection;
+using System.Windows;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
@@ -9,7 +7,6 @@ using WolfensteinInfinite.GameObjects;
 using WolfensteinInfinite.States;
 using WolfensteinInfinite.Utilities;
 using WolfensteinInfinite.WolfMod;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 
 namespace WolfensteinInfinite.GameMap
 {
@@ -179,6 +176,7 @@ namespace WolfensteinInfinite.GameMap
         private readonly Dictionary<int, int> _sectionUsageCount = [];
         private MapGeneratorSection[] GetNodes(MapGeneratorSection origin)
         {
+            if (Wolfenstein == null || Wolfenstein.Application == null) return [];
             if (Sleep > 0) Thread.Sleep(Sleep);
             if (Bail || Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Escape) || Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyPause))
             {
@@ -568,7 +566,7 @@ namespace WolfensteinInfinite.GameMap
         internal Map? ToGameMap(Player player, Difficulties difficulty, int Level)
         {
             var randomWeapons = Wolfenstein.PickupItemTypes.Where(p => p.Value.ItemType == PickupItemType.WEAPON).Select(p => p.Key).ToArray();
-            var randomItem= Wolfenstein.PickupItemTypes.Where(p => p.Value.ItemType == PickupItemType.AMMO || p.Value.ItemType == PickupItemType.BACKPACK || p.Value.ItemType == PickupItemType.HEALTH).Select(p=>p.Key).ToArray();
+            var randomItem = Wolfenstein.PickupItemTypes.Where(p => p.Value.ItemType == PickupItemType.AMMO || p.Value.ItemType == PickupItemType.BACKPACK || p.Value.ItemType == PickupItemType.HEALTH).Select(p => p.Key).ToArray();
             int objectiveCount = 0;
             var floor = new Texture32(64, 64);
             var playerX = -1;
@@ -599,10 +597,11 @@ namespace WolfensteinInfinite.GameMap
             var specialMap = MapSection.Empty(Width, Height);
             var wallSectionId = MapSection.Empty(Width, Height);
             var wallSourceIdMap = MapSection.Empty(Width, Height);
-            var itemNamesKey = new Dictionary<string,int>();
+            var itemNamesKey = new Dictionary<string, int>();
             var enemyNamesKey = new Dictionary<string, int>();
 
             // Set wall map floors from FlatMap (already in world coords)
+
             for (int y = 0; y < FlatMap.Length; y++)
             {
                 for (int x = 0; x < FlatMap[0].Length; x++)
@@ -614,6 +613,7 @@ namespace WolfensteinInfinite.GameMap
                     }
                 }
             }
+
             for (int y = 0; y < Height; y++)
                 for (int x = 0; x < Width; x++)
                 {
@@ -780,7 +780,7 @@ namespace WolfensteinInfinite.GameMap
                                 ridx = enemyKeyIndicies.Count;
                                 enemyKeyIndicies.Add(rkey, ridx);
                                 itemNamesKey.TryAdd(chosen.Name, ridx);
-                            }                                                        
+                            }
                             if (diff[y][x] >= (int)difficulty)
                             {
                                 var t = Wolfenstein.CharacterSprites[layer.Mod.Name][chosen.MapID].GetTexture(0);
@@ -1060,12 +1060,15 @@ namespace WolfensteinInfinite.GameMap
                 Objectives = objectives,
                 ItemNamesKey = itemNamesKey,
                 EnemyNamesKey = enemyNamesKey
-
-            };
-
-
-            return Map;
+            }.Trim(out int shiftX, out int shiftY);
+            player.PosX -= shiftX;
+            player.PosY -= shiftY;
+            var p = Map.WorldMap[(int)player.PosY][(int)player.PosX];
+            return Map;// //Big optimization Trim to needed size or should this be done after success
         }
+
+
+
         private int CheckKeyDoorObjective(Dictionary<MapFlags, bool> objectives, int objectiveCount)
         {
             // PickupItemTypes 21 = Key, Doors 3 = locked

@@ -166,7 +166,8 @@ namespace WolfensteinInfinite.States
             GeneratorThread = new Thread(GenerateNextMaps)
             {
                 // Set the priority to Lowest or BelowNormal
-                Priority = ThreadPriority.Lowest
+                Priority = ThreadPriority.Lowest,
+                IsBackground = true
             };
             GeneratorThread.Start();
         }
@@ -222,7 +223,7 @@ namespace WolfensteinInfinite.States
                 m, s, sections, Game.Map.Level + 1, targetRooms, attemptObjectives, 20, out string[] finalPassErrors);
                 if (finalPassErrors.Length > 0) return;
                 if (!CurrentGenerator.Success) return;
-                 PreGenerated.Add(CurrentGenerator);
+                PreGenerated.Add(CurrentGenerator);
             }
         }
 
@@ -1238,7 +1239,7 @@ namespace WolfensteinInfinite.States
             BuildLightMapIfNeeded();
             UpdateDynamicObjects(frameTime);
 
-            for(int x=0;x< buffer.Width; x++) // caused to much stutter Parallel.For(0, buffer.Width, x =>
+            for (int x = 0; x < buffer.Width; x++) // caused to much stutter Parallel.For(0, buffer.Width, x =>
             {
                 float cameraX = 2f * x / buffer.Width - 1f;
                 float rayDirX = Game.Player.DirX + PlaneX * cameraX;
@@ -1285,7 +1286,6 @@ namespace WolfensteinInfinite.States
                     Game.Map.ObjectivesComplete[MapFlags.HAS_BOSS] = true;
             }
         }
-
 
         public void UpdateInput(float frameTime)
         {

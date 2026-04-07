@@ -29,7 +29,7 @@ namespace WolfensteinInfinite.States
             NextState = this;
             GameGuid = gameGuid;
             PreGenerated = preGenerated;
-            new Thread(new ThreadStart(() => { GenerateMap(); })).Start();
+            new Thread(new ThreadStart(() => { GenerateMap(); })) { IsBackground = true}.Start();
         }
         public void GenerateMap()
         {
