@@ -1651,11 +1651,14 @@ namespace WolfensteinInfinite.States
         public void DrawMap(Texture32 buffer)
         {
             if (!_mapVisible) return;
+            buffer.RectFill(0, 0, 128, 128, 0, 0, 0, 64);
 
             //todo offset map by max 128
             var mapWidth = Game.Map.WorldMap[0].Length;
-            var size = 1;
+            var xoffset = 64 - (mapWidth / 2);
+            var yoffset = 64 - (Game.Map.WorldMap[0].Length / 2);
             for (int y = 0; y < Game.Map.WorldMap.Length; y++)
+            {
                 for (int x = 0; x < Game.Map.WorldMap[y].Length; x++)
                 {
                     if (!_visited[y][x]) continue;
@@ -1665,14 +1668,15 @@ namespace WolfensteinInfinite.States
                         ? MapColors[i + 1]
                         : i == MapSection.ClosedSectionInterior
                             ? new RGBA8 { R = 128, G = 128, B = 128, A = 255 }
-                            : new RGBA8 { R = 0, G = 0, B = 0, A = 64 };
+                            : new RGBA8 { R = 0, G = 0, B = 0, A = 0 };
 
-                    var drawX = (mapWidth - 1 - x) * size;
-                    buffer.RectFill(drawX, y * size, size, size, c.R, c.G, c.B, c.A);
+                    var drawX = (mapWidth - 1 - x);
+                    buffer.PutPixel(drawX + xoffset, y + yoffset, c.R, c.G, c.B, c.A);
+                    //buffer.RectFill(drawX + xoffset, y * size, size, size, c.R, c.G, c.B, c.A);
                 }
-
-            var px = (mapWidth - 1 - (int)Game.Player.PosX) * size;
-            var py = (int)(Game.Player.PosY * size);
+            }
+            var px = (mapWidth - 1 - (int)Game.Player.PosX) + xoffset;
+            var py = (int)(Game.Player.PosY) + yoffset;
             buffer.RectFill(px - 1, py - 1, 3, 3, 255, 255, 0);
             buffer.Line(px, py,
             (int)(px - (Game.Player.DirX * 10)),
