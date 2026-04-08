@@ -22,11 +22,11 @@ namespace WolfensteinInfinite.GameMap
         public GeneratorSectionTypes SectionByTypes { get; init; }
         public MapFlags[] AttemptObjectives { get; init; }
         public SpecialPlacements HasPlaced { get; init; }
-        public bool Success { get; init; }
+        public bool Success { get; private set; }
         public Wolfenstein Wolfenstein { get; init; }
         public int[][] FlatMap { get; set; }
         public bool Bail { get; internal set; }
-        public int Sleep { get; init; }
+        private Action Yeild { get; init; }
         public static MapSection[] FlipSection(MapSection section)
         {
             var flip = new List<MapSection>
@@ -73,10 +73,18 @@ namespace WolfensteinInfinite.GameMap
             }
             return [.. flip];
         }
-        public MapGenerator(Wolfenstein wolf, int width, int height, Mod rootNodeMod, MapSection rootNode, Dictionary<Mod, MapSection[]> sections, int level, int targetRooms, MapFlags[] attemptObjectives, int sleep, out string[] finalPassErrors)
+
+        public static MapGenerator? GetMapGenerator(Wolfenstein wolf, int width, int height, Mod rootNodeMod, MapSection rootNode, Dictionary<Mod, MapSection[]> sections, int level, int targetRooms, MapFlags[] attemptObjectives) =>
+            GetMapGenerator(wolf,width,height, rootNodeMod, rootNode, sections, level, targetRooms, attemptObjectives, () => { });
+        public static MapGenerator? GetMapGenerator(Wolfenstein wolf, int width, int height, Mod rootNodeMod, MapSection rootNode, Dictionary<Mod, MapSection[]> sections, int level, int targetRooms, MapFlags[] attemptObjectives, Action yeild)
+        {
+            var generator = new MapGenerator(wolf, width, height, rootNodeMod, rootNode, sections, level, targetRooms, attemptObjectives, yeild, out string[] finalPassErrors);
+            if (finalPassErrors.Length > 0) return null;
+            return generator;
+        }
+        private MapGenerator(Wolfenstein wolf, int width, int height, Mod rootNodeMod, MapSection rootNode, Dictionary<Mod, MapSection[]> sections, int level, int targetRooms, MapFlags[] attemptObjectives, Action yeild, out string[] finalPassErrors)
         {
             var errors = new List<string>();
-            Sleep = sleep;
             Wolfenstein = wolf;
             Width = width;
             Height = height;
@@ -84,6 +92,7 @@ namespace WolfensteinInfinite.GameMap
             TargetRoomCount = targetRooms;
             Level = level;
             AttemptObjectives = attemptObjectives;
+            Yeild = yeild;
             HasPlaced = new();
             //var x = Width / 2;
             //var y = Height / 2;
@@ -136,14 +145,19 @@ namespace WolfensteinInfinite.GameMap
                 else
                 {
                     Tree = new InosculationTree<(int X, int Y), MapGeneratorSection>(section, CanConnect, OnConnect, OnDisconnect);
-                    Success = Tree.TryPopulateRecursive(GetNodes);
                 }
             }
             if (!Success) errors.Add("Unable to populate map");
             finalPassErrors = [.. errors];
-
         }
 
+        public bool TryBuild()
+        {
+            if (Success) return true;
+            if (Tree == null) return false;
+            Success = Tree.TryPopulateRecursive(GetNodes);
+            return Success;
+        }
         private static Dictionary<int, Direction> BuildDecalOverrides(Mod mod, MapSection src, int rotations)
         {
             var overrides = new Dictionary<int, Direction>();
@@ -177,7 +191,7 @@ namespace WolfensteinInfinite.GameMap
         private MapGeneratorSection[] GetNodes(MapGeneratorSection origin)
         {
             if (Wolfenstein == null || Wolfenstein.Application == null) return [];
-            if (Sleep > 0) Thread.Sleep(Sleep);
+            Yeild();
             if (Bail || Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Escape) || Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyPause))
             {
                 return [];
@@ -525,7 +539,7 @@ namespace WolfensteinInfinite.GameMap
             FlatMap = MapSection.Empty(Width, Height, MapSection.ClosedSectionNothing);
             foreach (var l in MapLayers.Values)
             {
-                if (Sleep > 0) Thread.Sleep(Sleep);
+                Yeild();
                 var cs = l.GetOrComputeClosedSection();
                 if (cs == null) continue;
                 for (int i = 0; i < l.Section.Height; i++)

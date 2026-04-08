@@ -114,7 +114,7 @@ namespace WolfensteinInfinite.States
         public List<MapGenerator> PreGenerated = [];
         public readonly Thread GeneratorThread;
         public bool StopGeneration = false;
-        private MapGenerator CurrentGenerator;
+        private MapGenerator? CurrentGenerator { get; set; }
         public InGameState(Wolfenstein wolfenstein, Game game) : base(wolfenstein)
         {
             Game = game;
@@ -158,6 +158,7 @@ namespace WolfensteinInfinite.States
             _visited = new bool[Game.Map.WorldMap.Length][];
             for (int i = 0; i < _visited.Length; i++)
                 _visited[i] = new bool[Game.Map.WorldMap[i].Length];
+
             //Build Lookups;
             DoorLookup = Game.Map.Doors.ToDictionary(d => ((int)d.X, (int)d.Y));
             DecalLookup = Game.Map.Decals.ToDictionary(d => ((int)d.X, (int)d.Y));
@@ -218,11 +219,9 @@ namespace WolfensteinInfinite.States
                 (size * size) / avgRoomDim);
                 var targetRooms = Math.Max(
                     (int)Math.Ceiling((Math.Clamp(Game.Map.Level + 1, 1, 100) / 100f) * maxRooms), 15);
-                CurrentGenerator = new(
-                Wolfenstein, size, size,
-                m, s, sections, Game.Map.Level + 1, targetRooms, attemptObjectives, 20, out string[] finalPassErrors);
-                if (finalPassErrors.Length > 0) return;
-                if (!CurrentGenerator.Success) return;
+                CurrentGenerator = MapGenerator.GetMapGenerator(Wolfenstein, size, size, m, s, sections, Game.Map.Level + 1, targetRooms, attemptObjectives,()=> { Thread.Yield(); });
+                CurrentGenerator?.TryBuild();
+                if (CurrentGenerator == null || !CurrentGenerator.Success) return;
                 PreGenerated.Add(CurrentGenerator);
             }
         }
@@ -1655,11 +1654,12 @@ namespace WolfensteinInfinite.States
 
             //todo offset map by max 128
             var mapWidth = Game.Map.WorldMap[0].Length;
-            var xoffset = 64 - (mapWidth / 2);
-            var yoffset = 64 - (Game.Map.WorldMap[0].Length / 2);
-            for (int y = 0; y < Game.Map.WorldMap.Length; y++)
+            var mapHeight = Game.Map.WorldMap.Length;
+            var xoffset = (128 - mapWidth)/2;
+            var yoffset = (128 - mapHeight)/2;
+            for (int y = 0; y < mapHeight; y++)
             {
-                for (int x = 0; x < Game.Map.WorldMap[y].Length; x++)
+                for (int x = 0; x < mapWidth; x++)
                 {
                     if (!_visited[y][x]) continue;
 

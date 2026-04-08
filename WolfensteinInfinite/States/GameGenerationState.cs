@@ -29,7 +29,7 @@ namespace WolfensteinInfinite.States
             NextState = this;
             GameGuid = gameGuid;
             PreGenerated = preGenerated;
-            new Thread(new ThreadStart(() => { GenerateMap(); })) { IsBackground = true}.Start();
+            new Thread(new ThreadStart(() => { GenerateMap(); })) { IsBackground = true }.Start();
         }
         public void GenerateMap()
         {
@@ -39,7 +39,7 @@ namespace WolfensteinInfinite.States
                 .Where(p => mods.Any(mo => mo == p.Key) && p.Value.MapSections.Length > 0)
                 .ToArray();
             if (modBuilders.Length == 0) throw new Exception("No Mods with Level Sections");
-            
+
 
             Wolfenstein.PlayLevelMusic(mods.Select(m => m));
             Progress = 10;
@@ -120,20 +120,19 @@ namespace WolfensteinInfinite.States
 
             Progress = 20;
             Thread.Sleep(50);
-            
-            if (PreGenerated!=null && PreGenerated.Length > 0)
+
+            if (PreGenerated != null && PreGenerated.Length > 0)
             {
                 Builder = SelectBestPreGenerated(targetRooms);
             }
             else
             {
-                Builder = new(
-                Wolfenstein, 64, 64,
-                m, s, sections, Level, targetRooms, attemptObjectives, 0, out string[] finalPassErrors);
+                Builder = MapGenerator.GetMapGenerator(Wolfenstein, 64, 64, m, s, sections, Level, targetRooms, attemptObjectives);
+                Builder?.TryBuild();
             }
-            if (!Builder.Success)
+            if (Builder == null || Builder.Success)
             {
-                NextState = new GameGenerationRetryState(Wolfenstein, Player, GameGuid,Difficulty, Level);
+                NextState = new GameGenerationRetryState(Wolfenstein, Player, GameGuid, Difficulty, Level);
                 return;
             }
             Progress = 60;
@@ -175,7 +174,7 @@ namespace WolfensteinInfinite.States
             const float TextureConsistencyPenalty = 0.25f;
             const float DoorRoomRatioMaxWeight = 3f;
             const float DoorRoomRatioTarget = 2f; // ideal average doors per room
-   
+
             bool isBossLevel = Level % BossLevelInterval == 0;
 
             var scored = PreGenerated
@@ -240,8 +239,11 @@ namespace WolfensteinInfinite.States
                     // --- Door to room ratio weight ---
                     // Scores highest when average doors per room is near DoorRoomRatioTarget
                     int totalDoors = g.MapLayers.Values.Sum(layer =>
-                        layer.Section.GetLayout(MapArrayLayouts.DOORS)
-                            .Sum(row => row.Count(d => d >= 0)));
+                    {
+                        static int selector(int[] row) => row.Count(d => d >= 0);
+                        return layer.Section.GetLayout(MapArrayLayouts.DOORS)
+                                                    .Sum(selector);
+                    });
                     float avgDoorsPerRoom = g.MapLayers.Count > 0
                         ? (float)totalDoors / g.MapLayers.Count : 0f;
                     float ratioDiff = MathF.Abs(avgDoorsPerRoom - DoorRoomRatioTarget);

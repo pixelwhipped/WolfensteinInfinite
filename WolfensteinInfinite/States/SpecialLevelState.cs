@@ -55,17 +55,17 @@ namespace WolfensteinInfinite.States
             int genWidth = section.Width + Border * 2;
             int genHeight = section.Height + Border * 2;
 
-            var builder = new MapGenerator(
+            var builder = MapGenerator.GetMapGenerator(
                 Wolfenstein,
                 genWidth,
                 genHeight,
                 mod, section, sections,
-                Level, 1, [], 0, out _);
-
+                Level, 1, []);
+            builder?.TryBuild();
             Progress = 60;
             Thread.Sleep(50);
 
-            if (!builder.Success)
+            if (builder == null || !builder.Success)
             {
                 NextState = new GameGenerationState(
                     Wolfenstein, Player, GameGuid, Difficulty, Level,64, PreGenerated);
