@@ -147,7 +147,6 @@ namespace WolfensteinInfinite.GameMap
                     Tree = new InosculationTree<(int X, int Y), MapGeneratorSection>(section, CanConnect, OnConnect, OnDisconnect);
                 }
             }
-            if (!Success) errors.Add("Unable to populate map");
             finalPassErrors = [.. errors];
         }
 

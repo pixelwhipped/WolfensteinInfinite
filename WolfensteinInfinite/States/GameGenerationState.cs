@@ -130,7 +130,7 @@ namespace WolfensteinInfinite.States
                 Builder = MapGenerator.GetMapGenerator(Wolfenstein, 64, 64, m, s, sections, Level, targetRooms, attemptObjectives);
                 Builder?.TryBuild();
             }
-            if (Builder == null || Builder.Success)
+            if (Builder == null || !Builder.Success)
             {
                 NextState = new GameGenerationRetryState(Wolfenstein, Player, GameGuid, Difficulty, Level);
                 return;
