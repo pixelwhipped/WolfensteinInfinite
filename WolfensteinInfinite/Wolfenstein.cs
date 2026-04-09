@@ -34,7 +34,7 @@ namespace WolfensteinInfinite
         public Dictionary<string, MapBuilder> BuilderMods { get; init; }
         public Dictionary<string, MapBuilder> SpecialMaps { get; init; }
         public Dictionary<string, MapBuilder> TestMaps { get; init; }
-        public (string mod, MapSection section)[]? TestMapSections { get; init; }
+        public (string mod, MapSection section)[]? TestMapSections { get; set; }
         public Dictionary<string, Dictionary<string, Texture32>> ExperimentalEnemyTexture { get; init; } = [];
         public Dictionary<string, Dictionary<int, Texture32>> Textures { get; init; } = [];
         public Dictionary<string, Dictionary<int, Texture32>> Decals { get; init; } = [];
@@ -222,7 +222,7 @@ namespace WolfensteinInfinite
             PlayerWeapons.Add("Knife", new PlayerWeapon("Knife", 0, WeaponType.KNIFE, AmmoType.MELEE, null, 9, 3, 0, 0f, "GameData\\Base\\Pictures\\HudKnife.png", "GameData\\Base\\Sprites", 416, 5, 2, 1, 4));
             PlayerWeapons.Add("Pistol", new PlayerWeapon("Pistol", 10, WeaponType.PISTOL, AmmoType.BULLET, "GameData\\Base\\Sounds\\Pistol.wav", 18, 3, 0, 0f, "GameData\\Base\\Pictures\\HudPistol.png", "GameData\\Base\\Sprites", 421, 5, 2, 1, 4));
             PlayerWeapons.Add("MachineGun", new PlayerWeapon("MachineGun", 20, WeaponType.MACHINE_GUN, AmmoType.BULLET, "GameData\\Base\\Sounds\\MachineGun.wav", 12, 3, 1f, 4f, "GameData\\Base\\Pictures\\HudMachineGun.png", "GameData\\Base\\Sprites", 426, 5, 2, 2, 3));
-            PlayerWeapons.Add("ChainGun", new PlayerWeapon("ChainGun", 30, WeaponType.CHAIN_GUN, AmmoType.BULLET, "GameData\\Base\\Sounds\\ChainGun.wav", 11, 4, 1f, 3f, "GameData\\Base\\Pictures\\HudChainGun.png", "GameData\\Base\\Sprites", 431, 5, 2, 2, 3));            
+            PlayerWeapons.Add("ChainGun", new PlayerWeapon("ChainGun", 30, WeaponType.CHAIN_GUN, AmmoType.BULLET, "GameData\\Base\\Sounds\\ChainGun.wav", 11, 4, 1f, 3f, "GameData\\Base\\Pictures\\HudChainGun.png", "GameData\\Base\\Sprites", 431, 5, 2, 2, 3));
             PlayerWeapons.Add("RocketLauncher", new PlayerWeapon("RocketLauncher", 40, WeaponType.ROCKET_LAUNCHER, AmmoType.ROCKET, "GameData\\Base\\Sounds\\Rocket.wav", 11, 3, 2f, 1f, "GameData\\Base\\Pictures\\HudRocketLauncher.png", "GameData\\Base\\Sprites", 1105, 4, 2, 1, 3));
             PlayerWeapons.Add("FlameThrower", new PlayerWeapon("FlameThrower", 50, WeaponType.FLAME_THROWER, AmmoType.FLAME, "GameData\\Base\\Sounds\\Flame.wav", 11, 8, 1f, 4f, "GameData\\Base\\Pictures\\HudFlameThrower.png", "GameData\\Base\\Sprites", 1100, 5, 2, 1, 4));
 
@@ -286,7 +286,7 @@ namespace WolfensteinInfinite
             Special.Add(10, GameResources.Chance25);
             Special.Add(11, GameResources.Chance50);
             Special.Add(12, GameResources.Chance75);
-            
+
         }
 
         private static void Log(string message) => Logger.GetLogger().Log(message);
@@ -509,9 +509,9 @@ namespace WolfensteinInfinite
                 if ((forceRebuild || !File.Exists(sFile)) && res.Any(p => p.Equals(special))) SaveEmbeddedResource(special, sFile);
                 if ((forceRebuild || !File.Exists(tFile)) && res.Any(p => p.Equals(test))) SaveEmbeddedResource(test, tFile);
 
-                if(version.Name== "Wolfenstein3D") //Patched rockets
+                if (version.Name == "Wolfenstein3D") //Patched rockets
                 {
-                    for(var i = 0; i < 8; i++)
+                    for (var i = 0; i < 8; i++)
                     {
                         var rfile = FileHelpers.Shared.GetDataFilePath(@$"Mods\{version.Name}\Sprites\100{i}.png");
                         var efile = $"WolfensteinInfinite.GameData.Mods.{version.Name}.Sprites.100{i}.png";
@@ -711,13 +711,13 @@ namespace WolfensteinInfinite
         public RGBA8[]? PreserveColors { get; set; }
         public Animation POWAnimation { get; init; }
         public Texture32 BloodPool { get; init; }
-        public string[] ActiveMods => [.. Config.Mods.Where(p => p.Enabled).Select(p=>p.Name)];
+        public string[] ActiveMods => [.. Config.Mods.Where(p => p.Enabled).Select(p => p.Name)];
 
         private void RenderQuantize(int colors)
         {
             var originalPallet = Graphics.Pallet;
             (byte[] pixels, byte[] pallet) = PreserveColors == null ? Quantization.Quantize32BitAI(Buffer.Pixels, colors) : Quantization.Quantize32BitAI(Buffer.Pixels, colors, PreserveColors);
-            Dithering.Dither(Buffer.Pixels, ref pixels, pallet, Buffer.Width, Config.Dithering );
+            Dithering.Dither(Buffer.Pixels, ref pixels, pallet, Buffer.Width, Config.Dithering);
             Graphics.Pallet = pallet;
             Graphics.Blit(0, 0, new Texture8(Buffer.Width, Buffer.Height, pixels, pallet));
             Graphics.Render();
@@ -849,11 +849,11 @@ namespace WolfensteinInfinite
             }
             if (PickupItemTypes.Any(p => p.Value.Name == wl))
             {
-                if (drop.TryGetValue(wl, out int value))                
-                    drop[wl] = Math.Min(value * 2, 100);                
-                else                
-                    drop.Add(wl, Random.Shared.Next(0, 50));                
-            }            
+                if (drop.TryGetValue(wl, out int value))
+                    drop[wl] = Math.Min(value * 2, 100);
+                else
+                    drop.Add(wl, Random.Shared.Next(0, 50));
+            }
             var eTypes = new[] { EnemyType.ADOLF_HITLER, EnemyType.HITLER_GHOST, EnemyType.DOCTOR_SCHABBS, EnemyType.GENERAL_FETTGESICHT, EnemyType.GRETEL_GROSSE, EnemyType.HANS_GROSS, EnemyType.MECHA_HITLER, EnemyType.OTTO_GIFTMACHER };
             var bosses = new List<Enemy>();
             foreach (var m in Mods.Values)
@@ -875,7 +875,7 @@ namespace WolfensteinInfinite
                 drop, CharacterSpriteType.BOSS, e.SpritePath, 0,
                 bosses.Count != 0 ? bosses[Random.Shared.Next(0, bosses.Count)].AlertSounds : [],
                 bosses.Count != 0 ? bosses[Random.Shared.Next(0, bosses.Count)].DeathSounds : [],
-                bosses.Count != 0 ? bosses[Random.Shared.Next(0, bosses.Count)].TauntSounds : [], [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, blood,0);
+                bosses.Count != 0 ? bosses[Random.Shared.Next(0, bosses.Count)].TauntSounds : [], [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, blood, 0);
 
         }
 
@@ -883,10 +883,31 @@ namespace WolfensteinInfinite
         {
             CheckInfiniteMod(true);
             Mods = LoadMods(true);
+
+            // Rebuild BuilderMods, SpecialMaps and TestMaps in-place so that
+            // any mod added/removed/fixed since the last load is reflected
+            // without needing to reassign the init-only dictionary references.
+            RebuildDictionaryInPlace(BuilderMods, @"map.json", f => FileHelpers.Shared.Deserialize<MapBuilder>(f));
+            RebuildDictionaryInPlace(SpecialMaps, @"specialmap.json", f => FileHelpers.Shared.Deserialize<MapBuilder>(f));
+            RebuildDictionaryInPlace(TestMaps, @"maptestlevel.json", f => FileHelpers.Shared.Deserialize<MapBuilder>(f));
+        }
+
+        private void RebuildDictionaryInPlace(Dictionary<string, MapBuilder> target, string fileName,
+            Func<string, MapBuilder?> deserialize)
+        {
+            var freshKeys = new HashSet<string>();
             foreach (var mod in Mods)
             {
-                ReloadMod(mod.Key, ["map.json", "specialmap.json", "maptestlevel.json"]);
+                var path = FileHelpers.Shared.GetDataFilePath($@"Mods\{mod.Key}\{fileName}");
+                if (!File.Exists(path)) continue;
+                var builder = deserialize(path);
+                if (builder == null) continue;
+                target[mod.Key] = builder;   // add or replace
+                freshKeys.Add(mod.Key);
             }
+            // Remove entries that no longer exist / validate
+            foreach (var stale in target.Keys.Except(freshKeys).ToList())
+                target.Remove(stale);
         }
         public void ReloadMod(string modName, string[] mapTypes)
         {
@@ -896,7 +917,16 @@ namespace WolfensteinInfinite
                 if (File.Exists(modPath))
                 {
                     var builder = FileHelpers.Shared.Deserialize<MapBuilder>(modPath);
-                    if (builder != null) BuilderMods[modName] = builder;
+                    if (builder != null)
+                    {
+                        // Update sections on the existing object rather than replacing it.
+                        // Replacing the dict entry breaks any live references held by the
+                        // editor (ActiveSection) and the map-generator thread (modBuilders).
+                        if (BuilderMods.TryGetValue(modName, out var existing))
+                            existing.MapSections = builder.MapSections;
+                        else
+                            BuilderMods[modName] = builder;
+                    }
                 }
             }
             if (mapTypes.Contains("specialmap.json"))
@@ -905,7 +935,13 @@ namespace WolfensteinInfinite
                 if (File.Exists(specialPath))
                 {
                     var sections = FileHelpers.Shared.Deserialize<MapBuilder>(specialPath);
-                    if (sections != null) SpecialMaps[modName] = sections;
+                    if (sections != null)
+                    {
+                        if (SpecialMaps.TryGetValue(modName, out var existing))
+                            existing.MapSections = sections.MapSections;
+                        else
+                            SpecialMaps[modName] = sections;
+                    }
                 }
             }
             if (mapTypes.Contains("maptestlevel.json"))
@@ -914,7 +950,14 @@ namespace WolfensteinInfinite
                 if (File.Exists(testPath))
                 {
                     var sections = FileHelpers.Shared.Deserialize<MapBuilder>(testPath);
-                    if (sections != null) TestMaps[modName] = sections;
+                    if (sections != null)
+                    {
+                        if (TestMaps.TryGetValue(modName, out var existing))
+                            existing.MapSections = sections.MapSections;
+                        else
+                            TestMaps[modName] = sections;
+                    }
+                    TestMapSections = LoadTestMapSections();
                 }
             }
         }

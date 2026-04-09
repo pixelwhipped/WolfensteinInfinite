@@ -53,6 +53,11 @@ Checked="IsFlippableChk_Changed" Unchecked="IsFlippableChk_Changed"/>
                            RenderOptions.BitmapScalingMode="NearestNeighbor"
                            Canvas.Left="0" Canvas.Top="0"/>
                     <Canvas x:Name="GridCanvas" Canvas.Left="0" Canvas.Top="0" IsHitTestVisible="False"/>
+                    <!-- Direction-edge indicators for directional decals.
+                         Code-behind draws a coloured Rectangle on the matching
+                         edge (N=top, S=bottom, E=right, W=left) of every tile
+                         that has a Direction != NONE decal placed on it. -->
+                    <Canvas x:Name="DecalDirectionCanvas" Canvas.Left="0" Canvas.Top="0" IsHitTestVisible="False"/>
                     <Canvas.RenderTransform>
                         <TransformGroup>
                             <ScaleTransform x:Name="SectionGridScale" ScaleX="1" ScaleY="1"/>

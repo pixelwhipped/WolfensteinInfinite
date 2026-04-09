@@ -250,6 +250,7 @@ namespace WolfensteinInfinite.Editor
             if (changed)
             {
                 RedrawTile(tx, ty);
+                RedrawDirectionIndicators();
                 ChangeStates[ActiveMod] = true;
                 SetSaveButtonStates();
             }
@@ -280,10 +281,17 @@ namespace WolfensteinInfinite.Editor
             Canvas.SetLeft(GridCanvas, 0);
             Canvas.SetTop(GridCanvas, 0);
 
+            // Size the direction-indicator overlay to match the map
+            DecalDirectionCanvas.Width = _mapTilesW * TileSize;
+            DecalDirectionCanvas.Height = _mapTilesH * TileSize;
+            Canvas.SetLeft(DecalDirectionCanvas, 0);
+            Canvas.SetTop(DecalDirectionCanvas, 0);
+
             for (int y = 0; y < _mapTilesH; y++)
                 for (int x = 0; x < _mapTilesW; x++)
                     RedrawTile(x, y);
             DrawGridOverlay();
+            RedrawDirectionIndicators();
             CenterContent(CurrentMapView, SectionCanvas);
         }
         private void RedrawTile(int x, int y)
@@ -335,9 +343,7 @@ namespace WolfensteinInfinite.Editor
             var enemyId = ActiveSection.Enemy[y][x];
             WriteableBitmap? tile;
             if (enemyId >= 1000)
-                tile = specialChance >= 9 && specialChance <= 12
-                    ? GetSpecialBitmapVirtualEnemy(enemyId, specialChance)
-                    : GetVirtualEnemyBitmap(enemyId);
+                tile = GetVirtualEnemyBitmap(enemyId);
             else
                 tile = specialChance >= 9 && specialChance <= 12
                     ? GetSpecialBitmapEnemy(ActiveMod.Name, specialChance, enemyId)
@@ -346,28 +352,70 @@ namespace WolfensteinInfinite.Editor
             BlitDifficultyOverlay(_mapBitmap, ActiveSection.Difficulty[y][x], x * TileSize, y * TileSize);
         }
 
-        // Uses the existing EditRandomEnemy / EditExperimentEnemy textures already in Wolfenstein.Special
-        private WriteableBitmap GetVirtualEnemyBitmap(int mapId)
+        // Returns a coloured placeholder tile for virtual enemy IDs (1001 = Random, 1002 = Experimental)
+        private static WriteableBitmap GetVirtualEnemyBitmap(int mapId)
         {
-            // Special[1] = EditRandomEnemy, Special[2] = EditExperimentEnemy
-            int specialKey = mapId == 1001 ? 1 : 2;
-            if (Wolfenstein.Special.TryGetValue(specialKey, out var tex))
-                return GetBitmap(tex);
-            // Fallback: should never be reached after normal initialisation
             var t = new Texture32(64, 64);
-            t.RectFill(0, 0, 64, 64, mapId == 1001 ? (byte)160 : (byte)0, 32, mapId == 1001 ? (byte)200 : (byte)180, 255);
+            // 1001 Random Enemy: purple   1002 Experimental: teal
+            if (mapId == 1001) t.RectFill(0, 0, 64, 64, 160, 32, 200, 255);
+            else t.RectFill(0, 0, 64, 64, 0, 180, 180, 255);
+            // Dark border so it stands out on the canvas
+            t.RectFill(0, 0, 64, 3, 20, 20, 20, 255);
+            t.RectFill(0, 61, 64, 3, 20, 20, 20, 255);
+            t.RectFill(0, 0, 3, 64, 20, 20, 20, 255);
+            t.RectFill(61, 0, 3, 64, 20, 20, 20, 255);
             return GetBitmap(t);
         }
-
-        // Blends the chance % overlay onto a virtual enemy texture (1001/1002), cached like all other special blends
-        private WriteableBitmap? GetSpecialBitmapVirtualEnemy(int mapId, int specialChance)
+        /// <summary>
+        /// Draws a coloured bar on the facing edge of every directional decal tile.
+        /// North = top edge, South = bottom, East = right, West = left.
+        /// </summary>
+        private void RedrawDirectionIndicators()
         {
-            int specialKey = mapId == 1001 ? 1 : 2;
-            if (!Wolfenstein.Special.TryGetValue(specialKey, out var tex)) return GetVirtualEnemyBitmap(mapId);
-            var key = $"virtual{mapId},{specialChance}";
-            if (SpecialMapCache.TryGetValue(key, out var bmp)) return bmp;
-            return BlendSpecialTexture(tex, specialChance, key);
+            DecalDirectionCanvas.Children.Clear();
+            if (ActiveSection == null || ActiveMod == null) return;
+
+            const double Thickness = 6;
+            var brush = new SolidColorBrush(Color.FromArgb(210, 0, 220, 255)); // bright cyan
+
+            for (int ty = 0; ty < _mapTilesH; ty++)
+            {
+                for (int tx = 0; tx < _mapTilesW; tx++)
+                {
+                    var decalIdx = ActiveSection.Decals[ty][tx];
+                    if (decalIdx < 0) continue;
+
+                    var dir = GetDecalDirection(ActiveMod.Name, decalIdx);
+                    if (dir == Direction.NONE) continue;
+
+                    double px = tx * TileSize;
+                    double py = ty * TileSize;
+
+                    var (rx, ry, rw, rh) = dir switch
+                    {
+                        Direction.NORTH => (px, py, (double)TileSize, Thickness),
+                        Direction.SOUTH => (px, py + TileSize - Thickness, (double)TileSize, Thickness),
+                        Direction.WEST => (px, py, Thickness, (double)TileSize),
+                        Direction.EAST => (px + TileSize - Thickness, py, Thickness, (double)TileSize),
+                        _ => (0d, 0d, 0d, 0d)
+                    };
+
+                    if (rw == 0 || rh == 0) continue;
+
+                    var rect = new Rectangle
+                    {
+                        Width = rw,
+                        Height = rh,
+                        Fill = brush,
+                        IsHitTestVisible = false
+                    };
+                    Canvas.SetLeft(rect, rx);
+                    Canvas.SetTop(rect, ry);
+                    DecalDirectionCanvas.Children.Add(rect);
+                }
+            }
         }
+
         private void DrawGridOverlay()
         {
             GridCanvas.Children.Clear();
@@ -662,11 +710,7 @@ namespace WolfensteinInfinite.Editor
                 var b = FileHelpers.Shared.Deserialize<MapBuilder>(file);
                 return b?.MapSections ?? [];
             }
-            catch 
-            { 
-                //Just dont add on fail.
-                return [];
-            }
+            catch { return []; }
         }
 
         private void SetMapSectionSelectionsOld()
@@ -830,7 +874,6 @@ namespace WolfensteinInfinite.Editor
             if (SelectedSpecialIndex == -1 && Wolfenstein.Special.Count > 0) SelectedSpecialIndex = 0;
             for (int i = 0; i < Wolfenstein.Special.Count; i++)
             {
-                if (i == 1 || i == 2) continue; // now live on the Enemy layer as 1001/1002
                 var j = i;
                 Image imageControl = new()
                 {
@@ -1004,7 +1047,13 @@ namespace WolfensteinInfinite.Editor
         // Difficulty
         // ──────────────────────────────────────────────────────────────
 
-        private void DifficultySelection_SelectionChanged(object sender, SelectionChangedEventArgs e) => SelectedDifficulty = DifficultySelection.SelectedIndex;
+        private void DifficultySelection_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            SelectedDifficulty = DifficultySelection.SelectedIndex;/*
+            var dStr = DifficultySelection.SelectedItem.ToString()
+                ?? DifficultyHelpers.GetDifficultyString(Difficulties.CAN_I_PLAY_DADDY);
+            SelectedDifficulty = (int)(DifficultyHelpers.GetStringDifficulty(dStr) ?? Difficulties.CAN_I_PLAY_DADDY);*/
+        }
 
         // ──────────────────────────────────────────────────────────────
         // Bitmap helpers
@@ -1259,6 +1308,21 @@ namespace WolfensteinInfinite.Editor
 
                 // Always reload the base mod (map pool, textures, etc.)
                 Wolfenstein.ReloadMod(mod.Name, [target]);
+
+                // ReloadMod replaces BuilderMods[mod.Name] with a freshly-deserialized
+                // object.  Re-sync ActiveSection so subsequent edits don't operate on
+                // the now-orphaned old MapBuilder.
+                if (ActiveSection != null)
+                {
+                    var freshBuilder = GetSelectedBuilder(mod);
+                    var freshSection = freshBuilder.MapSections
+                        .FirstOrDefault(s => s.Id == ActiveSection.Id);
+                    if (freshSection != null)
+                    {
+                        ActiveSection = freshSection;
+                        ActiveSection.Layers = MapSection.Expand(ActiveSection);
+                    }
+                }
 
                 return true;
             }

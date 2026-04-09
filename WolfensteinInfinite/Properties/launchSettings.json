@@ -2,7 +2,7 @@
   "profiles": {
     "WolfensteinInfinite": {
       "commandName": "Project",
-      "commandLineArgs": "-fps"        
+      "commandLineArgs": "-fps -e -t"        
     }
   }
 }

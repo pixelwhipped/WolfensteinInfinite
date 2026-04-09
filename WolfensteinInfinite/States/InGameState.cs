@@ -219,7 +219,7 @@ namespace WolfensteinInfinite.States
                 (size * size) / avgRoomDim);
                 var targetRooms = Math.Max(
                     (int)Math.Ceiling((Math.Clamp(Game.Map.Level + 1, 1, 100) / 100f) * maxRooms), 15);
-                CurrentGenerator = MapGenerator.GetMapGenerator(Wolfenstein, size, size, m, s, sections, Game.Map.Level + 1, targetRooms, attemptObjectives,()=> { Thread.Yield(); });
+                CurrentGenerator = MapGenerator.GetMapGenerator(Wolfenstein, size, size, m, s, sections, Game.Map.Level + 1, targetRooms, attemptObjectives, () => { Thread.Yield(); });
                 CurrentGenerator?.TryBuild();
                 if (CurrentGenerator == null || !CurrentGenerator.Success) return;
                 PreGenerated.Add(CurrentGenerator);
@@ -1655,8 +1655,8 @@ namespace WolfensteinInfinite.States
             //todo offset map by max 128
             var mapWidth = Game.Map.WorldMap[0].Length;
             var mapHeight = Game.Map.WorldMap.Length;
-            var xoffset = (128 - mapWidth)/2;
-            var yoffset = (128 - mapHeight)/2;
+            var xoffset = (128 - mapWidth) / 2;
+            var yoffset = (128 - mapHeight) / 2;
             for (int y = 0; y < mapHeight; y++)
             {
                 for (int x = 0; x < mapWidth; x++)
@@ -1716,6 +1716,11 @@ namespace WolfensteinInfinite.States
             for (int i = 0; i < _livingSprites.Count; i++)
             {
                 var obj = _livingSprites[SpriteOrder[i]];
+
+                // Directional decals are wall-rendered by CastDirectionalDecals; rendering
+                // them here too produces a ghost billboard drawn across the tile.
+                if (obj is DecalObject { Decal.Direction: not Direction.NONE })
+                    continue;
 
                 // Replace the current angle block and texture fetch:
                 float angleToPlayer = 0f;
@@ -1956,8 +1961,7 @@ namespace WolfensteinInfinite.States
                     case Direction.NORTH:
                         {
                             if (rayDirY == 0) continue;
-                            //perpWallDist = (d.Y - Game.Player.PosY) / rayDirY;
-                            perpWallDist = (d.Y + 1f - Game.Player.PosY) / rayDirY;
+                            perpWallDist = (d.Y - Game.Player.PosY) / rayDirY; // top edge of tile
                             if (perpWallDist <= 0) continue;
                             float hitX = Game.Player.PosX + perpWallDist * rayDirX;
                             if (hitX < d.X || hitX > d.X + 1f) continue;
@@ -1979,8 +1983,7 @@ namespace WolfensteinInfinite.States
                     case Direction.WEST:
                         {
                             if (rayDirX == 0) continue;
-                            perpWallDist = (d.X + 1f - Game.Player.PosX) / rayDirX;
-                            //perpWallDist = (d.X - Game.Player.PosX) / rayDirX;
+                            perpWallDist = (d.X - Game.Player.PosX) / rayDirX; // left edge of tile
                             if (perpWallDist <= 0) continue;
                             float hitY = Game.Player.PosY + perpWallDist * rayDirY;
                             if (hitY < d.Y || hitY > d.Y + 1f) continue;
@@ -2615,5 +2618,3 @@ namespace WolfensteinInfinite.States
     }
 
 }
-
-
