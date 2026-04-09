@@ -117,7 +117,7 @@ namespace WolfensteinInfinite.GameObjects
             }
             else
             {
-                foreach (var obj in state.DynamicObjects)
+                foreach (var obj in state.DynamicObjects.ToArray()) //To array prevent collection modification exceptions
                 {
                     if (obj is EnemyObject enemy && !(enemy.IsCorpse || enemy.IsDying) &&
                         (int)enemy.X == mx && (int)enemy.Y == my)

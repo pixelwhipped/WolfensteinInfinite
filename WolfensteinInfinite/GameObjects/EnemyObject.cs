@@ -424,7 +424,7 @@ namespace WolfensteinInfinite.GameObjects
             while (toAlert.Count > 0)
             {
                 var current = toAlert.Dequeue();
-                foreach (var obj in state.DynamicObjects)
+                foreach (var obj in state.DynamicObjects.ToArray()) //To array prevent collection modification exceptions
                 {
                     if (obj is not EnemyObject other || other.AIState != EnemyAIState.Idle) continue;
                     var dx = other.X - current.X;

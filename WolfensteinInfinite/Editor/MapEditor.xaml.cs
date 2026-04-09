@@ -1336,41 +1336,6 @@ namespace WolfensteinInfinite.Editor
                 SetSaveButtonStates();
             }
         }
-        private bool SaveOld(Mod mod, out string[] errors)
-        {
-            errors = [];
-            if (mod == null) return false;
-            var builder = Wolfenstein.BuilderMods[mod.Name];
-            foreach (var s in builder.MapSections)
-                s.Layers = MapSection.Trim(s);
-
-            var target = SaveTargetSelection.SelectedItem as string ?? "map.json";
-            if (!(target == "maptestlevel.json" || target == "specialmap.json"))
-                if (!builder.Validate(out errors)) return false;
-
-            var file = FileHelpers.Shared.GetDataFilePath(@$"Mods\{mod.Name}\{target}");
-            try
-            {
-                if (!FileHelpers.Shared.Serialize(builder, file)) throw new Exception();
-                ChangeStates[mod] = false;
-                if (ActiveSection != null) ActiveSection.Layers = MapSection.Expand(ActiveSection);
-
-                // Always reload the base mod (map pool, textures, etc.)
-                Wolfenstein.ReloadMod(mod.Name, [target]);
-
-                return true;
-            }
-            catch
-            {
-                Logger.GetLogger(mod).Log($"Having an issue with {file}");
-                return false;
-            }
-            finally
-            {
-                SetSaveButtonStates();
-            }
-        }
-
         private void SaveBtn_Click(object sender, RoutedEventArgs e)
         {
             if (ActiveMod != null && Save(ActiveMod, out var _))

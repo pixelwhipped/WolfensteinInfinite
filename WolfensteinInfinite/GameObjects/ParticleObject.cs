@@ -5,7 +5,6 @@ namespace WolfensteinInfinite.GameObjects
 {
     public sealed class ParticleObject : DynamicObject
     { 
-
         public float DirX { get; init; }
         public float DirY { get; init; }
         public float Speed { get; init; }
