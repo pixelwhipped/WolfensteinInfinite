@@ -1956,7 +1956,8 @@ namespace WolfensteinInfinite.States
                     case Direction.NORTH:
                         {
                             if (rayDirY == 0) continue;
-                            perpWallDist = (d.Y - Game.Player.PosY) / rayDirY;
+                            //perpWallDist = (d.Y - Game.Player.PosY) / rayDirY;
+                            perpWallDist = (d.Y + 1f - Game.Player.PosY) / rayDirY;
                             if (perpWallDist <= 0) continue;
                             float hitX = Game.Player.PosX + perpWallDist * rayDirX;
                             if (hitX < d.X || hitX > d.X + 1f) continue;
@@ -1978,7 +1979,8 @@ namespace WolfensteinInfinite.States
                     case Direction.WEST:
                         {
                             if (rayDirX == 0) continue;
-                            perpWallDist = (d.X - Game.Player.PosX) / rayDirX;
+                            perpWallDist = (d.X + 1f - Game.Player.PosX) / rayDirX;
+                            //perpWallDist = (d.X - Game.Player.PosX) / rayDirX;
                             if (perpWallDist <= 0) continue;
                             float hitY = Game.Player.PosY + perpWallDist * rayDirY;
                             if (hitY < d.Y || hitY > d.Y + 1f) continue;

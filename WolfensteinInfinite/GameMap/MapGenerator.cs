@@ -1,5 +1,4 @@
 ﻿using SFML.Window;
-using System.Windows;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameGraphics;
@@ -26,7 +25,7 @@ namespace WolfensteinInfinite.GameMap
         public Wolfenstein Wolfenstein { get; init; }
         public int[][] FlatMap { get; set; }
         public bool Bail { get; internal set; }
-        private Action Yeild { get; init; }
+        private Action Yield { get; init; }
         public static MapSection[] FlipSection(MapSection section)
         {
             var flip = new List<MapSection>
@@ -40,10 +39,11 @@ namespace WolfensteinInfinite.GameMap
                 var flipped = new MapSection(w, h);
 
                 var layers = new Dictionary<MapArrayLayouts, int[][]>();
-                foreach (var layout in Enum.GetValues<MapArrayLayouts>())
+                var layouts = Enum.GetValues<MapArrayLayouts>();
+                foreach (var layout in layouts)
                     layers[layout] = MapSection.Empty(w, h);
 
-                foreach (var layout in Enum.GetValues<MapArrayLayouts>())
+                foreach (var layout in layouts)
                 {
                     var srcLayer = section.GetLayout(layout);
                     var dstLayer = layers[layout];
@@ -92,7 +92,7 @@ namespace WolfensteinInfinite.GameMap
             TargetRoomCount = targetRooms;
             Level = level;
             AttemptObjectives = attemptObjectives;
-            Yeild = yeild;
+            Yield = yeild;
             HasPlaced = new();
             //var x = Width / 2;
             //var y = Height / 2;
@@ -190,7 +190,7 @@ namespace WolfensteinInfinite.GameMap
         private MapGeneratorSection[] GetNodes(MapGeneratorSection origin)
         {
             if (Wolfenstein == null || Wolfenstein.Application == null) return [];
-            Yeild();
+            Yield();
             if (Bail || Wolfenstein.Graphics.IsKeyDown(Keyboard.Key.Escape) || Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyPause))
             {
                 return [];
@@ -207,18 +207,18 @@ namespace WolfensteinInfinite.GameMap
 
             var placeLockedDoor = SectionByTypes.KeyLocations.Length > 0 && SectionByTypes.KeyLockedDoors.Length > 0 && AttemptObjectives.Contains(MapFlags.HAS_LOCKED_DOOR);
             var placeDynamite = SectionByTypes.Dynamite.Length > 0 && SectionByTypes.DynamitePlacement.Length > 0 && AttemptObjectives.Contains(MapFlags.HAS_BOOM);
-            var dyanmitePlacements = (int)(Math.Clamp(Level, 1, 100) / 100f * 3); //up to 3 sections depending on level
+            var dynamitePlacements = (int)(Math.Clamp(Level, 1, 100) / 100f * 3); //up to 3 sections depending on level
             var placeSecret = SectionByTypes.Secret.Length > 0 && SectionByTypes.Radio.Length > 0 && AttemptObjectives.Contains(MapFlags.HAS_SECRET_MESSAGE);
             var placePow = SectionByTypes.Pow.Length > 0 && AttemptObjectives.Contains(MapFlags.HAS_POW);
             var placeBoss = SectionByTypes.Pow.Length > 0 && AttemptObjectives.Contains(MapFlags.HAS_BOSS);
             var bossPlacements = !placeBoss ? 0 : Level < 30 ? 1 : //up to 4 boss depends on level progression
-                Level < 60 ? Math.Clamp(Level, 1, 100) / 100 * Random.Shared.Next(Math.Min(SectionByTypes.Boss.Length, 2)) :
-                Math.Clamp(Level, 1, 100) / 100 * Random.Shared.Next(Math.Min(SectionByTypes.Boss.Length, 4));
+                Level < 60 ? Math.Clamp(Level, 1, 100) / 100f * Random.Shared.Next(Math.Min(SectionByTypes.Boss.Length, 2)) :
+                Math.Clamp(Level, 1, 100) / 100f * Random.Shared.Next(Math.Min(SectionByTypes.Boss.Length, 4));
             var placeBossAfter = bossPlacements == 0 ? (int)Math.Max(placeLockedDoorAfter + 1, TargetRoomCount * 0.70) : TargetRoomCount * 0.45;
             bool CanPlaceLockedDoor() => SectionByTypes.KeyLockedDoors.Length > 0 && SectionByTypes.KeyLocations.Length > 0 && placeLockedDoor && HasPlaced.Key && HasPlaced.LockedDoor == false && openConnectionCount == 1 && MapLayers.Count >= placeLockedDoorAfter;
             bool CanPlaceKey() => SectionByTypes.KeyLocations.Length > 0 && SectionByTypes.KeyLockedDoors.Length > 0 && placeLockedDoor && HasPlaced.Key == false;
             bool CanPlaceDynamite() => SectionByTypes.Dynamite.Length > 0 && SectionByTypes.DynamitePlacement.Length > 0 && placeDynamite && HasPlaced.Dynamite == false;
-            bool CanPlaceDynamitePlacements() => SectionByTypes.DynamitePlacement.Length > 0 && SectionByTypes.Dynamite.Length > 0 && placeDynamite && dyanmitePlacements > 0;
+            bool CanPlaceDynamitePlacements() => SectionByTypes.DynamitePlacement.Length > 0 && SectionByTypes.Dynamite.Length > 0 && placeDynamite && dynamitePlacements > 0;
             bool CanPlaceSecret() => SectionByTypes.Secret.Length > 0 && SectionByTypes.Radio.Length > 0 && placeSecret && HasPlaced.Secret == false;
             bool CanPlaceRadio()
             {
@@ -538,7 +538,7 @@ namespace WolfensteinInfinite.GameMap
             FlatMap = MapSection.Empty(Width, Height, MapSection.ClosedSectionNothing);
             foreach (var l in MapLayers.Values)
             {
-                Yeild();
+                Yield();
                 var cs = l.GetOrComputeClosedSection();
                 if (cs == null) continue;
                 for (int i = 0; i < l.Section.Height; i++)
@@ -568,7 +568,7 @@ namespace WolfensteinInfinite.GameMap
 
             // Store the small section at its world position — no expansion needed
             var gm = new MapGeneratorSection(x, y, section.Mod, section.Section, section.Section.GetConnections(x, y));
-            if (!MapLayers.TryAdd(section.Guid, gm)) MapLayers[section.Guid] = gm;
+            MapLayers[section.Guid] = gm;
             FlattenMap();
 
             if (_sectionUsageCount.TryGetValue(section.Section.SectionHash, out int current))
@@ -1048,7 +1048,7 @@ namespace WolfensteinInfinite.GameMap
             {
                 player.PosX = playerX + 0.5f;
                 player.PosY = playerY + 0.5f;
-                var direction = DeterminFacingDirection(playerX, playerY, wallMap, doorMap);
+                var direction = DetermineFacingDirection(playerX, playerY, wallMap, doorMap);
                 var (dX, dY) = GetXYDirection(direction);
                 player.DirX = dX;
                 player.DirY = dY;
@@ -1281,7 +1281,7 @@ namespace WolfensteinInfinite.GameMap
             Direction.WEST => ((float X, float Y))(-1, 0),
             _ => ((float X, float Y))(0, 0),
         };
-        private static Direction DeterminFacingDirection(int startX, int startY, int[][] wallMap, int[][] doorMap)
+        private static Direction DetermineFacingDirection(int startX, int startY, int[][] wallMap, int[][] doorMap)
         {
             var wallNorth = 0;
             var wallEast = 0;

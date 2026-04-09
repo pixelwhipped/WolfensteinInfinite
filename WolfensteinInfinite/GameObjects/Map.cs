@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using WolfensteinInfinite.Engine.Graphics;
+﻿using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameMap;
 

@@ -1,6 +1,4 @@
-﻿//Clean
-using SFML.Window;
-using System.ComponentModel;
+﻿using SFML.Window;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameMap;
