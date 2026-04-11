@@ -770,7 +770,9 @@ namespace WolfensteinInfinite.Editor
                 SectionImage.Source = null;
                 return;
             }
+            MinLevelSld.ValueChanged -= MinLevelSld_ValueChanged;
             MinLevelSld.Value = s.IntendedMinLevel;
+            MinLevelSld.ValueChanged += MinLevelSld_ValueChanged;
             LevelLabel.Content = $"Level {s.IntendedMinLevel}";
             IsRotatableChk.Checked -= IsRotatableChk_Changed;
             IsRotatableChk.Unchecked -= IsRotatableChk_Changed;
