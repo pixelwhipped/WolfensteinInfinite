@@ -33,6 +33,10 @@
         //Otto Giftmacher
         OTTO_GIFTMACHERE,
         //General Fettgesicht
-        GENERAL_FETTGESICHTC
+        GENERAL_FETTGESICHTC,
+        UBER_MUTANT, //walking 4, attack 4, dying 4 dead 1
+        DEATH_KNIGHT, //walking 4, attack 4, dying 6 dead 1
+        SPECTRE, //4 walking, 4 dying no dead 
+        ANGEL_OF_DEATH //walking 4, attack 4, dying 7 dead 1
     }
 }

@@ -50,7 +50,19 @@ namespace WolfensteinInfinite.GameHelpers
                 case CharacterSpriteType.GENERAL_FETTGESICHTC:
                     ReadGeneralFettgesicht(animations, path, start);
                     break;
-            }
+                case CharacterSpriteType.UBER_MUTANT:
+                    ReadUberMutant(animations, path, start);
+                    break;
+                case CharacterSpriteType.DEATH_KNIGHT:
+                    ReadDeathKnight(animations, path, start);
+                    break;
+                case CharacterSpriteType.SPECTRE:
+                    ReadSpectre(animations, path, start);
+                    break;
+                case CharacterSpriteType.ANGEL_OF_DEATH:
+                    ReadAngelOfDeath(animations, path, start);
+                    break;
+            }            
             return new CharacterSprite(animations);
         }
         private static void ReadGhostHitlerAnimations(Dictionary<CharacterAnimationState, Animation> Animations, string path, int start)
@@ -86,7 +98,7 @@ namespace WolfensteinInfinite.GameHelpers
             animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
             Animations.Add(CharacterAnimationState.DEAD_LEFT, new Animation([.. animation], 1, 1, 1) { Loop = false });
             Animations.Add(CharacterAnimationState.DEAD_RIGHT, new Animation([.. animation], 1, 1, 1) { Loop = false });
-            
+
         }
         private static void ReadAdolfAnimations(Dictionary<CharacterAnimationState, Animation> Animations, string path, int start)
         {
@@ -109,7 +121,7 @@ namespace WolfensteinInfinite.GameHelpers
             Animations.Add(CharacterAnimationState.ATTACKING, new Animation([.. animation], 1, 3, 3.5f));
             animation.Clear();
             //i++;
-            animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));            
+            animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
             Animations.Add(CharacterAnimationState.DEAD_LEFT, new Animation([.. animation], 1, 1, 1) { Loop = false });
             Animations.Add(CharacterAnimationState.DEAD_RIGHT, new Animation([.. animation], 1, 1, 1) { Loop = false });
             animation.Clear();
@@ -121,7 +133,7 @@ namespace WolfensteinInfinite.GameHelpers
             }
             Animations.Add(CharacterAnimationState.DYING_LEFT, new Animation([.. animation], 1, 8, 3.5f) { Loop = false });
             Animations.Add(CharacterAnimationState.DYING_RIGHT, new Animation([.. animation], 1, 8, 3.5f) { Loop = false });
-            Animations.Add(CharacterAnimationState.HIT, new Animation([animation[0],animation[0]], 1, 2, 8f) { Loop = false });
+            Animations.Add(CharacterAnimationState.HIT, new Animation([animation[0], animation[0]], 1, 2, 8f) { Loop = false });
             animation.Clear();
 
         }
@@ -146,7 +158,7 @@ namespace WolfensteinInfinite.GameHelpers
             Animations.Add(CharacterAnimationState.ATTACKING, new Animation([.. animation], 1, 3, 3.5f));
             animation.Clear();
             //i++;
-            animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));            
+            animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
             Animations.Add(CharacterAnimationState.DEAD_LEFT, new Animation([.. animation], 1, 1, 1) { Loop = false });
             Animations.Add(CharacterAnimationState.DEAD_RIGHT, new Animation([.. animation], 1, 1, 1) { Loop = false });
             animation.Clear();
@@ -193,7 +205,7 @@ namespace WolfensteinInfinite.GameHelpers
             Animations.Add(CharacterAnimationState.HIT, new Animation([animation[0], animation[0]], 1, 2, 8f) { Loop = false });
             animation.Clear();
             //i++;
-            animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));            
+            animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
             Animations.Add(CharacterAnimationState.DEAD_LEFT, new Animation([.. animation], 1, 1, 1) { Loop = false });
             Animations.Add(CharacterAnimationState.DEAD_RIGHT, new Animation([.. animation], 1, 1, 1) { Loop = false });
         }
@@ -218,7 +230,7 @@ namespace WolfensteinInfinite.GameHelpers
             Animations.Add(CharacterAnimationState.ATTACKING, new Animation([.. animation], 1, 3, 3.5f));
             animation.Clear();
             //i++;
-            animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));            
+            animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
             Animations.Add(CharacterAnimationState.DEAD_LEFT, new Animation([.. animation], 1, 1, 1) { Loop = false });
             Animations.Add(CharacterAnimationState.DEAD_RIGHT, new Animation([.. animation], 1, 1, 1) { Loop = false });
             animation.Clear();
@@ -264,9 +276,134 @@ namespace WolfensteinInfinite.GameHelpers
             Animations.Add(CharacterAnimationState.DEAD_LEFT, new Animation([.. animation], 1, 1, 1) { Loop = false });
             Animations.Add(CharacterAnimationState.DEAD_RIGHT, new Animation([.. animation], 1, 1, 1) { Loop = false });
             animation.Clear();
-            
+
         }
 
+        private static void ReadUberMutant(Dictionary<CharacterAnimationState, Animation> Animations, string path, int start)
+        {
+            var animation = new List<Texture32>();
+            int i = start;
+            int end = start + 4;
+            for (; i < end; i++)
+            {
+                animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
+            }
+            Animations.Add(CharacterAnimationState.STANDING, new Animation([.. animation], 1, 4, 3.5f));
+            Animations.Add(CharacterAnimationState.WALKING, new Animation([.. animation], 1, 4, 3.5f));
+            animation.Clear();
+            end += 4;
+            for (; i < end; i++)
+            {
+                animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
+            }
+            Animations.Add(CharacterAnimationState.ATTACKING, new Animation([.. animation], 1, 4, 3.5f));
+            animation.Clear();
+            end = i + 4;
+            for (; i < end; i++)
+            {
+                animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
+            }
+            Animations.Add(CharacterAnimationState.DYING_RIGHT, new Animation([.. animation], 1, 4, 3.5f) { Loop = false });
+            Animations.Add(CharacterAnimationState.DYING_LEFT, new Animation([.. animation], 1, 4, 3.5f) { Loop = false });
+            Animations.Add(CharacterAnimationState.HIT, new Animation([animation[0], animation[0]], 1, 2, 8f) { Loop = false });
+            animation.Clear();
+            animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
+            Animations.Add(CharacterAnimationState.DEAD_LEFT, new Animation([.. animation], 1, 1, 1) { Loop = false });
+            Animations.Add(CharacterAnimationState.DEAD_RIGHT, new Animation([.. animation], 1, 1, 1) { Loop = false });
+            animation.Clear();
+        }
+        private static void ReadDeathKnight(Dictionary<CharacterAnimationState, Animation> Animations, string path, int start)
+        {
+            var animation = new List<Texture32>();
+            int i = start;
+            int end = start + 4;
+            for (; i < end; i++)
+            {
+                animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
+            }
+            Animations.Add(CharacterAnimationState.STANDING, new Animation([.. animation], 1, 4, 3.5f));
+            Animations.Add(CharacterAnimationState.WALKING, new Animation([.. animation], 1, 4, 3.5f));
+            animation.Clear();
+            end += 4;
+            for (; i < end; i++)
+            {
+                animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
+            }
+            Animations.Add(CharacterAnimationState.ATTACKING, new Animation([.. animation], 1, 4, 3.5f));
+            animation.Clear();
+            end = i + 6;
+            for (; i < end; i++)
+            {
+                animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
+            }
+            Animations.Add(CharacterAnimationState.DYING_RIGHT, new Animation([.. animation], 1, 6, 3.5f) { Loop = false });
+            Animations.Add(CharacterAnimationState.DYING_LEFT, new Animation([.. animation], 1, 6, 3.5f) { Loop = false });
+            Animations.Add(CharacterAnimationState.HIT, new Animation([animation[0], animation[0]], 1, 2, 8f) { Loop = false });
+            animation.Clear();
+            animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
+            Animations.Add(CharacterAnimationState.DEAD_LEFT, new Animation([.. animation], 1, 1, 1) { Loop = false });
+            Animations.Add(CharacterAnimationState.DEAD_RIGHT, new Animation([.. animation], 1, 1, 1) { Loop = false });
+            animation.Clear();
+        }
+        private static void ReadAngelOfDeath(Dictionary<CharacterAnimationState, Animation> Animations, string path, int start)
+        {
+            var animation = new List<Texture32>();
+            int i = start;
+            int end = start + 4;
+            for (; i < end; i++)
+            {
+                animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
+            }
+            Animations.Add(CharacterAnimationState.STANDING, new Animation([.. animation], 1, 4, 3.5f));
+            Animations.Add(CharacterAnimationState.WALKING, new Animation([.. animation], 1, 4, 3.5f));
+            animation.Clear();
+            end += 4;
+            for (; i < end; i++)
+            {
+                animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
+            }
+            Animations.Add(CharacterAnimationState.ATTACKING, new Animation([.. animation], 1, 4, 3.5f));
+            animation.Clear();
+            end = i + 7;
+            for (; i < end; i++)
+            {
+                animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
+            }
+            Animations.Add(CharacterAnimationState.DYING_RIGHT, new Animation([.. animation], 1, 7, 3.5f) { Loop = false });
+            Animations.Add(CharacterAnimationState.DYING_LEFT, new Animation([.. animation], 1, 7, 3.5f) { Loop = false });
+            Animations.Add(CharacterAnimationState.HIT, new Animation([animation[0], animation[0]], 1, 2, 8f) { Loop = false });
+            animation.Clear();
+            animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
+            Animations.Add(CharacterAnimationState.DEAD_LEFT, new Animation([.. animation], 1, 1, 1) { Loop = false });
+            Animations.Add(CharacterAnimationState.DEAD_RIGHT, new Animation([.. animation], 1, 1, 1) { Loop = false });
+            animation.Clear();
+        }
+        private static void ReadSpectre(Dictionary<CharacterAnimationState, Animation> Animations, string path, int start)
+        {
+            var animation = new List<Texture32>();
+            int i = start;
+            int end = start + 4;
+            for (; i < end; i++)
+            {
+                animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
+            }
+            Animations.Add(CharacterAnimationState.STANDING, new Animation([.. animation], 1, 4, 3.5f));
+            Animations.Add(CharacterAnimationState.WALKING, new Animation([.. animation], 1, 4, 3.5f));
+            Animations.Add(CharacterAnimationState.ATTACKING, new Animation([.. animation], 1, 4, 3.5f));
+            animation.Clear();
+            end += 4;
+            for (; i < end; i++)
+            {
+                animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
+            }
+            var d = new Texture32(64, 64);
+            d.RectFill(0, 0, 64, 64, 0, 0, 0, 0);
+            Animations.Add(CharacterAnimationState.DYING_RIGHT, new Animation([.. animation], 1, 4, 3.5f) { Loop = false });
+            Animations.Add(CharacterAnimationState.DYING_LEFT, new Animation([.. animation], 1, 4, 3.5f) { Loop = false });
+            Animations.Add(CharacterAnimationState.HIT, new Animation([animation[0], animation[0]], 1, 2, 8f) { Loop = false });           
+            Animations.Add(CharacterAnimationState.DEAD_LEFT, new Animation([d], 1, 1, 1) { Loop = false });
+            Animations.Add(CharacterAnimationState.DEAD_RIGHT, new Animation([d], 1, 1, 1) { Loop = false });
+        }
         private static void ReadGeneralFettgesicht(Dictionary<CharacterAnimationState, Animation> Animations, string path, int start)
         {
             var animation = new List<Texture32>();
@@ -345,10 +482,10 @@ namespace WolfensteinInfinite.GameHelpers
             Animations.Add(CharacterAnimationState.HIT, new Animation([animation[0], animation[0]], 1, 2, 8f) { Loop = false });
             i++;
             animation.Clear();
-            animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));            
+            animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
             Animations.Add(CharacterAnimationState.DEAD_LEFT, new Animation([.. animation], 1, 1, 1) { Loop = false });
             Animations.Add(CharacterAnimationState.DEAD_RIGHT, new Animation([.. animation], 1, 1, 1) { Loop = false });
-            
+
             i++;
             animation.Clear();
             end = i + 3;
@@ -402,11 +539,11 @@ namespace WolfensteinInfinite.GameHelpers
             Animations.Add(CharacterAnimationState.HIT, new Animation([animation[0], animation[0]], 1, 2, 8f) { Loop = false });
             animation.Clear();
             i++;
-            animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));            
+            animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));
             Animations.Add(CharacterAnimationState.DEAD_RIGHT, new Animation([.. animation], 1, 1, 1) { Loop = false });
             animation.Clear();
             animation.Add(FlipTexture(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png"))));
-            Animations.Add(CharacterAnimationState.DEAD_LEFT, new Animation([.. animation], 1, 1, 1) { Loop = false });            
+            Animations.Add(CharacterAnimationState.DEAD_LEFT, new Animation([.. animation], 1, 1, 1) { Loop = false });
             animation.Clear();
             i++;
             end = i + 4;
@@ -504,7 +641,7 @@ namespace WolfensteinInfinite.GameHelpers
                 animation.Add(t);
             }
             Animations.Add(CharacterAnimationState.DYING_LEFT, new Animation([.. animation], 1, 4, 3.5f) { Loop = false });
-            Animations.Add(CharacterAnimationState.HIT, new Animation([animation[0],animation[0]], 1, 2, 8f) { Loop = false });
+            Animations.Add(CharacterAnimationState.HIT, new Animation([animation[0], animation[0]], 1, 2, 8f) { Loop = false });
             i++;
             animation.Clear();
             animation.Add(FileHelpers.Shared.LoadSurface32(System.IO.Path.Combine(path, $"{i}.png")));

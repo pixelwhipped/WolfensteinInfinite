@@ -31,7 +31,7 @@ namespace WolfensteinInfinite.States
         }
         public void GenerateMap()
         {
-            MapFlags[] attemptObjectives = [];
+            MapFlags[] attemptObjectives = MapGenerator.BuildObjectives([], Level);
             var mods = Wolfenstein.ActiveMods;
             var modBuilders = Wolfenstein.BuilderMods
                 .Where(p => mods.Any(mo => mo == p.Key) && p.Value.MapSections.Length > 0)
@@ -192,10 +192,10 @@ namespace WolfensteinInfinite.States
 
                     // --- Objective weight ---
                     int objCount = 0;
-                    if (g.HasPlaced.Key && g.HasPlaced.LockedDoor) objCount++;
-                    if (g.HasPlaced.Secret && g.HasPlaced.Radio) objCount++;
-                    if (g.HasPlaced.Dynamite) objCount++;
-                    if (g.HasPlaced.Pow) objCount++;
+                    if (g.HasPlaced.Key && g.HasPlaced.LockedDoor) objCount += g.AttemptObjectives.Contains(MapFlags.HAS_LOCKED_DOOR) ? 5 : 1;
+                    if (g.HasPlaced.Secret && g.HasPlaced.Radio) objCount += g.AttemptObjectives.Contains(MapFlags.HAS_SECRET_MESSAGE) ? 5 : 1;
+                    if (g.HasPlaced.Dynamite) objCount += g.AttemptObjectives.Contains(MapFlags.HAS_BOOM) ? 5 : 1;
+                    if (g.HasPlaced.Pow) objCount += g.AttemptObjectives.Contains(MapFlags.HAS_POW)?5:1;
                     score += objCount switch
                     {
                         0 => ObjectiveZeroWeight,
@@ -206,7 +206,7 @@ namespace WolfensteinInfinite.States
 
                     // --- Boss weight ---
                     if (isBossLevel && g.HasPlaced.Boss)
-                        score += BossLevelWeight;
+                        score += g.AttemptObjectives.Contains(MapFlags.HAS_BOSS)?BossLevelWeight*2: BossLevelWeight;
                     else if (g.HasPlaced.Boss)
                         score += BossNonLevelWeight;
 

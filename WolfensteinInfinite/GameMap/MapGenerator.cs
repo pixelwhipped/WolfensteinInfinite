@@ -73,6 +73,23 @@ namespace WolfensteinInfinite.GameMap
             }
             return [.. flip];
         }
+        private static readonly MapFlags[] RandomObejectives = [MapFlags.HAS_POW, MapFlags.HAS_BOOM, MapFlags.HAS_LOCKED_DOOR, MapFlags.HAS_SECRET_MESSAGE];
+        public static MapFlags[] BuildObjectives(MapFlags[] objectives, int level)
+        {
+            if (objectives.Length > 0) return objectives;
+            if (level < 5 ||level%11==0) return objectives;
+            var flags = new List<MapFlags>();
+            if (level % 9 == 0) flags.Add(MapFlags.HAS_BOSS);
+            if(level % 6 == 0)
+            {
+                if (Random.Shared.Next(0, 50) > 25) flags.Add(RandomObejectives[Random.Shared.Next(0, RandomObejectives.Length)]);                               
+            }
+            if(flags.Count<2 && Random.Shared.Next(0, 50) > 40)
+            {
+                flags.Add(RandomObejectives[Random.Shared.Next(0, RandomObejectives.Length)]);
+            }
+            return [.. flags];
+        }
 
         public static MapGenerator? GetMapGenerator(Wolfenstein wolf, int width, int height, Mod rootNodeMod, MapSection rootNode, Dictionary<Mod, MapSection[]> sections, int level, int targetRooms, MapFlags[] attemptObjectives) =>
             GetMapGenerator(wolf,width,height, rootNodeMod, rootNode, sections, level, targetRooms, attemptObjectives, () => { });
@@ -91,7 +108,7 @@ namespace WolfensteinInfinite.GameMap
             FlatMap = MapSection.Empty(Width, Height, MapSection.ClosedSectionNothing);
             TargetRoomCount = targetRooms;
             Level = level;
-            AttemptObjectives = attemptObjectives;
+            AttemptObjectives = BuildObjectives(attemptObjectives, level);
             Yield = yeild;
             HasPlaced = new();
             //var x = Width / 2;

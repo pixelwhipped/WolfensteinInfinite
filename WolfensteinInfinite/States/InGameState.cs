@@ -176,7 +176,7 @@ namespace WolfensteinInfinite.States
         private void GenerateNextMaps()
         {
             var sizes = new int[] { 64, 64, 96, 64, 96, 64, 96, 128, 96, 128 };
-            MapFlags[] attemptObjectives = [];
+            MapFlags[] attemptObjectives = MapGenerator.BuildObjectives([], Game.Map.Level+1);
             var mods = Wolfenstein.ActiveMods;
             var modBuilders = Wolfenstein.BuilderMods
                 .Where(p => mods.Any(mo => mo == p.Key) && p.Value.MapSections.Length > 0)

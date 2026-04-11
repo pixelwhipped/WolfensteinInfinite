@@ -509,7 +509,7 @@ namespace WolfensteinInfinite
                 if ((forceRebuild || !File.Exists(sFile)) && res.Any(p => p.Equals(special))) SaveEmbeddedResource(special, sFile);
                 if ((forceRebuild || !File.Exists(tFile)) && res.Any(p => p.Equals(test))) SaveEmbeddedResource(test, tFile);
 
-                if (version.Name == "Wolfenstein3D") //Patched rockets
+                if (version.Name == "Wolfenstein3D" || version.Name == "SpearOfDestiny") //Patched rockets
                 {
                     for (var i = 0; i < 8; i++)
                     {

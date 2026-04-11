@@ -89,9 +89,9 @@ namespace WolfensteinInfinite.GameHelpers
                 ["UsedClip"] = 100
             }, CharacterSpriteType.OFFICER, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2] , 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood,5);
         }
-        public static Enemy CreateHansGross(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
+        public static Enemy CreateHansGrosse(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
-            return new(id, "Hans Gross", EnemyType.HANS_GROSS, 512 * 3, 5000,
+            return new(id, "Hans Grosse", EnemyType.HANS_GROSS, 512 * 3, 5000,
                 new Dictionary<Difficulties, int>()
                 {
                     [Difficulties.CAN_I_PLAY_DADDY] = 850,
@@ -101,6 +101,19 @@ namespace WolfensteinInfinite.GameHelpers
                 }, ["ChainGun", "ChainGun"],
                 []  //Drop was gold key but irrelevent now
                 , CharacterSpriteType.BOSS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood,10);
+        }
+        public static Enemy CreateTransGrosse(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
+        {
+            return new(id, "Trans Groses", EnemyType.HANS_GROSS, 512 * 3, 5000,
+                new Dictionary<Difficulties, int>()
+                {
+                    [Difficulties.CAN_I_PLAY_DADDY] = 850,
+                    [Difficulties.DONT_HURT_ME] = 950,
+                    [Difficulties.BRING_EM_ON] = 1050,
+                    [Difficulties.I_AM_DEATH_INCARNATE] = 1200
+                }, ["ChainGun", "ChainGun"],
+                []  //Drop was gold key but irrelevent now
+                , CharacterSpriteType.BOSS, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood, 10);
         }
         public static Enemy CreateDoctorSchabbs(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
@@ -153,9 +166,9 @@ namespace WolfensteinInfinite.GameHelpers
             }, ["RocketLauncher"],
             new Dictionary<string, int>() { ["RocketLauncher"] = 100 }, CharacterSpriteType.OTTO_GIFTMACHERE, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [1], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood,49);
         }
-        public static Enemy CreateGretelGross(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
+        public static Enemy CreateGretelGrosse(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {
-            return new(id, "Gretel Gross", EnemyType.GRETEL_GROSSE, 512 * 3, 5000,
+            return new(id, "Gretel Grosse", EnemyType.GRETEL_GROSSE, 512 * 3, 5000,
             new Dictionary<Difficulties, int>()
             {
                 [Difficulties.CAN_I_PLAY_DADDY] = 850,
@@ -176,6 +189,67 @@ namespace WolfensteinInfinite.GameHelpers
                 [Difficulties.I_AM_DEATH_INCARNATE] = 1200
             }, ["RocketLauncher", "ChainGun"],
             new Dictionary<string, int>() { ["ChainGun"] = 50, ["RocketLauncher"] = 50 }, CharacterSpriteType.GENERAL_FETTGESICHTC, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood,69);
+        }
+        public static Enemy CreateBarnacleWilhelm(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
+        {
+            return new(id, "Barnacle Wilhelm", EnemyType.OTTO_GIFTMACHER, 512 * 3, 5000,
+            new Dictionary<Difficulties, int>()
+            {
+                [Difficulties.CAN_I_PLAY_DADDY] = 950,
+                [Difficulties.DONT_HURT_ME] = 1050,
+                [Difficulties.BRING_EM_ON] = 1150,
+                [Difficulties.I_AM_DEATH_INCARNATE] = 1300
+            }, ["RocketLauncher", "ChainGun"],
+            new Dictionary<string, int>() { ["ChainGun"] = 50, ["RocketLauncher"] = 50 }, CharacterSpriteType.GENERAL_FETTGESICHTC, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood, 20);
+        }
+        public static Enemy CreateUbermutant(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
+        {
+            return new(id, "Ubermutant", EnemyType.GRETEL_GROSSE, 512 * 3, 5000,
+            new Dictionary<Difficulties, int>()
+            {
+                [Difficulties.CAN_I_PLAY_DADDY] = 1050,
+                [Difficulties.DONT_HURT_ME] = 1150,
+                [Difficulties.BRING_EM_ON] = 1250,
+                [Difficulties.I_AM_DEATH_INCARNATE] = 1400
+            }, ["Bite", "ChainGun"],
+            new Dictionary<string, int>() { ["ChainGun"] = 50 }, CharacterSpriteType.UBER_MUTANT, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood, 30);
+        }
+        public static Enemy CreateDeathKnight(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
+        {
+            return new(id, "DeathKnight", EnemyType.GENERAL_FETTGESICHT, 512 * 3, 5000,
+            new Dictionary<Difficulties, int>()
+            {
+                [Difficulties.CAN_I_PLAY_DADDY] = 1250,
+                [Difficulties.DONT_HURT_ME] = 1350,
+                [Difficulties.BRING_EM_ON] = 1450,
+                [Difficulties.I_AM_DEATH_INCARNATE] = 1600
+            }, ["ChainGun", "ChainGun", "RocketLauncher"],
+            new Dictionary<string, int>() { ["ChainGun"] = 50, ["RocketLauncher"] = 50 }, CharacterSpriteType.DEATH_KNIGHT, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, RedBlood, 40);
+        }
+        public static Enemy CreateSpectre(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
+        {
+            return new(id, "Spectre", EnemyType.GUARD, 512 * 3, 5000,
+            new Dictionary<Difficulties, int>()
+            {
+                [Difficulties.CAN_I_PLAY_DADDY] = 5,
+                [Difficulties.DONT_HURT_ME] = 10,
+                [Difficulties.BRING_EM_ON] = 15,
+                [Difficulties.I_AM_DEATH_INCARNATE] = 25
+            }, ["DrainLife"],
+            [], CharacterSpriteType.SPECTRE, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, new RGBA8() { R = 0, G = 0, B = 0, A = 0 }, 50);
+        }
+
+        public static Enemy CreateAngelOfDeath(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
+        {
+            return new(id, "AngelOfDeath", EnemyType.ADOLF_HITLER, 512 * 3, 5000,
+            new Dictionary<Difficulties, int>()
+            {
+                [Difficulties.CAN_I_PLAY_DADDY] = 1450,
+                [Difficulties.DONT_HURT_ME] = 1550,
+                [Difficulties.BRING_EM_ON] = 1650,
+                [Difficulties.I_AM_DEATH_INCARNATE] = 2000
+            }, ["MagicalOrb"],
+            [], CharacterSpriteType.ANGEL_OF_DEATH, spritePath, startSprite, alertSounds, deathSounds, tauntSounds, [2], 1f, 0.5f, 1.5f, 5f, 12f, false, 1.5f, 0.25f, new RGBA8() { R = 108, G = 0, B = 112, A = 255 }, 50);
         }
         public static Enemy CreateHitlerGhost(int id, string spritePath, int startSprite, string[] alertSounds, string[] deathSounds, string[] tauntSounds)
         {

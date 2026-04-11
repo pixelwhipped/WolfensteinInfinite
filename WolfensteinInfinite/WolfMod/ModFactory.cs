@@ -1,6 +1,7 @@
 ﻿using WolfensteinInfinite.DataFormats;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.GameHelpers;
+using WolfensteinInfinite.States;
 //sounds
 //digi2 some sort of explode/slap
 //digi3 door open
@@ -50,7 +51,7 @@ namespace WolfensteinInfinite.WolfMod
             {
                 "Demo" => CreateDemoMod(version),
                 "Wolfenstein3D" => CreateWolfensteinMod(version),
-                "SpearOfDestiny" => null,
+                "SpearOfDestiny" => CreateSpearOfDestiny(version),
                 "ReturnToDanger" => null,
                 "UltimateChallenge" => null,
                 _ => null,
@@ -58,7 +59,7 @@ namespace WolfensteinInfinite.WolfMod
         }
 
         public static Mod CreateInfiniteMod()
-          {
+        {
             var mod = new Mod("Infinite")
             {
                 FloorTexture = "Infinite\\Textures\\Floor.png",
@@ -92,10 +93,180 @@ namespace WolfensteinInfinite.WolfMod
                     AnimationHelpers.Create("RocketImpact", $"Infinite\\Sprites", 382, 3, 3f)
                 ],
                 Projectiles = [
-                    ProjectileHelpers.CreateRocket("Rocket", ProjectileSpriteType.ROCKET, $"Infinite\\Sprites", 1000, null, "RocketTrail", "RocketImpact"),                
+                    ProjectileHelpers.CreateRocket("Rocket", ProjectileSpriteType.ROCKET, $"Infinite\\Sprites", 1000, null, "RocketTrail", "RocketImpact"),
                     ProjectileHelpers.CreateFlame("Flame", ProjectileSpriteType.FLAME, $"Infinite\\Sprites", 326, null, null, null)
                 ]
             };
+            return mod;
+        }
+        public static Mod CreateSpearOfDestiny(GameVersion version)
+        {
+            var mod = new Mod(version.Name)
+            {
+                MusicTracks = [
+                    new("XFUNKIE", $"SpearOfDestiny\\Music\\0.mid"),
+                    new("DUNGEON", $"SpearOfDestiny\\Music\\1.mid"),
+                    new("XDEATH", $"SpearOfDestiny\\Music\\2.mid"),
+                    new("GETTHEM", $"SpearOfDestiny\\Music\\3.mid"),
+                    new("XTIPTOE", $"SpearOfDestiny\\Music\\4.mid"),
+                    new("GOINGAFT", $"SpearOfDestiny\\Music\\5.mid"),
+                    new("URAHERO", $"SpearOfDestiny\\Music\\6.mid"),
+                    new("XTHEEND", $"SpearOfDestiny\\Music\\7.mid"),
+                    new("NAZI_OMI", $"SpearOfDestiny\\Music\\8.mid"),
+                    new("POW", $"SpearOfDestiny\\Music\\9.mid"),
+                    new("TWELFTH", $"SpearOfDestiny\\Music\\10.mid"),
+                    new("SEARCHN", $"SpearOfDestiny\\Music\\11.mid"),
+                    new("SUSPENSE", $"SpearOfDestiny\\Music\\12.mid"),
+                    new("ZEROHOUR", $"SpearOfDestiny\\Music\\13.mid"),
+                    new("WONDERIN", $"SpearOfDestiny\\Music\\14.mid"),
+                    new("ULTIMATE", $"SpearOfDestiny\\Music\\15.mid"),
+                    new("ENDLEVEL", $"SpearOfDestiny\\Music\\16.mid"),
+                    new("XEVIL", $"SpearOfDestiny\\Music\\17.mid"),
+                    new("XJAZNAZI", $"SpearOfDestiny\\Music\\18.mid"),
+                    new("COPYPRO", $"SpearOfDestiny\\Music\\19.mid"),
+                    new("XAWARD", $"SpearOfDestiny\\Music\\20.mid"),
+                    new("XPUTIT", $"SpearOfDestiny\\Music\\21.mid"),
+                    new("XGETYOU", $"SpearOfDestiny\\Music\\22.mid"),
+                    new("XTOWER2", $"SpearOfDestiny\\Music\\23.mid")
+                ],
+                EndLevelMusic = $"SpearOfDestiny\\Music\\16.mid",
+                TitleMusic = "WONDERIN",
+                Textures = [
+                    new(0, "Rock", $"SpearOfDestiny\\Textures\\0.png",0),
+                    new(1, "RockChunky", $"SpearOfDestiny\\Textures\\2.png",0),
+                    new(2, "RockHorizontal", $"SpearOfDestiny\\Textures\\52.png",0),
+                    new(3, "RockFlag", $"SpearOfDestiny\\Textures\\4.png",1),
+                    new(4, "RockHitler", $"SpearOfDestiny\\Textures\\6.png",1),
+                    new(5, "RockEagle", $"SpearOfDestiny\\Textures\\10.png",1),
+                    new(6, "RockLiteMoss", $"SpearOfDestiny\\Textures\\46.png",2),
+                    new(7, "RockHeavyMoss", $"SpearOfDestiny\\Textures\\50.png",2),
+                    new(8, "RockWarning", $"SpearOfDestiny\\Textures\\54.png",1),
+                    new(9, "BlueBrick", $"SpearOfDestiny\\Textures\\16.png",3),
+                    new(10, "BlueBrickChunky", $"SpearOfDestiny\\Textures\\14.png",3),
+                    new(11, "BlueBrickCell", $"SpearOfDestiny\\Textures\\8.png",4),
+                    new(12, "BlueBrickCellSkeleton", $"SpearOfDestiny\\Textures\\12.png",4),
+                    new(13, "Wood", $"SpearOfDestiny\\Textures\\22.png",5),
+                    new(14, "WoodHitler", $"SpearOfDestiny\\Textures\\20.png",6),
+                    new(15, "WoodEagle", $"SpearOfDestiny\\Textures\\18.png",6),
+                    new(16, "WoodCross", $"SpearOfDestiny\\Textures\\44.png",6),
+                    new(17, "Steel", $"SpearOfDestiny\\Textures\\28.png",7),
+                    new(18, "SteelWarning", $"SpearOfDestiny\\Textures\\26.png",8),
+                    new(19, "RedBrick", $"SpearOfDestiny\\Textures\\32.png",9),
+                    new(20, "RedSwas", $"SpearOfDestiny\\Textures\\34.png",10),
+                    new(21, "RedFlag", $"SpearOfDestiny\\Textures\\38.png",10),
+                    new(22, "PurpleRock", $"SpearOfDestiny\\Textures\\36.png",11),
+                    new(23, "PurpleRockGore", $"SpearOfDestiny\\Textures\\48.png",11),
+                    new(24, "OutsideDay", $"SpearOfDestiny\\Textures\\30.png",12),
+                    new(25, "OutsideNight", $"SpearOfDestiny\\Textures\\31.png",12),
+                    new(26, "Bedrock", $"SpearOfDestiny\\Textures\\56.png",13),
+                    new(27, "BedrockBlood", $"SpearOfDestiny\\Textures\\58.png",13),
+                    new(28, "BedrockGore", $"SpearOfDestiny\\Textures\\60.png",13),
+                    new(29, "BedrockSplat", $"SpearOfDestiny\\Textures\\62.png",13),
+                    new(30, "HitlerMozaic", $"SpearOfDestiny\\Textures\\64.png",14),
+                    new(31, "BluBlock", $"SpearOfDestiny\\Textures\\78.png",15),
+                    new(32, "BluBlockSkull", $"SpearOfDestiny\\Textures\\66.png",16),
+                    new(33, "BluBlockSwas", $"SpearOfDestiny\\Textures\\70.png",16),
+                    new(34, "CinderBlock", $"SpearOfDestiny\\Textures\\68.png",17),
+                    new(35, "CinderBlockDrain", $"SpearOfDestiny\\Textures\\72.png",17),
+                    new(36, "CinderBlockCrack", $"SpearOfDestiny\\Textures\\76.png",17),
+                    new(37, "CinderBlockMap", $"SpearOfDestiny\\Textures\\84.png",18),
+                    new(38, "CinderBlockHitler", $"SpearOfDestiny\\Textures\\96.png",18),
+                    new(39, "RedBrownGrayBrick", $"SpearOfDestiny\\Textures\\74.png",9),
+                    new(40, "BlueWarning", $"SpearOfDestiny\\Textures\\80.png",19),
+                    new(41, "Marble", $"SpearOfDestiny\\Textures\\82.png",20),
+                    new(42, "MarbleAlternate", $"SpearOfDestiny\\Textures\\90.png",20),
+                    new(43, "MarbleFlag", $"SpearOfDestiny\\Textures\\92.png",21),
+                    new(44, "MDFPanel", $"SpearOfDestiny\\Textures\\94.png",21),
+                    new(45, "CinderBlockPoster", $"SpearOfDestiny\\Textures\\96.png",18),
+                    new(46, "NaturalRocksA", $"SpearOfDestiny\\Textures\\98.png",22),
+                    new(47, "NaturalRocksB", $"SpearOfDestiny\\Textures\\100.png",22),
+                    new(48, "NaturalRocksFlag", $"SpearOfDestiny\\Textures\\102.png",23),
+                    new(49, "NaturalRocksSwas", $"SpearOfDestiny\\Textures\\104.png",23),
+                    new(50, "BedRockA", $"SpearOfDestiny\\Textures\\106.png",24),
+                    new(51, "BedRockB", $"SpearOfDestiny\\Textures\\108.png",24),
+                    new(52, "HellRock", $"SpearOfDestiny\\Textures\\110.png",25),
+                    new(53, "WornRock", $"SpearOfDestiny\\Textures\\112.png",26),
+                    new(54, "Plaster", $"SpearOfDestiny\\Textures\\120.png",27),
+                    new(55, "Dirt", $"SpearOfDestiny\\Textures\\122.png",28),
+                    new(56, "PurpleBrick", $"SpearOfDestiny\\Textures\\124.png",29)
+                ],
+                Decals = [
+                    new(0, "Puddle", $"SpearOfDestiny\\Sprites\\2.png", true, false, Direction.NONE),
+                    new(1, "Barrel", $"SpearOfDestiny\\Sprites\\3.png", true, false, Direction.NONE),
+                    new(2, "TableChairs", $"SpearOfDestiny\\Sprites\\4.png", true, false, Direction.NONE),
+                    new(3, "FloorLamp", $"SpearOfDestiny\\Sprites\\5.png", true, true, Direction.NONE),
+                    new(4, "Chandelier", $"SpearOfDestiny\\Sprites\\6.png", true, true, Direction.NONE),
+                    new(5, "HangingMan", $"SpearOfDestiny\\Sprites\\7.png", true, true, Direction.NONE),
+                    new(6, "Pillar", $"SpearOfDestiny\\Sprites\\9.png", false, false, Direction.NONE),
+                    new(7, "PottedPlant", $"SpearOfDestiny\\Sprites\\10.png", true, false, Direction.NONE),
+                    new(8, "Skeleton", $"SpearOfDestiny\\Sprites\\11.png", true, false, Direction.NONE),
+                    new(9, "SkullTotem", $"SpearOfDestiny\\Sprites\\12.png", true, false, Direction.NONE),
+                    new(10, "DyingPlant", $"SpearOfDestiny\\Sprites\\13.png", true, false, Direction.NONE),
+                    new(11, "Urn", $"SpearOfDestiny\\Sprites\\14.png", true, false, Direction.NONE),
+                    new(12, "Table", $"SpearOfDestiny\\Sprites\\15.png", true, false, Direction.NONE),
+                    new(13, "Light", $"SpearOfDestiny\\Sprites\\16.png", true, true, Direction.NONE),
+                    new(14, "GoryCage", $"SpearOfDestiny\\Sprites\\17.png", true, false, Direction.NONE),
+                    new(15, "Armor", $"SpearOfDestiny\\Sprites\\18.png", true, false, Direction.NONE),
+                    new(16, "HangingCage", $"SpearOfDestiny\\Sprites\\19.png", true, false, Direction.NONE),
+                    new(17, "SkelitonInCage", $"SpearOfDestiny\\Sprites\\20.png", true, false, Direction.NONE),
+                    new(18, "PileOfBones", $"SpearOfDestiny\\Sprites\\21.png", true, false, Direction.NONE),
+                    new(19, "VeryGoryCage", $"SpearOfDestiny\\Sprites\\24.png", true, false, Direction.NONE),
+                    new(20, "Pot", $"SpearOfDestiny\\Sprites\\25.png", true, false, Direction.NONE),
+                    new(21, "WoodBarrel", $"SpearOfDestiny\\Sprites\\37.png", true, false, Direction.NONE),
+                    new(22, "Well", $"SpearOfDestiny\\Sprites\\38.png", true, false, Direction.NONE),
+                    new(23, "EmptyWell", $"SpearOfDestiny\\Sprites\\39.png", true, false, Direction.NONE),
+                    new(24, "Flag", $"SpearOfDestiny\\Sprites\\41.png", true, false, Direction.NONE),
+                    new(25, "RedLight", $"SpearOfDestiny\\Sprites\\42.png", true, true, Direction.NONE),
+                    new(26, "Gibs1", $"SpearOfDestiny\\Sprites\\43.png", true, false, Direction.NONE),
+                    new(27, "Gibs2", $"SpearOfDestiny\\Sprites\\44.png", true, false, Direction.NONE),
+                    new(28, "Gibs3", $"SpearOfDestiny\\Sprites\\45.png", true, false, Direction.NONE),
+                    new(29, "SkullPike", $"SpearOfDestiny\\Sprites\\46.png", true, false, Direction.NONE),
+                    new(30, "BloodWell", $"SpearOfDestiny\\Sprites\\47.png", true, false, Direction.NONE),
+                    new(31, "Gargoyle", $"SpearOfDestiny\\Sprites\\48.png", true, false, Direction.NONE),
+                    new(32, "WeedsNorth", $"SpearOfDestiny\\Sprites\\49.png", true, false, Direction.NORTH),
+                    new(33, "WeedsEast", $"SpearOfDestiny\\Sprites\\49.png", true, false, Direction.EAST),
+                    new(34, "WeedsSouth", $"SpearOfDestiny\\Sprites\\49.png", true, false, Direction.SOUTH),
+                    new(35, "WeedsWest", $"SpearOfDestiny\\Sprites\\49.png", true, false, Direction.WEST),
+                    new(36, "BrownPillar", $"SpearOfDestiny\\Sprites\\50.png", false, false, Direction.NONE),
+                    new(37, "Truck", $"SpearOfDestiny\\Sprites\\52.png", true, false, Direction.NONE),
+                    new(38, "SpearOfDestiny", $"SpearOfDestiny\\Sprites\\53.png", true, false, Direction.NONE)
+                ],
+                Animations = [
+                    AnimationHelpers.Create("RocketTrail", $"SpearOfDestiny\\Sprites", 300, 4, 8f),
+                    AnimationHelpers.Create("RocketImpact", $"SpearOfDestiny\\Sprites", 304, 3, 3f)
+                ],
+                Projectiles =
+                [
+                    ProjectileHelpers.CreateBullet("Bullet", null, null, null),
+                    ProjectileHelpers.CreateBite("Bite", null, null, null),
+                    ProjectileHelpers.CreateDrain("DrainLife", null, null, null),                    
+                    ProjectileHelpers.CreateRocket("Rocket", ProjectileSpriteType.ROCKET, $"SpearOfDestiny\\Sprites", 1000, null, "RocketTrail", "RocketImpact"),
+                    ProjectileHelpers.CreateMagicalOrb("MagicalOrb", ProjectileSpriteType.SERUM, $"SpearOfDestiny\\Sprites", 322, null, null, null),                    
+                ],
+                Weapons = [
+                    WeaponHelpers.CreatePistol($"SpearOfDestiny\\Sounds\\digi17.wav"),
+                    WeaponHelpers.CreateBite($"SpearOfDestiny\\Sounds\\digi1.wav"),
+                    WeaponHelpers.CreateMachineGun($"SpearOfDestiny\\Sounds\\digi7.wav"),
+                    WeaponHelpers.CreateChainGun($"SpearOfDestiny\\Sounds\\digi9.wav"),
+                    WeaponHelpers.CreateMagicalOrb(null),
+                    WeaponHelpers.CreateRocketLauncher(null),
+                    WeaponHelpers.CreateDrainLife(null)
+                ]
+            };
+            var deaths = new string[] { "digi11", "digi12", "digi15", "digi16", "digi20", "digi23"};
+            mod.Enemies = [
+                EnemyHelpers.CreateGuard(0, $"SpearOfDestiny\\Sprites", 54, ["digi0"], deaths, []),
+                EnemyHelpers.CreateDog(1, $"SpearOfDestiny\\Sprites", 103, ["digi1"], ["digi14"], ["digi21"]),
+                EnemyHelpers.CreateSSSoldier(2, $"SpearOfDestiny\\Sprites", 142, ["digi7"], deaths, []),
+                EnemyHelpers.CreateMutant(3, $"SpearOfDestiny\\Sprites", 191, [], ["digi17"], []),
+                EnemyHelpers.CreateOfficer(4, $"SpearOfDestiny\\Sprites", 242, ["digi19"], deaths, []),
+                EnemyHelpers.CreateTransGrosse(5, $"SpearOfDestiny\\Sprites", 326, ["digi29"], ["digi30"], []),
+                EnemyHelpers.CreateBarnacleWilhelm(6, $"SpearOfDestiny\\Sprites", 337, ["digi31"], ["digi32"], []),
+                EnemyHelpers.CreateUbermutant(7, $"SpearOfDestiny\\Sprites", 349, [], ["digi33"], []),
+                EnemyHelpers.CreateDeathKnight(8, $"SpearOfDestiny\\Sprites", 362, ["digi34"], ["digi35"], []),
+                EnemyHelpers.CreateSpectre(9, $"SpearOfDestiny\\Sprites", 377, [], [], []),
+                EnemyHelpers.CreateAngelOfDeath(10, $"SpearOfDestiny\\Sprites", 385, ["digi36"], ["digi37"], []),
+                ];
             return mod;
         }
         public static Mod CreateDemoMod(GameVersion version)
@@ -203,7 +374,7 @@ namespace WolfensteinInfinite.WolfMod
                 EnemyHelpers.CreateGuard(0, $"Demo\\Sprites", 50, ["digi0"], deaths, []),
                 EnemyHelpers.CreateDog(1, $"Demo\\Sprites", 99, ["digi1"], ["digi16"], []),
                 EnemyHelpers.CreateSSSoldier(2, $"Demo\\Sprites", 138, ["digi7"], deaths, []),
-                EnemyHelpers.CreateHansGross(5, $"Demo\\Sprites", 296, ["digi8"], ["digi9"], [])
+                EnemyHelpers.CreateHansGrosse(5, $"Demo\\Sprites", 296, ["digi8"], ["digi9"], [])
             ];
 
             return mod;
@@ -213,7 +384,7 @@ namespace WolfensteinInfinite.WolfMod
             var mod = new Mod(version.Name)
             {
                 MusicTracks = [
-                new("CORNER", $"Wolfenstein3D\\Music\\0.mid"),
+                    new("CORNER", $"Wolfenstein3D\\Music\\0.mid"),
                     new("DUNGEON", $"Wolfenstein3D\\Music\\1.mid"),
                     new("WARMARCH", $"Wolfenstein3D\\Music\\2.mid"),
                     new("GETTHEM", $"Wolfenstein3D\\Music\\3.mid"),
@@ -241,10 +412,10 @@ namespace WolfensteinInfinite.WolfMod
                     new("VICMARCH", $"Wolfenstein3D\\Music\\25.mid"),
                     new("PACMAN", $"Wolfenstein3D\\Music\\26.mid")
             ],
-                EndLevelMusic = $"Demo\\Music\\16.mid",
+                EndLevelMusic = $"Wolfenstein3D\\Music\\16.mid",
                 TitleMusic = "WONDERIN",
                 Textures = [
-                new(0, "Rock", $"Wolfenstein3D\\Textures\\0.png",0),
+                    new(0, "Rock", $"Wolfenstein3D\\Textures\\0.png",0),
                     new(1, "RockChunky", $"Wolfenstein3D\\Textures\\2.png",0),
                     new(2, "RockHorizontal", $"Wolfenstein3D\\Textures\\52.png",0),
                     new(3, "RockFlag", $"Wolfenstein3D\\Textures\\4.png",1),
@@ -268,8 +439,8 @@ namespace WolfensteinInfinite.WolfMod
                     new(21, "RedFlag", $"Wolfenstein3D\\Textures\\38.png",10),
                     new(22, "PurpleRock", $"Wolfenstein3D\\Textures\\36.png",11),
                     new(23, "PurpleRockGore", $"Wolfenstein3D\\Textures\\48.png",11),
-                    new(24, "OutsideDay", $"Demo\\Textures\\30.png",12),
-                    new(25, "OutsideNight", $"Demo\\Textures\\31.png",12),
+                    new(24, "OutsideDay", $"Wolfenstein3D\\Textures\\30.png",12),
+                    new(25, "OutsideNight", $"Wolfenstein3D\\Textures\\31.png",12),
                     new(26, "Bedrock", $"Wolfenstein3D\\Textures\\56.png",13),
                     new(27, "BedrockBlood", $"Wolfenstein3D\\Textures\\58.png",13),
                     new(28, "BedrockGore", $"Wolfenstein3D\\Textures\\60.png",13),
@@ -291,7 +462,7 @@ namespace WolfensteinInfinite.WolfMod
                     new(44, "MDFPanel", $"Wolfenstein3D\\Textures\\94.png",21)
             ],
                 Decals = [
-                new(0, "Puddle", $"Wolfenstein3D\\Sprites\\2.png", true, false, Direction.NONE),
+                    new(0, "Puddle", $"Wolfenstein3D\\Sprites\\2.png", true, false, Direction.NONE),
                     new(1, "Barrel", $"Wolfenstein3D\\Sprites\\3.png", true, false, Direction.NONE),
                     new(2, "TableChairs", $"Wolfenstein3D\\Sprites\\4.png", true, false, Direction.NONE),
                     new(3, "FloorLamp", $"Wolfenstein3D\\Sprites\\5.png", true, true, Direction.NONE),
@@ -330,9 +501,9 @@ namespace WolfensteinInfinite.WolfMod
                     new(35, "WeedsWest", $"Wolfenstein3D\\Sprites\\49.png", true, false, Direction.WEST)
             ],
                 Animations = [
-                AnimationHelpers.Create("RocketTrail", $"Wolfenstein3D\\Sprites", 378, 4, 8f),
+                    AnimationHelpers.Create("RocketTrail", $"Wolfenstein3D\\Sprites", 378, 4, 8f),
                     AnimationHelpers.Create("RocketImpact", $"Wolfenstein3D\\Sprites", 382, 3, 3f)
-            ],
+                ],
                 Projectiles =
             [
                 ProjectileHelpers.CreateBullet("Bullet", null, null, null),
@@ -343,15 +514,15 @@ namespace WolfensteinInfinite.WolfMod
                 ProjectileHelpers.CreateSerum("KorpsokineticSerum", ProjectileSpriteType.SERUM, $"Wolfenstein3D\\Sprites", 317, null, null, null),
                 ProjectileHelpers.CreateFlame("Flame", ProjectileSpriteType.FLAME, $"Wolfenstein3D\\Sprites", 326, null, null, null)
             ],
-                Weapons = [
+            Weapons = [
                 WeaponHelpers.CreatePistol($"Wolfenstein3D\\Sounds\\digi21.wav"),
-                    WeaponHelpers.CreateBite($"Wolfenstein3D\\Sounds\\digi16.wav"),
-                    WeaponHelpers.CreateMachineGun($"Wolfenstein3D\\Sounds\\digi10.wav"),
-                    WeaponHelpers.CreateChainGun($"Wolfenstein3D\\Sounds\\digi11.wav"),
-                    WeaponHelpers.CreateKorpsokineticSerum(null),
-                    WeaponHelpers.CreateRocketLauncher(null),
-                    WeaponHelpers.CreateFlameThrower(null),
-                    WeaponHelpers.CreateDrainLife(null)
+                WeaponHelpers.CreateBite($"Wolfenstein3D\\Sounds\\digi16.wav"),
+                WeaponHelpers.CreateMachineGun($"Wolfenstein3D\\Sounds\\digi10.wav"),
+                WeaponHelpers.CreateChainGun($"Wolfenstein3D\\Sounds\\digi11.wav"),
+                WeaponHelpers.CreateKorpsokineticSerum(null),
+                WeaponHelpers.CreateRocketLauncher(null),
+                WeaponHelpers.CreateFlameThrower(null),
+                WeaponHelpers.CreateDrainLife(null)
             ]
             };
 
@@ -363,12 +534,12 @@ namespace WolfensteinInfinite.WolfMod
                 EnemyHelpers.CreateSSSoldier(2, $"Wolfenstein3D\\Sprites", 138, ["digi7"], deaths, []),
                 EnemyHelpers.CreateMutant(3, $"Wolfenstein3D\\Sprites", 187, [], ["digi17"], []),
                 EnemyHelpers.CreateOfficer(4, $"Wolfenstein3D\\Sprites", 238, ["digi27"], deaths, []),
-                EnemyHelpers.CreateHansGross(5, $"Wolfenstein3D\\Sprites", 296, ["digi8"], ["digi9"], []),
+                EnemyHelpers.CreateHansGrosse(5, $"Wolfenstein3D\\Sprites", 296, ["digi8"], ["digi9"], []),
                 EnemyHelpers.CreateDoctorSchabbs(6, $"Wolfenstein3D\\Sprites", 307, ["digi25"], ["digi24"], []),
                 EnemyHelpers.CreateMechaHitler(7, $"Wolfenstein3D\\Sprites", 334, ["digi18", "digi23"], ["digi26"], []),
                 EnemyHelpers.CreateAdolfHitler(8, $"Wolfenstein3D\\Sprites", 345, ["digi18", "digi23"], ["digi19"], []),
                 EnemyHelpers.CreateOttoGiftmacher(9, $"Wolfenstein3D\\Sprites", 360, ["digi37"], ["digi36"], []),
-                EnemyHelpers.CreateGretelGross(10, $"Wolfenstein3D\\Sprites", 385, ["digi43"], ["digi44"], []),
+                EnemyHelpers.CreateGretelGrosse(10, $"Wolfenstein3D\\Sprites", 385, ["digi43"], ["digi44"], []),
                 EnemyHelpers.CreateGeneralFettgesicht(11, $"Wolfenstein3D\\Sprites", 396, ["digi38"], ["digi45"], []),
                 EnemyHelpers.CreateHitlerGhost(12, $"Wolfenstein3D\\Sprites", 321, [], ["digi26"], []),
                 EnemyHelpers.CreateBlinky(13, $"Wolfenstein3D\\Sprites", 288, [], [], []),
