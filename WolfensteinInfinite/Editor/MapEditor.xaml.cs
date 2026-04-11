@@ -343,7 +343,7 @@ namespace WolfensteinInfinite.Editor
             var enemyId = ActiveSection.Enemy[y][x];
             WriteableBitmap? tile;
             if (enemyId >= 1000)
-                tile = GetVirtualEnemyBitmap(enemyId);
+                tile = GetVirtualEnemyBitmap(enemyId, Wolfenstein);
             else
                 tile = specialChance >= 9 && specialChance <= 12
                     ? GetSpecialBitmapEnemy(ActiveMod.Name, specialChance, enemyId)
@@ -353,12 +353,14 @@ namespace WolfensteinInfinite.Editor
         }
 
         // Returns a coloured placeholder tile for virtual enemy IDs (1001 = Random, 1002 = Experimental)
-        private static WriteableBitmap GetVirtualEnemyBitmap(int mapId)
+        private static WriteableBitmap GetVirtualEnemyBitmap(int mapId, Wolfenstein wolfenstein)
         {
             var t = new Texture32(64, 64);
             // 1001 Random Enemy: purple   1002 Experimental: teal
-            if (mapId == 1001) t.RectFill(0, 0, 64, 64, 160, 32, 200, 255);
-            else t.RectFill(0, 0, 64, 64, 0, 180, 180, 255);
+            if (mapId == 1001) return GetBitmap(wolfenstein.Special[1]);
+            if (mapId == 1002) return GetBitmap(wolfenstein.Special[2]);
+            t.RectFill(0, 0, 64, 64, 160, 32, 200, 255);
+            t.RectFill(0, 0, 64, 64, 0, 180, 180, 255);
             // Dark border so it stands out on the canvas
             t.RectFill(0, 0, 64, 3, 20, 20, 20, 255);
             t.RectFill(0, 61, 64, 3, 20, 20, 20, 255);
@@ -876,6 +878,7 @@ namespace WolfensteinInfinite.Editor
             if (SelectedSpecialIndex == -1 && Wolfenstein.Special.Count > 0) SelectedSpecialIndex = 0;
             for (int i = 0; i < Wolfenstein.Special.Count; i++)
             {
+                if (i == 1 || i == 2) continue;  //Random enemy or experimental
                 var j = i;
                 Image imageControl = new()
                 {
@@ -905,7 +908,7 @@ namespace WolfensteinInfinite.Editor
                 var vid = virtualId;
                 Image imageControl = new()
                 {
-                    Source = GetVirtualEnemyBitmap(vid),
+                    Source = GetVirtualEnemyBitmap(vid, Wolfenstein),
                     ToolTip = label,
                     Stretch = Stretch.None
                 };
