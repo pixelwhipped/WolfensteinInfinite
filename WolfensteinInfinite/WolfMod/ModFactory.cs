@@ -188,7 +188,9 @@ namespace WolfensteinInfinite.WolfMod
                     new(53, "WornRock", $"SpearOfDestiny\\Textures\\112.png",26),
                     new(54, "Plaster", $"SpearOfDestiny\\Textures\\120.png",27),
                     new(55, "Dirt", $"SpearOfDestiny\\Textures\\122.png",28),
-                    new(56, "PurpleBrick", $"SpearOfDestiny\\Textures\\124.png",29)
+                    new(56, "PurpleBrick", $"SpearOfDestiny\\Textures\\124.png",29),
+                    new(57, "TrenchA", $"SpearOfDestiny\\Textures\\114.png",30),
+                    new(58, "TrenchB", $"SpearOfDestiny\\Textures\\116.png",30),
                 ],
                 Decals = [
                     new(0, "Puddle", $"SpearOfDestiny\\Sprites\\2.png", true, false, Direction.NONE),
@@ -231,6 +233,7 @@ namespace WolfensteinInfinite.WolfMod
                     new(37, "Truck", $"SpearOfDestiny\\Sprites\\52.png", true, false, Direction.NONE),
                     new(38, "SpearOfDestiny", $"SpearOfDestiny\\Sprites\\53.png", true, false, Direction.NONE)
                 ],
+                CeilingColor = new Engine.Graphics.RGBA8 { R=0,G=100,B=100,A =255},
                 Animations = [
                     AnimationHelpers.Create("RocketTrail", $"SpearOfDestiny\\Sprites", 300, 4, 8f),
                     AnimationHelpers.Create("RocketImpact", $"SpearOfDestiny\\Sprites", 304, 3, 3f)
