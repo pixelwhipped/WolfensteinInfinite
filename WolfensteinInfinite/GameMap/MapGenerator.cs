@@ -77,14 +77,14 @@ namespace WolfensteinInfinite.GameMap
         public static MapFlags[] BuildObjectives(MapFlags[] objectives, int level)
         {
             if (objectives.Length > 0) return objectives;
-            if (level < 5 ||level%11==0) return objectives;
+            if (level < 5 || level % 11 == 0) return objectives;
             var flags = new List<MapFlags>();
             if (level % 9 == 0) flags.Add(MapFlags.HAS_BOSS);
-            if(level % 6 == 0)
+            if (level % 6 == 0)
             {
-                if (Random.Shared.Next(0, 50) > 25) flags.Add(RandomObejectives[Random.Shared.Next(0, RandomObejectives.Length)]);                               
+                if (Random.Shared.Next(0, 50) > 25) flags.Add(RandomObejectives[Random.Shared.Next(0, RandomObejectives.Length)]);
             }
-            if(flags.Count<2 && Random.Shared.Next(0, 50) > 40)
+            if (flags.Count < 2 && Random.Shared.Next(0, 50) > 40)
             {
                 flags.Add(RandomObejectives[Random.Shared.Next(0, RandomObejectives.Length)]);
             }
@@ -92,7 +92,7 @@ namespace WolfensteinInfinite.GameMap
         }
 
         public static MapGenerator? GetMapGenerator(Wolfenstein wolf, int width, int height, Mod rootNodeMod, MapSection rootNode, Dictionary<Mod, MapSection[]> sections, int level, int targetRooms, MapFlags[] attemptObjectives) =>
-            GetMapGenerator(wolf,width,height, rootNodeMod, rootNode, sections, level, targetRooms, attemptObjectives, () => { });
+            GetMapGenerator(wolf, width, height, rootNodeMod, rootNode, sections, level, targetRooms, attemptObjectives, () => { });
         public static MapGenerator? GetMapGenerator(Wolfenstein wolf, int width, int height, Mod rootNodeMod, MapSection rootNode, Dictionary<Mod, MapSection[]> sections, int level, int targetRooms, MapFlags[] attemptObjectives, Action yeild)
         {
             var generator = new MapGenerator(wolf, width, height, rootNodeMod, rootNode, sections, level, targetRooms, attemptObjectives, yeild, out string[] finalPassErrors);
@@ -118,6 +118,7 @@ namespace WolfensteinInfinite.GameMap
             var y = TargetRoomCount == 1 ? Border : Height / 2;
             var (map, keys) = MapGeneratorSection.ToMap(x, y, rootNode);
             var section = new MapGeneratorSection(x, y, rootNodeMod, map, keys);
+            var hashes = new List<int>();
             var allSection = new List<MapGeneratorSection>();
             {
                 foreach (var item in sections)
@@ -127,24 +128,35 @@ namespace WolfensteinInfinite.GameMap
                         var flip = FlipSection(secPreFlip);
                         foreach (var sec in flip)
                         {
-                            allSection.Add(new MapGeneratorSection(0, 0, item.Key, sec, sec.GetConnections()));
+                            var hash = HashCode.Combine(sec.SectionHash, item.Key.GetHashCode());
+                            if (!hashes.Contains(hash))
+                            {
+                                allSection.Add(new MapGeneratorSection(0, 0, item.Key, sec, sec.GetConnections()));
+                                hashes.Add(hash);
+                            }
                             if (sec.IsRotatable)
                             {
                                 for (int rot = 1; rot <= 3; rot++)
                                 {
                                     var rotated = sec.RotateSection(rot * 90);
+
                                     var overrides = BuildDecalOverrides(item.Key, sec, rot);
                                     var mgs = new MapGeneratorSection(0, 0, item.Key, rotated, rotated.GetConnections());
                                     // inject overrides
                                     foreach (var kvp in overrides) mgs.DecalDirectionOverrides[kvp.Key] = kvp.Value;
-                                    allSection.Add(mgs);
+                                    hash = HashCode.Combine(sec.SectionHash, item.Key.GetHashCode());
+                                    if (!hashes.Contains(hash))
+                                    {
+                                        allSection.Add(mgs);
+                                        hashes.Add(hash);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-            
+
             Sections = [.. allSection.OrderBy(x => Random.Shared.Next())];
             var sectionsByType = GeneratorSectionTypes.GetSectionTypes(this, level, out string[] sectionTypeErrors);
             errors.AddRange(sectionTypeErrors);
