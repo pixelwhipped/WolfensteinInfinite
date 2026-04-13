@@ -144,6 +144,7 @@ namespace WolfensteinInfinite.GameMap
                     }
                 }
             }
+            
             Sections = [.. allSection.OrderBy(x => Random.Shared.Next())];
             var sectionsByType = GeneratorSectionTypes.GetSectionTypes(this, level, out string[] sectionTypeErrors);
             errors.AddRange(sectionTypeErrors);

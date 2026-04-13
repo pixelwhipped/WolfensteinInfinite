@@ -316,8 +316,6 @@ namespace WolfensteinInfinite.WolfMod
 
         public int[][]? GetClosedSection(out bool closed, out bool noDoors, out bool multiple) => GetClosedSection(Walls, Doors, Special, out closed, out noDoors, out multiple);
         //Wall = 0, Door = 1, Fill = 2, nothing = -1
-
-
         public static int[][]? GetClosedSection(int[][] walls, int[][] doors, int[][] special, out bool closed, out bool noDoors, out bool multiple)
         {
             int height = walls.Length;
@@ -699,7 +697,6 @@ namespace WolfensteinInfinite.WolfMod
             if (emptyX < wallX) return 0;  // Empty is left, face up
             return 2;  // Empty is right, face down
         }
-
         private static bool IsInBounds(int y, int x, int height, int width)
         {
             return y >= 0 && y < height && x >= 0 && x < width;
