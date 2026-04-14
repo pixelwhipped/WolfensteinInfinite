@@ -222,7 +222,7 @@ namespace WolfensteinInfinite.States
                 CurrentGenerator = MapGenerator.GetMapGenerator(Wolfenstein, size, size, m, s, sections, Game.Map.Level + 1, targetRooms, attemptObjectives, () => { Thread.Yield(); });
                 CurrentGenerator?.TryBuild();
                 if (CurrentGenerator == null || !CurrentGenerator.Success) return;
-                PreGenerated.Add(CurrentGenerator);
+                 PreGenerated.Add(CurrentGenerator);
             }
         }
 

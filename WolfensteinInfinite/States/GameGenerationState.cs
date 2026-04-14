@@ -155,23 +155,33 @@ namespace WolfensteinInfinite.States
 
         private MapGenerator SelectBestPreGenerated(int targetRooms)
         {
+            // Strongly favour branching maps — raise the target ratio and its weight
+            const float DoorRoomRatioTarget = 4f;      // was 3f — rewards 4-way junctions, not just T-junctions
+            const float DoorRoomRatioMaxWeight = 8f;   // was 4f — makes this the dominant scoring signal
+
+            // Favour larger maps — more space = more room for branching
+            const float SizeSmallWeight = 0.5f;        // was 1f — penalise small maps
+            const float SizeMediumWeight = 2f;         // unchanged
+            const float SizeLargeWeight = 5f;          // was 3f — strongly reward large maps
+
+            // Reward room count more aggressively — more rooms = more branching opportunity
+            const float RoomProximityMaxWeight = 5f;   // was 3f
+
+            // More objectives require more special rooms which forces branching
+            const float ObjectiveZeroWeight = 0f;      // was 1f — don't reward empty maps at all
+            const float ObjectiveOneWeight = 1.5f;     // was 2f
+            const float ObjectiveTwoWeight = 3f;       // was 2.5f
+            const float ObjectiveThreePlusWeight = 5f; // was 3f
+
             const int BossLevelInterval = 9;
             const float SizeSmallMaxArea = 65 * 65;
             const float SizeLargeMaxArea = 97 * 97;
-            const float SizeSmallWeight = 1f;
-            const float SizeMediumWeight = 2f;
-            const float SizeLargeWeight = 3f;
-            const float RoomProximityMaxWeight = 3f;
-            const float ObjectiveZeroWeight = 1f;
-            const float ObjectiveOneWeight = 2f;
-            const float ObjectiveTwoWeight = 2.5f;
-            const float ObjectiveThreePlusWeight = 3f;
+
             const float BossLevelWeight = 10f;
             const float BossNonLevelWeight = 1.5f;
             const float TextureConsistencyMax = 2f;
             const float TextureConsistencyPenalty = 0.25f;
-            const float DoorRoomRatioMaxWeight = 3f;
-            const float DoorRoomRatioTarget = 2f; // ideal average doors per room
+
 
             bool isBossLevel = Level % BossLevelInterval == 0;
 

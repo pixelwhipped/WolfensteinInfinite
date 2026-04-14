@@ -123,6 +123,7 @@ namespace WolfensteinInfinite.GameMap
             {
                 foreach (var item in sections)
                 {
+                    Yield();
                     foreach (var secPreFlip in item.Value)
                     {
                         var flip = FlipSection(secPreFlip);
@@ -136,6 +137,7 @@ namespace WolfensteinInfinite.GameMap
                             }
                             if (sec.IsRotatable)
                             {
+                                Yield();
                                 for (int rot = 1; rot <= 3; rot++)
                                 {
                                     var rotated = sec.RotateSection(rot * 90);
@@ -156,7 +158,7 @@ namespace WolfensteinInfinite.GameMap
                     }
                 }
             }
-
+            Yield();
             Sections = [.. allSection.OrderBy(x => Random.Shared.Next())];
             var sectionsByType = GeneratorSectionTypes.GetSectionTypes(this, level, out string[] sectionTypeErrors);
             errors.AddRange(sectionTypeErrors);
@@ -291,6 +293,7 @@ namespace WolfensteinInfinite.GameMap
 
             MapGeneratorSection[] GetAvailableNodes(SpecialPlacements placeable)
             {
+                Yield();
                 var useNodes = new List<MapGeneratorSection>(SectionByTypes.Other);
                 if (placeable.LockedDoor) useNodes.AddRange(SectionByTypes.KeyLockedDoors);
                 if (placeable.Key) useNodes.AddRange(SectionByTypes.KeyLocations);
@@ -347,7 +350,7 @@ namespace WolfensteinInfinite.GameMap
                 // Scale doors based on distance from edge (closer to edge = fewer doors)
                 useDoors = (int)Math.Max(1, Math.Ceiling(globalMaxDoors * (distanceFromEdgePercent * 2)));
             }
-
+            Yield();
             foreach (var doorCount in GetDoorPriority(sectionsByDoorCount, roomsLeftPercent, useDoors, minDoors))
             {
                 prioritizedSections.AddRange(
@@ -361,10 +364,10 @@ namespace WolfensteinInfinite.GameMap
             }
 
             // Generate candidates from prioritized sections
+            Yield();
             foreach (var i in prioritizedSections)
             {
                 var (map, keys) = MapGeneratorSection.ToMap(0, 0, sections[i]);
-
                 // For each door in the template
                 foreach (var (X, Y) in keys)
                 {
@@ -451,12 +454,11 @@ namespace WolfensteinInfinite.GameMap
         /// either they are the same texture, or both belong to the same non-zero GroupId on the given mod.
         /// </summary>
         private static bool WallsCompatibleByGroup(Mod mod, int wallIdA, int wallIdB)
-        {
+        {           
             if (wallIdA == wallIdB) return true;
             if (wallIdA < 0 || wallIdB < 0) return false;
-            var texA = mod.Textures.FirstOrDefault(t => t.MapID == wallIdA);
-            var texB = mod.Textures.FirstOrDefault(t => t.MapID == wallIdB);
-            if (texA == null || texB == null) return false;
+            if (!mod.TexturesByMapId.TryGetValue(wallIdA, out var texA)) return false;
+            if (!mod.TexturesByMapId.TryGetValue(wallIdB, out var texB)) return false;
             if (texA.GroupId <= 0 || texB.GroupId <= 0) return false;
             return texA.GroupId == texB.GroupId;
         }
@@ -1355,6 +1357,23 @@ namespace WolfensteinInfinite.GameMap
                 if (doorMap[startY + wallSouth][startX] >= 0) break;
                 wallSouth++;
             }
+            // East: scan RIGHT (positive X) — was incorrectly scanning left
+            while (true)
+            {
+                if (startX + wallEast >= wallMap[0].Length) break;
+                if (wallMap[startY][startX + wallEast] >= 0) break;
+                if (doorMap[startY][startX + wallEast] >= 0) break;
+                wallEast++;
+            }
+            // West: scan LEFT (negative X) — was incorrectly scanning right
+            while (true)
+            {
+                if (startX - wallWest < 0) break;
+                if (wallMap[startY][startX - wallWest] >= 0) break;
+                if (doorMap[startY][startX - wallWest] >= 0) break;
+                wallWest++;
+            }
+            /*
             //East
             while (true)
             {
@@ -1362,6 +1381,7 @@ namespace WolfensteinInfinite.GameMap
                 if (wallMap[startY][startX - wallEast] >= 0) break;
                 if (doorMap[startY][startX - wallEast] >= 0) break;
                 wallEast++;
+
             }
             //West
             while (true)
@@ -1372,6 +1392,7 @@ namespace WolfensteinInfinite.GameMap
                 if (doorMap[startY][startX + wallWest] >= 0) break;
                 wallWest++;
             }
+            */
             var min = (new[] { wallNorth, wallEast, wallSouth, wallWest }).Min();
             if (min == wallNorth) return Direction.SOUTH;
             if (min == wallSouth) return Direction.NORTH;

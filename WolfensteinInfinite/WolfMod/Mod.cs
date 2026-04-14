@@ -1,4 +1,5 @@
-﻿using WolfensteinInfinite.Engine.Graphics;
+﻿using Newtonsoft.Json;
+using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
 using WolfensteinInfinite.Utilities;
 
@@ -22,6 +23,10 @@ namespace WolfensteinInfinite.WolfMod
         public Weapon[] Weapons { get; set; } = [];
         public ExperimentalEnemy[] ExperimentalEnemy { get; set; } = [];
 
+        [JsonIgnore]
+        private Dictionary<int, Texture>? _textureByMapId;
+        [JsonIgnore]
+        public Dictionary<int, Texture> TexturesByMapId => _textureByMapId ??= Textures.ToDictionary(t => t.MapID);
         public bool Validate()
         {
             void Log(string message)=> Logger.GetLogger(this).Log(message);
