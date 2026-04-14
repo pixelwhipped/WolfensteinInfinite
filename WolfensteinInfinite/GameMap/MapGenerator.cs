@@ -144,7 +144,7 @@ namespace WolfensteinInfinite.GameMap
                                     var mgs = new MapGeneratorSection(0, 0, item.Key, rotated, rotated.GetConnections());
                                     // inject overrides
                                     foreach (var kvp in overrides) mgs.DecalDirectionOverrides[kvp.Key] = kvp.Value;
-                                    hash = HashCode.Combine(sec.SectionHash, item.Key.GetHashCode());
+                                    hash = HashCode.Combine(rotated.SectionHash, item.Key.GetHashCode());
                                     if (!hashes.Contains(hash))
                                     {
                                         allSection.Add(mgs);
@@ -237,7 +237,9 @@ namespace WolfensteinInfinite.GameMap
 
             var placeLockedDoor = SectionByTypes.KeyLocations.Length > 0 && SectionByTypes.KeyLockedDoors.Length > 0 && AttemptObjectives.Contains(MapFlags.HAS_LOCKED_DOOR);
             var placeDynamite = SectionByTypes.Dynamite.Length > 0 && SectionByTypes.DynamitePlacement.Length > 0 && AttemptObjectives.Contains(MapFlags.HAS_BOOM);
-            var dynamitePlacements = (int)(Math.Clamp(Level, 1, 100) / 100f * 3); //up to 3 sections depending on level
+            var dynamitePlacements = placeDynamite //up to 3 sections depending on level
+                ? Math.Max(1, (int)(Math.Clamp(Level, 1, 100) / 100f * 3))
+                : (int)(Math.Clamp(Level, 1, 100) / 100f * 3);
             var placeSecret = SectionByTypes.Secret.Length > 0 && SectionByTypes.Radio.Length > 0 && AttemptObjectives.Contains(MapFlags.HAS_SECRET_MESSAGE);
             var placePow = SectionByTypes.Pow.Length > 0 && AttemptObjectives.Contains(MapFlags.HAS_POW);
             var placeBoss = SectionByTypes.Pow.Length > 0 && AttemptObjectives.Contains(MapFlags.HAS_BOSS);
@@ -260,7 +262,14 @@ namespace WolfensteinInfinite.GameMap
             bool CanPlaceBoss() => SectionByTypes.Boss.Length > 0 && placeBoss && bossPlacements > 0 && MapLayers.Count >= placeBossAfter;
             bool CanPlaceExit()
             {
-                if (placeLockedDoor && HasPlaced.LockedDoor == false) return false;
+                if (placeLockedDoor && HasPlaced.LockedDoor == false)
+                {
+                    // The locked door needs a dead-end node after placeLockedDoorAfter rooms.
+                    // If we're well past that threshold and it still hasn't been placed, the
+                    // opportunity has been missed — don't hold the exit hostage indefinitely.
+                    var lockedDoorUnachievable = MapLayers.Count >= (int)(TargetRoomCount * 0.85f);
+                    if (!lockedDoorUnachievable) return false;
+                }
                 if (placeBoss && bossPlacements > 0) return (float)MapLayers.Count / TargetRoomCount > 0.9f;
                 return (float)MapLayers.Count / TargetRoomCount > 0.8f;
             }
@@ -394,7 +403,14 @@ namespace WolfensteinInfinite.GameMap
         private IEnumerable<int> GetDoorPriority(Dictionary<int, List<int>> sectionsByDoorCount, float roomsLeftPercent, int useDoors, int minDoors)
         {
             var priority = GetDoorPriorityBiased(sectionsByDoorCount, roomsLeftPercent);
-            return priority.Where(k => k <= useDoors && k >= minDoors);
+            var filtered = priority.Where(k => k <= useDoors && k >= minDoors).ToList();
+
+            // If the door-count filter excluded everything, widen to whatever is actually
+            // available rather than returning empty and triggering a guaranteed backtrack.
+            if (filtered.Count == 0)
+                filtered = sectionsByDoorCount.Keys.OrderBy(k => k).ToList();
+
+            return filtered;
         }
         private IEnumerable<int> GetDoorPriorityBiased(Dictionary<int, List<int>> sectionsByDoorCount, float roomsLeftPercent)
         {
