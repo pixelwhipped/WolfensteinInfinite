@@ -176,7 +176,7 @@ namespace WolfensteinInfinite.States
         private void GenerateNextMaps()
         {
             var sizes = new int[] { 64, 64, 96, 64, 96, 64, 96, 128, 96, 128 };
-            MapFlags[] attemptObjectives = MapGenerator.BuildObjectives([], Game.Map.Level+1);
+            MapFlags[] attemptObjectives = MapGenerator.BuildObjectives([], Game.Map.Level + 1);
             var mods = Wolfenstein.ActiveMods;
             var modBuilders = Wolfenstein.BuilderMods
                 .Where(p => mods.Any(mo => mo == p.Key) && p.Value.MapSections.Length > 0)
@@ -222,7 +222,7 @@ namespace WolfensteinInfinite.States
                 CurrentGenerator = MapGenerator.GetMapGenerator(Wolfenstein, size, size, m, s, sections, Game.Map.Level + 1, targetRooms, attemptObjectives, () => { Thread.Yield(); });
                 CurrentGenerator?.TryBuild();
                 if (CurrentGenerator == null || !CurrentGenerator.Success) return;
-                 PreGenerated.Add(CurrentGenerator);
+                PreGenerated.Add(CurrentGenerator);
             }
         }
 
@@ -1285,10 +1285,26 @@ namespace WolfensteinInfinite.States
                     Game.Map.ObjectivesComplete[MapFlags.HAS_BOSS] = true;
             }
         }
-
+        private float runTime = 5f;
+        private float runCoolDown = 0f;
         public void UpdateInput(float frameTime)
         {
-            float moveSpeed = frameTime * 5.0f;
+            float speed = 5f;
+            runCoolDown = MathF.Max(0, runCoolDown - frameTime);
+            if(runCoolDown == 0 && runTime ==0)
+            {
+                runTime = 5f;
+            }
+            if (runCoolDown == 0 && Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyRun))
+            {
+                speed = 8f;
+                runTime = MathF.Max(0, runTime - frameTime);
+                if (runTime == 0)
+                {
+                    runCoolDown = 5f;
+                }
+            }
+            float moveSpeed = frameTime * speed;
             float rotSpeed = frameTime * 2.0f;
 
             if (Wolfenstein.Graphics.IsKeyDown(Wolfenstein.Config.KeyUp))

@@ -27,6 +27,7 @@ namespace WolfensteinInfinite.States
             Menu.MenuItems.Add(new MenuItemKeyBinder("Fire", wolfenstein.Config.KeyFire, OnMenuAction, 180, wolfenstein.GameResources.TinyFont));
             Menu.MenuItems.Add(new MenuItemKeyBinder("Open/Use", wolfenstein.Config.KeyOpen, OnMenuAction, 180, wolfenstein.GameResources.TinyFont));
             Menu.MenuItems.Add(new MenuItemKeyBinder("Stafe", wolfenstein.Config.KeyStafe, OnMenuAction, 180, wolfenstein.GameResources.TinyFont));
+            Menu.MenuItems.Add(new MenuItemKeyBinder("Run", wolfenstein.Config.KeyRun, OnMenuAction, 180, wolfenstein.GameResources.TinyFont));
             Menu.MenuItems.Add(new MenuItemKeyBinder("Weapon Next", wolfenstein.Config.KeyWeaponUp, OnMenuAction, 180, wolfenstein.GameResources.TinyFont));
             Menu.MenuItems.Add(new MenuItemKeyBinder("Weapon Prev", wolfenstein.Config.KeyWeaponDown, OnMenuAction, 180, wolfenstein.GameResources.TinyFont));
             Menu.MenuItems.Add(new MenuItemKeyBinder("Map", wolfenstein.Config.KeyMap, OnMenuAction, 180, wolfenstein.GameResources.TinyFont));
@@ -80,6 +81,12 @@ namespace WolfensteinInfinite.States
                     {
                         if (CanSet((Keyboard.Key)keyItem.InputKey))
                             keyItem.Key = Wolfenstein.Config.KeyStafe = (Keyboard.Key)keyItem.InputKey;
+                        break;
+                    }
+                case "Run":
+                    {
+                        if (CanSet((Keyboard.Key)keyItem.InputKey))
+                            keyItem.Key = Wolfenstein.Config.KeyRun = (Keyboard.Key)keyItem.InputKey;
                         break;
                     }
                 case "Weapon Next":
