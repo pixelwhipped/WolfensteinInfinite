@@ -660,7 +660,7 @@ namespace WolfensteinInfinite.GameMap
             var wallSourceIdMap = MapSection.Empty(Width, Height);
             var itemNamesKey = new Dictionary<string, int>();
             var enemyNamesKey = new Dictionary<string, int>();
-
+            var wallAnyMap = MapSection.Empty(Width, Height); // 0 = definitive, 1 = WallAny
             // Set wall map floors from FlatMap (already in world coords)
 
             for (int y = 0; y < FlatMap.Length; y++)
@@ -703,12 +703,26 @@ namespace WolfensteinInfinite.GameMap
                         var worldX = layer.X + x;
                         if (worldX < 0 || worldX >= Width) continue;
                         if (walls[y][x] < 0) continue;
-                        // WallAny (special=8): higher section ID wins
+
                         bool isWallAny = special[y][x] == 8;
-                        if (isWallAny && wallSectionId[worldY][worldX] >= layer.Section.Id) continue;
-                        // Same-group walls: keep the existing wall rather than overwriting
-                        if (!isWallAny && wallSourceIdMap[worldY][worldX] >= 0 &&
-                            WallsCompatibleByGroup(layer.Mod, walls[y][x], wallSourceIdMap[worldY][worldX])) continue;
+                        bool hasExisting = wallSourceIdMap[worldY][worldX] >= 0;
+                        bool existingIsWallAny = wallAnyMap[worldY][worldX] == 1;
+
+                        if (isWallAny)
+                        {
+                            // A definitive wall is already here — WallAny never wins against it
+                            if (hasExisting && !existingIsWallAny) continue;
+                            // Both are WallAny — higher section ID wins
+                            if (hasExisting && wallSectionId[worldY][worldX] >= layer.Section.Id) continue;
+                        }
+                        else
+                        {
+                            // Incoming is definitive — it beats any existing WallAny unconditionally.
+                            // Against another definitive wall, respect same-group compatibility.
+                            if (hasExisting && !existingIsWallAny &&
+                                WallsCompatibleByGroup(layer.Mod, walls[y][x], wallSourceIdMap[worldY][worldX])) continue;
+                        }
+
                         var key = new ModKeyIndex(layer.Mod.Name, walls[y][x]);
                         if (!wallKeyIndicies.TryGetValue(key, out int index))
                         {
@@ -718,6 +732,7 @@ namespace WolfensteinInfinite.GameMap
                         wallMap[worldY][worldX] = index;
                         wallSectionId[worldY][worldX] = layer.Section.Id;
                         wallSourceIdMap[worldY][worldX] = walls[y][x];
+                        wallAnyMap[worldY][worldX] = isWallAny ? 1 : 0;
                         texture?.Draw(worldX * 64, worldY * 64, Wolfenstein.Textures[key.Mod][key.Index]);
                     }
                 }
