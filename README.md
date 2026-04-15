@@ -41,13 +41,13 @@ The game is built on a modular architecture — nearly everything from enemies a
 Release 1.0.0.0 (done)
 Inlcudes mod definitions for the shareware and full release version of Wolfenstein3D
 
-Release 1.1.0.0
+Release 1.1.0.0(In Progress)
 Add Spear of Destiny mod definition.
 
-Release 1.2.0.0
+Release 1.2.0.0(Pending adoption)
 Add Return to Danger mod definition.
 
-Release 1.2.0.0
+Release 1.2.0.0(Pending adoption)
 Add Ultimate Challenge mod definition.
 
 ![Experimental](https://github.com/pixelwhipped/WolfensteinInfinite/blob/master/WolfensteinInfinite/ScreenShots/Capture001.PNG)
