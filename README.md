@@ -81,13 +81,14 @@ If you own a copy of Wolfenstein 3D you can add the full game data for a richer 
 ---
 
 ## How to Play
-
+Configurable
 | Key | Action |
 |-----|--------|
 | Arrow Keys | Move / Turn |
 | Left Ctrl | Fire |
 | Space | Open Door / Interact |
 | Alt | Strafe |
+| Left Shift | Run |
 | , / . | Cycle Weapons |
 | Tab | Show Map (hold) |
 | Pause | Pause Game |
