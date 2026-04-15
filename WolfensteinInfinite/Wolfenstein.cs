@@ -247,11 +247,13 @@ namespace WolfensteinInfinite
                     WeaponAudio.Add(w.Name, FileHelpers.Shared.LoadAudio(w.Sound));
                 WeaponHudTextures.Add(w.Name, FileHelpers.Shared.LoadSurface32(PlayerWeapons[w.Name].HudSprite));
             }
-
+            Texture32 TransparentDoor = new Texture32(64, 64);
+            TransparentDoor.RectFill(0,0,64,64,0,0,0,0);
             Doors.Add(0, new DoorType(0, DoorTypes.NORMAL, FileHelpers.Shared.LoadSurface32("GameData\\Base\\Textures\\Door.png"), FileHelpers.Shared.LoadSurface32("GameData\\Base\\Textures\\DoorSide.png")));
             Doors.Add(1, new DoorType(1, DoorTypes.ELEVATOR, FileHelpers.Shared.LoadSurface32("GameData\\Base\\Textures\\ElevatorDoor.png"), FileHelpers.Shared.LoadSurface32("GameData\\Base\\Textures\\LockedDoorSide.png")));
             Doors.Add(2, new DoorType(2, DoorTypes.LOCKED, FileHelpers.Shared.LoadSurface32("GameData\\Base\\Textures\\LockedDoor.png"), FileHelpers.Shared.LoadSurface32("GameData\\Base\\Textures\\LockedDoorSide.png")));
             Doors.Add(3, new DoorType(3, DoorTypes.PRISON, FileHelpers.Shared.LoadSurface32("GameData\\Base\\Textures\\CellDoor.png"), FileHelpers.Shared.LoadSurface32("GameData\\Base\\Textures\\LockedDoorSide.png")));
+            Doors.Add(4, new DoorType(3, DoorTypes.FAKE, TransparentDoor, TransparentDoor));
 
             bloodPool = FileHelpers.Shared.LoadSurface32("GameData\\Base\\Sprites\\BloodPool.png");
 

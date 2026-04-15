@@ -1,4 +1,5 @@
 using SFML.Window;
+using System.DirectoryServices;
 using WolfensteinInfinite.Engine.Audio;
 using WolfensteinInfinite.Engine.Graphics;
 using WolfensteinInfinite.GameBible;
@@ -1602,8 +1603,10 @@ namespace WolfensteinInfinite.States
 
         private void UpdateDoors(float deltaTime)
         {
+            
             foreach (var door in Game.Map.Doors)
             {
+                if (door.IsFake) continue;
                 if (door.IsOpening)
                 {
                     door.OpenAmount += door.OpenSpeed * deltaTime;
@@ -1641,6 +1644,7 @@ namespace WolfensteinInfinite.States
 
         private bool DoorCanClose(Door door)
         {
+            if (door.IsFake) return false;
             int playerMapX = (int)Game.Player.PosX;
             int playerMapY = (int)Game.Player.PosY;
 
@@ -2183,16 +2187,21 @@ namespace WolfensteinInfinite.States
             if (door.x >= 0 && door.y >= 0)
             {
                 var d = GetDoorAt(door.x, door.y);
-                if (d != null)
+                if (d != null && !d.IsFake)
                 {
                     texture = Game.Map.DoorSideTextures[d.TextureIndex];
                 }
             }
-            else
+            /*else
             {
                 texture = Game.Map.WallTextures[texNum];
+            }*/
+            if (texture == null)
+            {
+                // Normal wall, or wall adjacent to a fake door (archway) — use the wall's own texture
+                if (texNum < 0 || texNum >= Game.Map.WallTextures.Length) return;
+                texture = Game.Map.WallTextures[texNum];
             }
-            //texture = texture ?? new Texture32(64, 64);
             if (texture == null) return;
             RenderWall(buffer, x, drawStart, drawEnd, lineHeight, perpWallDist, rayDirX, rayDirY, side, texture, mapX, mapY);
 
@@ -2377,7 +2386,9 @@ namespace WolfensteinInfinite.States
         {
             // Don't draw over a closer wall already rendered
             if (ZBuffer[x] < perpWallDist) return;
-
+            // Fake doors are always fully open — nothing to draw.
+            // The archway sides are handled by CastWalls using the adjacent wall texture.
+            if (door.IsFake) return;
             var doorTexture = Game.Map.DoorTextures[door.TextureIndex];
             var texHeight = doorTexture.Height;
             var texWidth = doorTexture.Width;

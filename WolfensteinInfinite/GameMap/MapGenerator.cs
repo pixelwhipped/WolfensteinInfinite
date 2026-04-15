@@ -1013,9 +1013,10 @@ namespace WolfensteinInfinite.GameMap
                 {
                     X = x,
                     Y = y,
-                    OpenAmount = 0.0f,
+                    OpenAmount = doorType.Type == DoorTypes.FAKE? 1.0f :  0.0f,
                     TextureIndex = textureIndex,
                     IsLocked = doorType.Type == DoorTypes.LOCKED,
+                    IsFake = doorType.Type == DoorTypes.FAKE,
                     IsVertical = DetermineDoorOrientation(x, y, wallMap)
                 });
             }

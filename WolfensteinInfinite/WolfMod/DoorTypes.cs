@@ -5,6 +5,7 @@
         NORMAL,
         LOCKED,
         PRISON,
-        ELEVATOR
+        ELEVATOR,
+        FAKE
     }
 }
