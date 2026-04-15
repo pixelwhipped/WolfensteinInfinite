@@ -16,6 +16,7 @@
 	<ItemGroup>
 		<None Remove="GameData\Mods\Demo\map.json" />
 		<None Remove="GameData\Mods\Demo\specialmap.json" />
+		<None Remove="GameData\Mods\SpearOfDestiny\map.json" />
 		<None Remove="GameData\Mods\Wolfenstein3D\map.json" />
 		<None Remove="GameData\Mods\Wolfenstein3D\specialmap.json" />
 		<None Remove="GameData\Mods\Wolfenstein3D\Sprites\1000.png" />
@@ -39,6 +40,9 @@
 		</EmbeddedResource>
 		<EmbeddedResource Include="GameData\Mods\Demo\specialmap.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</EmbeddedResource>
+		<EmbeddedResource Include="GameData\Mods\SpearOfDestiny\map.json">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</EmbeddedResource>
 		<EmbeddedResource Include="GameData\Mods\SpearOfDestiny\Sprites\1000.png">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
